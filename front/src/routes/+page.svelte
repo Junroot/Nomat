@@ -6,7 +6,7 @@
       <div class="card bg-initial p-4 flex justify-center items-center">
         <span>Minimal</span>
       </div>
-      <a class="card bg-initial card-hover overflow-hidden" href="/elements/cards">
+      <a class="card bg-initial card-hover overflow-hidden" href="/.">
         <header>
           <img src="https://images.unsplash.com/photo-1620562303747-ba21ca6f1530?ixid=M3w0Njc5ODF8MHwxfGFsbHx8fHx8fHx8fDE2ODc5NzY2MjR8&amp;ixlib=rb-4.0.3&amp;w=400&amp;h=175&amp;auto=format&amp;fit=crop" class="bg-black/50 w-full aspect-[21/9]" alt="Post">
         </header>
