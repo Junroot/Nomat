@@ -4,7 +4,7 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/3c476754-2f4b-4c81-9f62-af14cfe07052/deploy-status)](https://app.netlify.com/sites/nomat/deploys)
 
-- [nomat.netlify.app](nomat.netlify.app)
+- [nomat.netlify.app](https://nomat.netlify.app)
 
 ## 개발 방법
 
