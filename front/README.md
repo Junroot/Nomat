@@ -1,38 +1,20 @@
-# create-svelte
+# Frontend
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+## 현재 버전 상태
 
-## Creating a project
+[![Netlify Status](https://api.netlify.com/api/v1/badges/3c476754-2f4b-4c81-9f62-af14cfe07052/deploy-status)](https://app.netlify.com/sites/nomat/deploys)
 
-If you're seeing this, you've probably already done this step. Congrats!
+- [nomat.netlify.app](https://nomat.netlify.app)
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## 개발 방법
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm install # dependency 설치
+npm run dev # devServer 실행
 ```
 
-## Building
-
-To create a production version of your app:
+## 빌드
 
 ```bash
 npm run build
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
