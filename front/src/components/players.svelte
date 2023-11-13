@@ -1,19 +1,3 @@
-<div class="card block p-2 players">
-    <header class="card-header">
-        <div class="flex flex-row items-end">
-            <div class="p-1 h2">플레이어</div>
-            <div class="p-1 h4">{players.length}/{maxPlayers}</div>
-        </div>
-    </header>
-    <section>
-        <div class="flex flex-col p-1">
-            {#each players as player}
-                <Player photoUrl="/favicon.png" nickname={player.nickname} isMaster={player.isMaster}></Player>
-            {/each}
-        </div>
-    </section>
-</div>
-
 <script>
     import Player from "./player.svelte";
 
@@ -29,6 +13,22 @@
         }
     ];
 </script>
+
+<div class="card block p-2 players">
+    <header class="card-header">
+        <div class="flex flex-row items-end">
+            <div class="p-1 h2">플레이어</div>
+            <div class="p-1 h4">{players.length}/{maxPlayers}</div>
+        </div>
+    </header>
+    <section>
+        <div class="flex flex-col p-1">
+            {#each players as player}
+                <Player photoUrl="/favicon.png" nickname={player.nickname} isMaster={player.isMaster}></Player>
+            {/each}
+        </div>
+    </section>
+</div>
 
 <style>
     .players {

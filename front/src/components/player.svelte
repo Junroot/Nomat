@@ -1,3 +1,11 @@
+<script>
+    import { Avatar } from '@skeletonlabs/skeleton';
+
+    export let photoUrl = "";
+    export let nickname = "";
+    export let isMaster = false;
+</script>
+
 <div class="flex flex-row items-center p-1 cursor-pointer player">
     <Avatar 
         src={photoUrl}
@@ -11,14 +19,6 @@
         {/if}
     </div>
 </div>
-
-<script>
-    import { Avatar } from '@skeletonlabs/skeleton';
-
-    export let photoUrl = "";
-    export let nickname = "";
-    export let isMaster = false;
-</script>
 
 <style>
     .crown {

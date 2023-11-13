@@ -1,6 +1,5 @@
 <script>
     import Players from "../components/players.svelte";
-
 </script>
 
 <div class="container mx-auto p-4">
