@@ -1,3 +1,11 @@
+<script>
+    import Players from "../components/players.svelte";
+
+</script>
+
+<div class="container mx-auto p-4">
+  <Players></Players>
+</div>
 <h1>Welcome to SvelteKit</h1>
 <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
 <div class="previewer-viewport p-4 md:p-10 space-y-4 bg-gradient-to-br variant-gradient-primary-secondary ">
