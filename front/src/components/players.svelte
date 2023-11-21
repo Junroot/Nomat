@@ -1,7 +1,7 @@
-<script>
+<script lang="ts">
     import Player from "./player.svelte";
 
-    var maxPlayers = 12;
+    var maxPlayers: number = 12;
     var players = [
         {
             "nickname": "ROOT#3465",
