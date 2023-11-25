@@ -6,8 +6,8 @@
   export let isMaster = false;
 </script>
 
-<div class="flex flex-row items-center p-1 cursor-pointer player">
-  <Avatar src={photoUrl} width="w-12" class="p-1 flex-none shrink-0"></Avatar>
+<div class="flex flex-row items-center cursor-pointer player px-1">
+  <Avatar src={photoUrl} width="w-12" class="flex-none shrink-0"></Avatar>
   <div class="p-1 text-ellipsis overflow-hidden nickname">
     <span>{nickname}</span>
     {#if isMaster}
@@ -26,5 +26,8 @@
   .player:hover {
     background-color: #4ddad6;
     color: #1c2626;
+  }
+  .player:hover .crown {
+    background-color: #1c2626;
   }
 </style>

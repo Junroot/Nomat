@@ -15,10 +15,84 @@
       photoUrl: "/favicon.png",
       nickname: "Hassium#0846",
     },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
+    {
+      type: "Player",
+      contents: ["안녕하세요.", "재밌어 보이네요!"],
+      photoUrl: "/favicon.png",
+      nickname: "Hassium#0846",
+    },
   ];
 </script>
 
-<div class="card block p-2 chats">
+<div
+  class="card block p-2 chats flex flex-col w-full h-full overflow-auto hide-scrollbar"
+>
   {#each chats as chat}
     {#if chat.type === "System"}
       <SystemChat contents={chat.contents}></SystemChat>
