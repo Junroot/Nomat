@@ -37,5 +37,6 @@
 <style>
   .players {
     background-color: #115552;
+    color: #e0e3e2;
   }
 </style>

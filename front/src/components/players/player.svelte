@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Avatar } from "@skeletonlabs/skeleton";
 
-  export let photoUrl = "";
-  export let nickname = "";
+  export let photoUrl: string;
+  export let nickname: string;
   export let isMaster = false;
 </script>
 
@@ -18,12 +18,13 @@
 
 <style>
   .crown {
-    background-color: white;
+    background-color: #e0e3e2;
     display: inline-block;
     -webkit-mask: url("/icons/crown.svg") no-repeat center;
     mask: url("/icons/crown.svg") no-repeat center;
   }
   .player:hover {
     background-color: #4ddad6;
+    color: #1c2626;
   }
 </style>
