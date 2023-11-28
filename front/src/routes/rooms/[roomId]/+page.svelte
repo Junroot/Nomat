@@ -20,7 +20,7 @@
 
 <style>
   .room {
-    background-color: #191c1c;
-    color: #e0e3e2;
+    background-color: var(--background-color);
+    color: var(--font-light);
   }
 </style>
