@@ -6,7 +6,7 @@
   let roomName = "들어오셈";
 </script>
 
-<div class="w-screen h-screen overflow-hidden flex flex-row gap-2 p-4 room">
+<div class="flex-auto flex flex-row gap-2 py-4 room">
   <div class="basis-1/3 flex flex-col overflow-auto hide-scrollbar gap-2">
     <div class="h1 font-bold p-2">{roomName}</div>
     <div><Players></Players></div>
