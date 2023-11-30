@@ -1,8 +1,10 @@
 <script>
   import Players from "../components/room/players/players.svelte";
+  import RoomPlaylist from "../components/room/room_playlist.svelte";
 </script>
 
 <div class="container mx-auto p-4">
+  <RoomPlaylist></RoomPlaylist>
   <Players></Players>
 </div>
 <h1>Welcome to SvelteKit</h1>
