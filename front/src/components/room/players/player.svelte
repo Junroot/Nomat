@@ -18,16 +18,16 @@
 
 <style>
   .crown {
-    background-color: #e0e3e2;
+    background-color: var(--font-light);
     display: inline-block;
     -webkit-mask: url("/icons/crown.svg") no-repeat center;
     mask: url("/icons/crown.svg") no-repeat center;
   }
   .player:hover {
-    background-color: #4ddad6;
-    color: #1c2626;
+    background-color: var(--primary-300);
+    color: var(--font-dark);
   }
   .player:hover .crown {
-    background-color: #1c2626;
+    background-color: var(--font-dark);
   }
 </style>

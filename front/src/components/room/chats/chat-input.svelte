@@ -2,7 +2,7 @@
 
 <style>
   .input {
-    background-color: #324b4a;
+    background-color: var(--tertiary-100);
     border: none;
   }
 </style>

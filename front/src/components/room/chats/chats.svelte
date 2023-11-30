@@ -108,7 +108,7 @@
 
 <style>
   .chats {
-    background-color: #1c2626;
-    color: #e0e3e2;
+    background-color: var(--tertiary-50);
+    color: var(--font-light);
   }
 </style>
