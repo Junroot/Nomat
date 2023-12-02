@@ -9,7 +9,7 @@
             <div class="music_note px-4"></div>
             <h3 class="h2">{title}</h3>
         </div>
-        <div class="flex space-x-0.4">
+        <div class="flex space-x-0.5">
             <div class="playlist_maker px-4"></div>
             <h6 class="h3">{maker}</h6>
         </div>
