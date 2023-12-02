@@ -1,13 +1,29 @@
-<script>
-  import ArrowBack from "../../icons/arrow-back.svelte";
-  import Play from "../../icons/play.svelte";
+<script lang="ts">
+  import type { NavigationItemData } from "./navigation-item";
+  import type { ComponentType } from "svelte";
+
   import NavigationBarItem from "./navigation-bar-item.svelte";
+
+  export let navigationItems: NavigationItemData[];
+  export let footer: ComponentType | null = null;
 </script>
 
-<div class="flex-none w-24 py-4 h-full flex flex-col">
-  <NavigationBarItem iconComponent={ArrowBack} label="대기실"
-  ></NavigationBarItem>
-  <NavigationBarItem iconComponent={Play} label="시작"></NavigationBarItem>
+<div class="w-28 py-4 h-full flex flex-col items-center">
+  <div class="grow">
+    {#each navigationItems as navigationItem}
+      <div class="w-20">
+        <NavigationBarItem
+          iconComponent={navigationItem.iconComponent}
+          label={navigationItem.label}
+        ></NavigationBarItem>
+      </div>
+    {/each}
+  </div>
+  <div class="flex-none w-20">
+    {#if footer != null}
+      <svelte:component this={footer} />
+    {/if}
+  </div>
 </div>
 
 <style>

@@ -1,65 +1,108 @@
-<script>
-  import Players from "../components/room/players/players.svelte";
-  import RoomPlaylist from "../components/room/room_playlist.svelte";
+<script lang="ts">
+  import type { NavigationItemData } from "../components/navigation-bar/navigation-item";
+
+  import Room from "../components/lobby/room.svelte";
+  import CreateRoomIcon from "../icons/create-room-icon.svelte";
+  import NavigationBar from "../components/navigation-bar/navigation-bar.svelte";
+  import SearchInput from "../components/lobby/search-input.svelte";
+  import Me from "../components/lobby/me.svelte";
+
+  let navigationItems: NavigationItemData[] = [
+    {
+      iconComponent: CreateRoomIcon,
+      label: "방 만들기",
+    },
+  ];
+
+  let rooms = [
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+    {
+      roomName: "들어오셈",
+      playListName: "오늘의 TOP 100: 일본",
+      playListCount: 100,
+      roomMaster: "ROOT#3454",
+    },
+  ];
 </script>
 
-<div class="container mx-auto p-4">
-  <RoomPlaylist></RoomPlaylist>
-  <Players></Players>
-</div>
-<h1>Welcome to SvelteKit</h1>
-<p>
-  Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation
-</p>
-<div
-  class="previewer-viewport p-4 md:p-10 space-y-4 bg-gradient-to-br variant-gradient-primary-secondary"
->
-  <div
-    class="previewer-preview flex justify-center items-center mx-auto transition-[width] duration-200 w-full"
-  >
-    <div class="w-full text-token grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="card bg-initial p-4 flex justify-center items-center">
-        <span>Minimal</span>
+<div class="w-screen h-screen overflow-hidden flex flex-row layout-container">
+  <NavigationBar {navigationItems} footer={Me}></NavigationBar>
+  <div class="w-full flex flex-col">
+    <div class="w-full p-4">
+      <SearchInput></SearchInput>
+    </div>
+    <div class="w-full overflow-auto hide-scrollbar">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 px-2"
+      >
+        {#each rooms as room}
+          <Room
+            roomName={room.roomName}
+            playListName={room.playListName}
+            playListCount={room.playListCount}
+            master={room.roomMaster}
+          ></Room>
+        {/each}
       </div>
-      <a class="card bg-initial card-hover overflow-hidden" href="/.">
-        <header>
-          <img
-            src="https://images.unsplash.com/photo-1620562303747-ba21ca6f1530?ixid=M3w0Njc5ODF8MHwxfGFsbHx8fHx8fHx8fDE2ODc5NzY2MjR8&amp;ixlib=rb-4.0.3&amp;w=400&amp;h=175&amp;auto=format&amp;fit=crop"
-            class="bg-black/50 w-full aspect-[21/9]"
-            alt="Post"
-          />
-        </header>
-        <div class="p-4 space-y-4">
-          <h6 class="h6" data-toc-ignore="">Announcements</h6>
-          <h3 class="h3" data-toc-ignore="">Skeleton is Awesome!</h3>
-          <article>
-            <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Numquam
-              aspernatur provident eveniet eligendi cumque consequatur tempore
-              sint nisi sapiente. Iste beatae laboriosam iure molestias cum
-              expedita architecto itaque quae rem.
-            </p>
-          </article>
-        </div>
-        <hr class="opacity-50" />
-        <footer class="p-4 flex justify-start items-center space-x-4">
-          <figure
-            class="avatar flex aspect-square text-surface-50 font-semibold justify-center items-center overflow-hidden isolate bg-surface-400-500-token w-8 rounded-full"
-            data-testid="avatar"
-          >
-            <img
-              class="avatar-image w-full h-full object-cover"
-              src="https://images.unsplash.com/photo-1617296538902-887900d9b592?ixid=M3w0Njc5ODF8MHwxfGFsbHx8fHx8fHx8fDE2ODc5NzExMDB8&amp;ixlib=rb-4.0.3&amp;w=32&amp;h=32&amp;auto=format&amp;fit=crop"
-              alt=""
-              style=""
-            />
-          </figure>
-          <div class="flex-auto flex justify-between items-center">
-            <h6 class="font-bold" data-toc-ignore="">By Alex</h6>
-            <small>On 2023. 11. 9.</small>
-          </div>
-        </footer>
-      </a>
     </div>
   </div>
 </div>

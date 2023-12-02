@@ -1,6 +1,6 @@
 <script lang="ts">
-  import MusicNote from "../../icons/music-note.svelte";
-  import PlaylistMaker from "../../icons/playlist-maker.svelte";
+  import MusicNoteIcon from "../../icons/music-note-icon.svelte";
+  import PlaylistMakerIcon from "../../icons/playlist-maker-icon.svelte";
   var title = "오늘의 TOP 100: 일본";
   var maker = "ROOT#3465";
   var comment =
@@ -10,14 +10,14 @@
 <div class="card block p-4 room_playlist">
   <div class="space-y-0.5">
     <div class="flex">
-      <div class="w-8">
-        <MusicNote></MusicNote>
+      <div class="flex-none w-8">
+        <MusicNoteIcon></MusicNoteIcon>
       </div>
       <h3 class="h2">{title}</h3>
     </div>
     <div class="flex space-x-1">
-      <div class="w-7">
-        <PlaylistMaker></PlaylistMaker>
+      <div class="flex-none w-7">
+        <PlaylistMakerIcon></PlaylistMakerIcon>
       </div>
       <h6 class="h3">{maker}</h6>
     </div>

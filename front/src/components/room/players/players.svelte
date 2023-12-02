@@ -17,7 +17,7 @@
 <div class="card block p-1 players w-full h-full">
   <header class="card-header p-2">
     <div class="flex flex-row items-end">
-      <div class="p-1 h2">플레이어</div>
+      <div class="p-1 h2 font-bold">플레이어</div>
       <div class="p-1 h4">{players.length}/{maxPlayers}</div>
     </div>
   </header>
