@@ -34,7 +34,6 @@
 
   .profile {
     position: absolute;
-    z-index: 9998;
     top: 0;
     transition: all 0.3s;
   }

@@ -6,6 +6,7 @@
   import NavigationBar from "../components/navigation-bar/navigation-bar.svelte";
   import SearchInput from "../components/lobby/search-input.svelte";
   import Me from "../components/lobby/me.svelte";
+  import RoomCreate from "../components/lobby/room-create.svelte";
 
   let navigationItems: NavigationItemData[] = [
     {
@@ -13,6 +14,8 @@
       label: "방 만들기",
     },
   ];
+
+  let isCreatingRoom: boolean = false;
 
   let rooms = [
     {
@@ -106,3 +109,18 @@
     </div>
   </div>
 </div>
+{#if isCreatingRoom}
+  <div
+    class="absolute w-screen h-screen left-0 top-0 p-100 z-10 dimmed flex flex-col justify-center items-center"
+  >
+    <div class="w-1/2 min-w-max">
+      <RoomCreate on:close={() => (isCreatingRoom = false)}></RoomCreate>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .dimmed {
+    background-color: var(--translucent-background-color);
+  }
+</style>
