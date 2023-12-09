@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { SlideToggle, Autocomplete } from "@skeletonlabs/skeleton";
   import type { AutocompleteOption } from "@skeletonlabs/skeleton";
 
@@ -12,7 +12,10 @@
   let roomCapacity = 2;
   let playListSearchValue = "";
   let isEnableAutoComplete = false;
+  let windowHeight: number;
   let selectedPlayListId: string | null = null;
+  let playlistInput: HTMLElement | null;
+  let autoComplete: HTMLElement | null;
 
   $: isValidName = name.trim().length > 0;
   $: isValidPassword = !passwordEnabled || password.length !== 0;
@@ -58,6 +61,12 @@
     },
   ];
 
+  onMount(() => {
+    playlistInput = document.getElementById("playlist-input");
+    autoComplete = document.getElementById("auto-complete");
+    repositionAutocomplete();
+  });
+
   function onPlayListSelection(
     event: CustomEvent<AutocompleteOption<string>>,
   ): void {
@@ -65,8 +74,29 @@
     selectedPlayListId = event.detail.value;
     isEnableAutoComplete = false;
   }
+
+  function repositionAutocomplete() {
+    if (playlistInput && autoComplete) {
+      let playlistInputRect = playlistInput.getBoundingClientRect();
+
+      autoComplete.style.left = `${playlistInputRect.x}px`;
+      autoComplete.style.top = `${playlistInputRect.bottom + 4}px`;
+      autoComplete.style.width = `${playlistInputRect.width}px`;
+      autoComplete.style.maxHeight = `${
+        windowHeight - playlistInputRect.bottom - 8
+      }px`;
+    }
+  }
+
+  function handleWindowResized() {
+    repositionAutocomplete();
+  }
 </script>
 
+<svelte:window
+  on:resize={handleWindowResized}
+  bind:innerHeight={windowHeight}
+/>
 <div class="card p-12 room-create">
   <header class="card-header p-0 mb-4 h2">방 만들기</header>
   <section>
@@ -119,6 +149,7 @@
         <input
           class="input px-4"
           class:red-border={!isValidPlayList}
+          id="playlist-input"
           type="search"
           bind:value={playListSearchValue}
           on:input={() => {
@@ -126,20 +157,20 @@
             selectedPlayListId = null;
           }}
         />
-        {#if isEnableAutoComplete}
-          <div
-            class="absolute mt-2 card z-20 w-full p-4 overflow-y-auto auto-complete"
-          >
-            <Autocomplete
-              bind:input={playListSearchValue}
-              {options}
-              filter={() => {
-                return options;
-              }}
-              on:selection={onPlayListSelection}
-            />
-          </div>
-        {/if}
+        <div
+          class="fixed card z-20 p-4 overflow-y-auto auto-complete hide-scrollbar"
+          id="auto-complete"
+          hidden={!isEnableAutoComplete}
+        >
+          <Autocomplete
+            bind:input={playListSearchValue}
+            {options}
+            filter={() => {
+              return options;
+            }}
+            on:selection={onPlayListSelection}
+          />
+        </div>
       </div>
     </div>
   </section>
