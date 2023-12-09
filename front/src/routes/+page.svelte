@@ -21,66 +21,77 @@
 
   let rooms = [
     {
+      id: "1",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "2",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "3",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "4",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "5",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "6",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "7",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "8",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "9",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "10",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
       roomMaster: "ROOT#3454",
     },
     {
+      id: "11",
       roomName: "들어오셈",
       playListName: "오늘의 TOP 100: 일본",
       playListCount: 100,
@@ -101,6 +112,7 @@
       >
         {#each rooms as room}
           <Room
+            roomId={room.id}
             roomName={room.roomName}
             playListName={room.playListName}
             playListCount={room.playListCount}

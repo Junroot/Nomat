@@ -23,7 +23,9 @@
         <UserIcon></UserIcon>
       </div>
     </div>
-    <p class="flex-none pr-8 h2 nickname">{nickname}</p>
+    {#if isHover}
+      <p class="flex-none pr-8 h2 nickname">{nickname}</p>
+    {/if}
   </div>
 </button>
 

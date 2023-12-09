@@ -14,6 +14,9 @@
     {
       iconComponent: ArrowBackIcon,
       label: "대기실",
+      onClick: () => {
+        window.location.href = "/";
+      },
     },
     {
       iconComponent: PlayIcon,
