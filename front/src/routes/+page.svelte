@@ -8,14 +8,16 @@
   import Me from "../components/lobby/me.svelte";
   import RoomCreate from "../components/lobby/room-create.svelte";
 
+  let isCreatingRoom: boolean = false;
   let navigationItems: NavigationItemData[] = [
     {
       iconComponent: CreateRoomIcon,
       label: "방 만들기",
+      onClick: () => {
+        isCreatingRoom = true;
+      },
     },
   ];
-
-  let isCreatingRoom: boolean = false;
 
   let rooms = [
     {

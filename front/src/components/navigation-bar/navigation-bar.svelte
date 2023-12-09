@@ -15,6 +15,7 @@
         <NavigationBarItem
           iconComponent={navigationItem.iconComponent}
           label={navigationItem.label}
+          onClick={navigationItem.onClick}
         ></NavigationBarItem>
       </div>
     {/each}
