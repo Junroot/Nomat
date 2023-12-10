@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "NotoSans";
+  src: url("/fonts/NotoSansCJKjp.otf");
+}
+
 :root {
   --translucent-background-color: #000000cc;
   --background-color: #191c1c;
@@ -45,6 +50,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  font-family: "NotoSans";
 }
 
 svg {

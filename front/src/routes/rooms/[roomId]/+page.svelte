@@ -7,7 +7,7 @@
   import Players from "../../../components/room//players/players.svelte";
   import ArrowBackIcon from "../../../icons/arrow-back-icon.svelte";
   import PlayIcon from "../../../icons/play-icon.svelte";
-  import RoomPlaylist from "../../../components/room/room_playlist.svelte";
+  import RoomPlaylist from "../../../components/room/room-playlist.svelte";
 
   let roomName = "들어오셈";
   let navigationItems: NavigationItemData[] = [

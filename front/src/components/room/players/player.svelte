@@ -11,7 +11,7 @@
 </script>
 
 <button
-  class="flex flex-row items-center cursor-pointer player px-1"
+  class="flex flex-row items-center cursor-pointer player px-2"
   on:mouseenter={() => {
     isHover = true;
   }}
