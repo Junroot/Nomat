@@ -1,20 +1,69 @@
-# Frontend
+# essentials
 
-## 현재 버전 상태
+## Project setup
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/3c476754-2f4b-4c81-9f62-af14cfe07052/deploy-status)](https://app.netlify.com/sites/nomat/deploys)
+```
+# yarn
+yarn
 
-- [nomat.netlify.app](https://nomat.netlify.app)
+# npm
+npm install
 
-## 개발 방법
+# pnpm
+pnpm install
 
-```bash
-npm install # dependency 설치
-npm run dev # devServer 실행
+# bun 
+bun install
 ```
 
-## 빌드
+### Compiles and hot-reloads for development
 
-```bash
+```
+# yarn
+yarn dev
+
+# npm
+npm run dev
+
+# pnpm
+pnpm dev
+
+# bun 
+bun run dev
+```
+
+### Compiles and minifies for production
+
+```
+# yarn
+yarn build
+
+# npm
 npm run build
+
+# pnpm
+pnpm build
+
+# bun 
+bun run build
 ```
+
+### Lints and fixes files
+
+```
+# yarn
+yarn lint
+
+# npm
+npm run lint
+
+# pnpm
+pnpm lint
+
+# bun 
+bun run lint
+```
+
+### Customize configuration
+
+See [Configuration Reference](https://vitejs.dev/config/).
