@@ -109,10 +109,6 @@
           type="text"
           bind:value={name}
           placeholder="1자 이상 입력"
-          on:input={() => {
-            console.log(name.trim.length);
-            console.log(isValidName);
-          }}
         />
       </div>
       <div>
@@ -175,15 +171,8 @@
     </div>
   </section>
   <footer class="card-footer mt-12 p-0 flex flex-row gap-4">
-    <button
-      class="btn flex-1 create-button font-bold"
-      disabled={!isValidInput}
-      on:click={() => {
-        console.log(name);
-        console.log(passwordEnabled);
-        console.log(password);
-        console.log(roomCapacity);
-      }}>만들기</button
+    <button class="btn flex-1 create-button font-bold" disabled={!isValidInput}
+      >만들기</button
     >
     <button
       class="btn flex-1 cancel-button font-bold"
