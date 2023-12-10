@@ -12,7 +12,6 @@
   let roomCapacity = 2;
   let playListSearchValue = "";
   let isEnableAutoComplete = false;
-  let windowHeight: number;
   let selectedPlayListId: string | null = null;
   let playlistInput: HTMLElement | null;
   let autoComplete: HTMLElement | null;
@@ -83,7 +82,7 @@
       autoComplete.style.top = `${playlistInputRect.bottom + 4}px`;
       autoComplete.style.width = `${playlistInputRect.width}px`;
       autoComplete.style.maxHeight = `${
-        windowHeight - playlistInputRect.bottom - 8
+        window.innerHeight - playlistInputRect.bottom - 8
       }px`;
     }
   }
@@ -93,10 +92,7 @@
   }
 </script>
 
-<svelte:window
-  on:resize={handleWindowResized}
-  bind:innerHeight={windowHeight}
-/>
+<svelte:window on:resize={handleWindowResized} />
 <div class="card p-12 room-create">
   <header class="card-header p-0 mb-4 h2">방 만들기</header>
   <section>
