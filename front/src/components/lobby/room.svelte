@@ -20,7 +20,7 @@
       </div>
       <div class="px-3 flex flex-row items-center gap-2">
         <div class="w-8 flex-none"><MusicIcon></MusicIcon></div>
-        <p class="break-all">#{playListCount}</p>
+        <p class="break-all">{playListCount}곡</p>
       </div>
       <div class="px-3 flex flex-row items-center gap-2">
         <div class="w-8 flex-none"><UserIcon></UserIcon></div>
