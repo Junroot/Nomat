@@ -110,7 +110,7 @@
       <div>
         <span>최대 인원수</span>
         <select class="select rounded-full px-4" bind:value={roomCapacity}>
-          {#each Array(maxRoomCapacity) as _, index}
+          {#each Array(maxRoomCapacity).keys() as index}
             <option value={index + 1}>{index + 1}</option>
           {/each}
         </select>
