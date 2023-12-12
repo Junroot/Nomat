@@ -9,10 +9,18 @@
   </v-sheet>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
 import NavigationBar from "@/components/navigation-bar/NavigationBar.vue";
 import NavigationBarItem from "@/components/navigation-bar/NavigationBarItem.vue";
 import RoomCreateIcon from "@/icons/RoomCreateIcon.vue";
+
+export default {
+  components: {
+    NavigationBar,
+    NavigationBarItem,
+    RoomCreateIcon
+  }
+}
 </script>
 
 <style></style>
