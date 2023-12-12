@@ -1,5 +1,5 @@
 <template>
-  <v-sheet class="w-100 h-100 overflow-hidden d-flex flex-row">
+  <v-sheet class="w-screen h-screen overflow-hidden d-flex flex-row">
     <NavigationBar>
       <NavigationBarItem label="방 만들기"
         ><RoomCreateIcon></RoomCreateIcon
@@ -18,9 +18,9 @@ export default {
   components: {
     NavigationBar,
     NavigationBarItem,
-    RoomCreateIcon
-  }
-}
+    RoomCreateIcon,
+  },
+};
 </script>
 
 <style></style>

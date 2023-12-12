@@ -46,20 +46,26 @@
   --font-primary: #4fe2de;
 }
 
+html,
 body {
   background-color: var(--background-color);
+  color: var(--font-light);
   margin: 0;
   height: 100%;
   overflow: hidden;
   font-family: "NotoSans", sans-serif;
 }
 
-div {
-  background-color: var(--background-color);
-}
-
 svg {
   fill: var(--font-light);
   width: 100%;
   height: 100%;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
