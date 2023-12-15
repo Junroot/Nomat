@@ -17,7 +17,7 @@
     </v-sheet>
   </v-sheet>
 </template>
-PlayerData
+
 <script lang="ts">
 import type { PlayerData } from "@/components/room/players/PlayerData";
 import Player from "@/components/room/players/Player.vue";
@@ -41,6 +41,6 @@ export default {
 
 <style>
 .players {
-  background-color: var(--tertiary-200);
+  background-color: var(--primary-100);
 }
 </style>

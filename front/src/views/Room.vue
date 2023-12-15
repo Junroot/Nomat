@@ -24,7 +24,10 @@
           <Players :players="players" :max-players="20"></Players>
         </v-sheet>
       </v-sheet>
-      <v-sheet class="pa-2 second-col">sdf</v-sheet>
+      <v-sheet class="pa-2 d-flex flex-column-reverse second-col">
+        <ChatInput class="mt-2"></ChatInput>
+        <Chats :chats="chats"></Chats>
+      </v-sheet>
     </v-sheet>
   </v-sheet>
 </template>
@@ -36,6 +39,8 @@ import RoomPlaylist from "@/components/room/RoomPlaylist.vue";
 import Players from "@/components/room/players/Players.vue";
 import ArrowBackIcon from "@/icons/ArrowBackIcon.vue";
 import PlayIcon from "@/icons/PlayIcon.vue";
+import Chats from "@/components/room/chats/Chats.vue";
+import ChatInput from "@/components/room/chats/ChatInput.vue";
 
 export default {
   components: {
@@ -45,6 +50,8 @@ export default {
     ArrowBackIcon,
     PlayIcon,
     Players,
+    Chats,
+    ChatInput,
   },
   data: function () {
     return {
@@ -63,6 +70,92 @@ export default {
           nickname: "Hassium#0846",
           photoUrl: "/favicon.ico",
           isMaster: false,
+        },
+      ],
+      chats: [
+        {
+          type: "System",
+          contents: ["Hassium#0846님이 입장하셨습니다."],
+          photoUrl: null,
+          nickname: null,
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
+        },
+        {
+          type: "Player",
+          contents: ["안녕하세요.", "재밌어 보이네요!"],
+          photoUrl: "/favicon.ico",
+          nickname: "Hassium#0846",
         },
       ],
     };
