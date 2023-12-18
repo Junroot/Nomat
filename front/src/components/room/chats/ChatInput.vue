@@ -1,8 +1,8 @@
 <template>
-  <v-sheet :height="64" class="w-100">
+  <v-sheet class="w-100">
     <v-text-field
       clearable
-      label="채팅 입력"
+      placeholder="채팅 입력"
       variant="solo"
       class="w-100 h-100 chat-input"
       bg-color="var(--tertiary-100)"
@@ -11,6 +11,7 @@
       density="comfortable"
       rounded
       single-line
+      hide-details
     ></v-text-field>
   </v-sheet>
 </template>
