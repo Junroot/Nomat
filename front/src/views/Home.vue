@@ -1,9 +1,14 @@
 <template>
   <v-sheet class="w-screen h-screen overflow-hidden d-flex flex-row">
     <NavigationBar>
-      <NavigationBarItem label="방 만들기"
-        ><RoomCreateIcon></RoomCreateIcon
-      ></NavigationBarItem>
+      <v-sheet class="flex-grow-1 flex-shrink-1">
+        <NavigationBarItem label="방 만들기">
+          <RoomCreateIcon></RoomCreateIcon>
+        </NavigationBarItem>
+      </v-sheet>
+      <v-sheet class="flex-grow-0 flex-shrink-0"
+        ><Me nickname="ROOT#3465"></Me
+      ></v-sheet>
     </NavigationBar>
     <v-sheet class="w-100 d-flex flex-column">
       <v-sheet class="w-100 pa-4"
@@ -35,6 +40,7 @@ import NavigationBarItem from "@/components/navigation-bar/NavigationBarItem.vue
 import RoomCreateIcon from "@/icons/RoomCreateIcon.vue";
 import Room from "@/components/lobby/Room.vue";
 import SearchInput from "@/components/lobby/SearchInput.vue";
+import Me from "@/components/lobby/Me.vue";
 
 export default {
   components: {
@@ -43,6 +49,7 @@ export default {
     RoomCreateIcon,
     Room,
     SearchInput,
+    Me,
   },
 };
 </script>
