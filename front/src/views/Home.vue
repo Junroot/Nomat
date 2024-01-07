@@ -2,7 +2,7 @@
   <v-sheet class="w-screen h-screen overflow-hidden d-flex flex-row">
     <NavigationBar>
       <v-sheet class="flex-grow-1 flex-shrink-1">
-        <NavigationBarItem label="방 만들기">
+        <NavigationBarItem label="방 만들기" :onclick="onClickCreateRoom">
           <RoomCreateIcon></RoomCreateIcon>
         </NavigationBarItem>
       </v-sheet>
@@ -31,6 +31,14 @@
         </v-row>
       </v-container>
     </v-sheet>
+    <v-overlay
+      v-model="isRoomCreation"
+      scrim="black"
+      width="50%"
+      class="align-center justify-center"
+    >
+      <RoomCreate></RoomCreate>
+    </v-overlay>
   </v-sheet>
 </template>
 
@@ -41,6 +49,7 @@ import RoomCreateIcon from "@/icons/RoomCreateIcon.vue";
 import Room from "@/components/lobby/Room.vue";
 import SearchInput from "@/components/lobby/SearchInput.vue";
 import Me from "@/components/lobby/Me.vue";
+import RoomCreate from "@/components/lobby/RoomCreate.vue";
 
 export default {
   components: {
@@ -50,6 +59,17 @@ export default {
     Room,
     SearchInput,
     Me,
+    RoomCreate,
+  },
+  data() {
+    return {
+      isRoomCreation: false,
+    };
+  },
+  methods: {
+    onClickCreateRoom() {
+      this.isRoomCreation = true;
+    },
   },
 };
 </script>

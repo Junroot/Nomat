@@ -9,6 +9,12 @@
 //   $color-pack: false
 // );
 
+@use "vuetify/settings" with (
+  $overlay-opacity: 0.75,
+  $switch-track-background: #0a3331,
+  $switch-thumb-background: #0a3331
+);
+
 @font-face {
   font-family: "NotoSans";
   src: url("/fonts/NotoSansCJKjp.otf");
