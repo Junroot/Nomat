@@ -24,11 +24,11 @@
           <Players :players="players" :max-players="20"></Players>
         </v-sheet>
       </v-sheet>
-      <v-sheet class="pa-2 d-flex flex-column-reverse second-col">
+      <v-sheet class="pa-2 d-flex flex-column second-col">
+        <Chats :chats="chats"></Chats>
         <v-sheet class="w-100 mt-2 mb-4"
           ><ChatInput class="mt-2"></ChatInput
         ></v-sheet>
-        <Chats :chats="chats"></Chats>
       </v-sheet>
     </v-sheet>
   </v-sheet>

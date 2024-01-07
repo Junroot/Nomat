@@ -85,12 +85,32 @@
             density="compact"
             menu-icon=""
             rounded
+            flat
             :rules="[isValidPlaylist]"
           ></v-autocomplete>
         </v-sheet>
-        <v-sheet class="d-felx flex-row ga-1 justify-center w-100">
-          <v-sheet class="flex-1-1"><v-btn block>만들기</v-btn></v-sheet>
-          <v-sheet class="flex-1-1"><v-btn block>취소</v-btn></v-sheet>
+        <v-sheet class="d-flex flex-row ga-2 justify-center w-100">
+          <v-sheet class="flex-1-1"
+            ><v-btn
+              block
+              rounded
+              flat
+              variant="tonal"
+              :disabled="!isValidForm"
+              class="create-button"
+              >만들기</v-btn
+            ></v-sheet
+          >
+          <v-sheet class="flex-1-1"
+            ><v-btn
+              block
+              rounded
+              flat
+              @click="$emit('close')"
+              class="cancel-button"
+              >취소</v-btn
+            ></v-sheet
+          >
         </v-sheet>
       </v-form>
     </v-sheet>
@@ -116,6 +136,22 @@ export default {
   mounted() {
     this.validateForm();
   },
+  computed: {
+    isValidRoomName() {
+      return !!this.roomName && this.roomName.trim().length > 0;
+    },
+    isValidPassword() {
+      return !this.usePassword || (!!this.password && this.password.length > 0);
+    },
+    isValidPlaylist() {
+      return this.selectedPlaylist !== null;
+    },
+    isValidForm() {
+      return (
+        this.isValidRoomName && this.isValidPassword && this.isValidPlaylist
+      );
+    },
+  },
   watch: {
     usePassword(newUsePassword) {
       if (!newUsePassword) {
@@ -124,7 +160,7 @@ export default {
     },
   },
   methods: {
-    async onSearch(value: string) {
+    async onSearch() {
       setTimeout(() => {
         if (this.searchingId !== null) {
           clearTimeout(this.searchingId);
@@ -164,15 +200,7 @@ export default {
     customFilter() {
       return true;
     },
-    isValidRoomName() {
-      return this.roomName && this.roomName.trim().length > 0;
-    },
-    isValidPassword(password: string) {
-      return !this.usePassword || (password && password.length > 0);
-    },
-    isValidPlaylist() {
-      return this.selectedPlaylist !== null;
-    },
+
     validateForm() {
       let form = this.$refs.form as VForm;
       form?.validate();
@@ -208,5 +236,27 @@ export default {
 
 .v-input--error .v-field__overlay {
   border: solid var(--error-300);
+}
+
+.create-button {
+  background-color: var(--primary-300) !important;
+  color: var(--font-dark) !important;
+}
+
+.create-button .v-btn__underlay {
+  background-color: #00000000 !important;
+}
+
+.create-button .v-btn__overlay {
+  background-color: #00000000 !important;
+}
+
+.cancel-button {
+  background-color: var(--tertiary-50) !important;
+  color: var(--font-light) !important;
+}
+
+.cancel-button .v-btn__overlay {
+  background-color: #00000000 !important;
 }
 </style>

@@ -37,7 +37,7 @@
       width="50%"
       class="align-center justify-center"
     >
-      <RoomCreate></RoomCreate>
+      <RoomCreate @close="() => (isRoomCreation = false)"></RoomCreate>
     </v-overlay>
   </v-sheet>
 </template>
