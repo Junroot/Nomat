@@ -5,7 +5,6 @@
       :width="profileWidth"
       @mouseenter="onMouseEnter"
       @mouseleave="onMouseLeave"
-      ref="profile"
       class="d-flex flex-row align-center profile rounded-pill"
       :class="{ 'elevation-16': isHover }"
     >

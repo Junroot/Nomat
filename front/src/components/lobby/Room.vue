@@ -6,7 +6,7 @@
         <v-sheet class="flex-grow-0 flex-shrink-0" :width="32" :height="32">
           <PlaylistIcon></PlaylistIcon>
         </v-sheet>
-        <p>{{ roomName }}</p>
+        <p>{{ playListName }}</p>
       </v-sheet>
       <v-sheet class="px-3 d-flex flex-row align-center ga-1">
         <v-sheet class="flex-grow-0 flex-shrink-0" :width="32" :height="32">
