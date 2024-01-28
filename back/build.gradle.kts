@@ -22,7 +22,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	implementation("org.mariadb.jdbc:mariadb-java-client")
+	implementation("org.springframework.boot:spring-boot-testcontainers")
+	implementation("org.testcontainers:mariadb")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
