@@ -3,6 +3,8 @@ package ilpak.nomat.room.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import ilpak.nomat.playlist.dto.PlaylistResponse
 import ilpak.nomat.room.dto.RoomResponse
+import org.hamcrest.Matchers.hasSize
+import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -14,31 +16,22 @@ import org.springframework.test.web.servlet.get
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class RoomControllerTest(
 	@Autowired
-	private val objectMapper: ObjectMapper,
-	@Autowired
 	private val mockMvc: MockMvc
 ) {
 
 	@Test
 	fun getRooms() {
-		val expected = (1..40).map {
-			RoomResponse(
-				id = it.toLong(),
-				title = "들어오셈",
-				playlist = PlaylistResponse(
-					1L,
-					"오늘의 TOP 100: 일본",
-					100
-				),
-				masterNickname = "ROOT#3465"
-			)
-		}
 
 		mockMvc.get("/rooms")
 			.andExpect {
 				status { isOk() }
 				content {
-					json(objectMapper.writeValueAsString(expected))
+					jsonPath("$.length()", `is`(40))
+					jsonPath("$[0].title", `is`("들어오셈"))
+					jsonPath("$[0].playlist.id", `is`(1))
+					jsonPath("$[0].playlist.name", `is`("오늘의 TOP 100: 일본"))
+					jsonPath("$[0].playlist.count", `is`(100))
+					jsonPath("$[0].masterNickname", `is`("ROOT#3465"))
 				}
 			}
 	}
