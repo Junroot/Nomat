@@ -1,7 +1,7 @@
 package ilpak.nomat.room.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import ilpak.nomat.room.dto.PlaylistResponse
+import ilpak.nomat.playlist.dto.PlaylistResponse
 import ilpak.nomat.room.dto.RoomResponse
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +30,7 @@ class RoomControllerTest(
 					"오늘의 TOP 100: 일본",
 					100
 				),
-				master = "ROOT#3465"
+				masterNickname = "ROOT#3465"
 			)
 		}
 

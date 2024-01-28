@@ -1,0 +1,6 @@
+CREATE TABLE If NOT EXISTS test.room (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    playlist_id BIGINT NOT NULL,
+    title VARCHAR(30) NOT NULL,
+    master_id BIGINT NOT NULL
+) DEFAULT CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci';

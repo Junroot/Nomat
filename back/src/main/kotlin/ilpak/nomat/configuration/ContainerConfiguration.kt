@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile
 import org.testcontainers.containers.MariaDBContainer
 
 @Configuration(proxyBeanMethods = false)
-@Profile("dev")
+@Profile("local")
 class ContainerConfiguration {
 
 	@Bean

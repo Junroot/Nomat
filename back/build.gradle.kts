@@ -5,6 +5,7 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.4"
 	kotlin("jvm") version "1.9.22"
 	kotlin("plugin.spring") version "1.9.22"
+	kotlin("plugin.jpa") version "1.9.22"
 }
 
 group = "ilpak"
@@ -25,6 +26,8 @@ dependencies {
 	implementation("org.mariadb.jdbc:mariadb-java-client")
 	implementation("org.springframework.boot:spring-boot-testcontainers")
 	implementation("org.testcontainers:mariadb")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.flywaydb:flyway-mysql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
