@@ -1,22 +1,31 @@
 package ilpak.nomat.room.service
 
-import ilpak.nomat.room.dto.PlaylistResponse
+import ilpak.nomat.playlist.service.PlaylistService
+import ilpak.nomat.room.domain.RoomRepository
 import ilpak.nomat.room.dto.RoomResponse
+import ilpak.nomat.user.service.UserService
 import org.springframework.stereotype.Service
 
 @Service
-class RoomService {
+class RoomService(
+	private val playlistService: PlaylistService,
+	private val userService: UserService,
+	private val roomRepository: RoomRepository
+) {
 
 	fun getRooms(): List<RoomResponse> {
-		return (1..40).map { RoomResponse(
-			id = it.toLong(),
-			title = "들어오셈",
-			playlist = PlaylistResponse(
-				1L,
-				"오늘의 TOP 100: 일본",
-				100
-			),
-			master = "ROOT#3465"
-		) }
+		val rooms = roomRepository.findAll()
+		val playlists = playlistService.getPlaylistMetadata(rooms.map { it.playlistId }.toSet())
+			.associateBy { it.id }
+		val masterNicknames = userService.getUserNames(rooms.map { it.masterId }.toSet())
+			.associateBy { it.userId }
+
+		return rooms.mapNotNull {
+			RoomResponse.of(
+				it,
+				playlists[it.playlistId] ?: return@mapNotNull null,
+				masterNicknames[it.masterId]?.nickname ?: return@mapNotNull null
+			)
+		}
 	}
 }
