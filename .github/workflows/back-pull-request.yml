@@ -1,3 +1,4 @@
+name: Backend Test
 on:
   pull_request:
     paths:
@@ -7,10 +8,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java#3
+      - uses: actions/setup-java@v4
         with:
           java-version: "17"
           distribution: "temurin"
-      - run: |
-        cd back
-        ./gradlew clean test
+      - name: Run tests
+        run: |
+          cd back
+          ./gradlew clean test

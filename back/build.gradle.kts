@@ -43,7 +43,7 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 	testLogging {
-		events = setOf(TestLogEvent.FAILED)
+		events = setOf(TestLogEvent.STARTED, TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.STANDARD_ERROR)
 		exceptionFormat = TestExceptionFormat.FULL
 	}
 }
