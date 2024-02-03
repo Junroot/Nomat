@@ -12,5 +12,5 @@ jobs:
           java-version: "17"
           distribution: "temurin"
       - run: |
-          cd back
-          ./gradlew clean test
+        cd back
+        ./gradlew clean test
