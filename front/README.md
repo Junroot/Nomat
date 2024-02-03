@@ -10,7 +10,7 @@
 
 ```bash
 npm install # dependency 설치
-npm run dev # devServer 실행
+npm run dev # devServer 실행1
 ```
 
 ## 빌드
