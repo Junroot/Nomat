@@ -6,7 +6,7 @@ config:
   warningsAsErrors: false
   checkExhaustiveness: false
   # when writing own rules with new properties, exclude the property path e.g.: ['my_rule_set', '.*>.*>[my_property]']
-  excludes: []
+  excludes: ["**/build/**", "**/.idea/**"]
 
 processors:
   active: true
@@ -254,6 +254,7 @@ coroutines:
     active: false
   SuspendFunWithFlowReturnType:
     active: true
+
 empty-blocks:
   active: true
   EmptyCatchBlock:
