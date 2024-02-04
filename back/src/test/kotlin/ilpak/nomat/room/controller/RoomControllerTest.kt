@@ -1,9 +1,5 @@
 package ilpak.nomat.room.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import ilpak.nomat.playlist.dto.PlaylistResponse
-import ilpak.nomat.room.dto.RoomResponse
-import org.hamcrest.Matchers.hasSize
 import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
