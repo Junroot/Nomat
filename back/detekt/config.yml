@@ -1,2 +1,4 @@
 config:
   validation: true
+formatting:
+  active: true
