@@ -3,11 +3,13 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+	val kotlinVersion = "1.9.10"
 	id("org.springframework.boot") version "3.2.2"
 	id("io.spring.dependency-management") version "1.1.4"
-	kotlin("jvm") version "1.9.22"
-	kotlin("plugin.spring") version "1.9.22"
-	kotlin("plugin.jpa") version "1.9.22"
+	id("io.gitlab.arturbosch.detekt") version "1.23.3"
+	kotlin("jvm") version kotlinVersion
+	kotlin("plugin.spring") version kotlinVersion
+	kotlin("plugin.jpa") version kotlinVersion
 }
 
 group = "ilpak"
@@ -45,5 +47,26 @@ tasks.withType<Test> {
 	testLogging {
 		events = setOf(TestLogEvent.STARTED, TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.STANDARD_ERROR)
 		exceptionFormat = TestExceptionFormat.FULL
+	}
+}
+
+detekt {
+	toolVersion = "1.23.3"
+	source.setFrom("src/main/java", "src/main/kotlin")
+	parallel = false
+	config.setFrom("detekt/config.yml")
+	buildUponDefaultConfig = true
+	allRules = false
+	ignoreFailures = true
+	// Specify the base path for file paths in the formatted reports.
+	// If not set, all file paths reported will be absolute file path.
+	basePath = projectDir.absolutePath
+}
+
+tasks.detekt.configure {
+	reports {
+		// Enable/Disable XML report (default: true)
+		xml.required.set(true)
+		xml.outputLocation.set(file("build/reports/detekt.xml"))
 	}
 }
