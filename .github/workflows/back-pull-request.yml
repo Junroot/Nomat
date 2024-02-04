@@ -1,4 +1,4 @@
-name: Backend Test
+name: Backend's pull request
 on:
   pull_request:
     paths:
@@ -16,3 +16,13 @@ jobs:
         run: |
           cd back
           ./gradlew clean test
+  detekt:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: detekt
+        uses: alaegin/Detekt-Action@v1.23.4
+        with:
+          github_token: ${{ secrets.github_token }}
+          detekt_plugins: "./back/detekt/detekt-formatting-1.23.5.jar"
+          detekt_input: "./back"

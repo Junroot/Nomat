@@ -1,4 +1,4 @@
-name: Frontend Deployment
+name: Frontend's push to develop
 on:
   push:
     branches:

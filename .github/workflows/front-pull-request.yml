@@ -1,4 +1,4 @@
-name: Frontend Deployment
+name: Frontend's pull request
 on:
   pull_request:
     paths:
