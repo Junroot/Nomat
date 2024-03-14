@@ -8,7 +8,7 @@ class PlaylistService {
 
     fun getMetadata(id: Long): PlaylistMetaDataResponse {
         return PlaylistMetaDataResponse(
-            1L,
+            id,
             "오늘의 TOP 100: 일본",
             100
         )

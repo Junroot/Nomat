@@ -19,9 +19,13 @@ class AppStartupRunner(
     private val playerRepository: PlayerRepository,
 ) : ApplicationRunner {
 
+    companion object {
+        private const val LOCAL_ROOM_COUNT = 40
+    }
+
     @Transactional
     override fun run(args: ApplicationArguments?) {
-        repeat(40) {
+        repeat(LOCAL_ROOM_COUNT) {
             val player = playerRepository.save(Player(nickname = "ROOT#3465"))
             roomRepository.save(
                 Room(
