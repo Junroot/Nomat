@@ -7,8 +7,8 @@ import jakarta.persistence.Id
 
 @Entity
 class Player(
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	val id: Long = 0,
-	val nickname: String,
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
+    val nickname: String,
 )

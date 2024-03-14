@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service
 @Service
 class PlaylistService {
 
-	fun getMetadata(id: Long): PlaylistMetaDataResponse {
-		return PlaylistMetaDataResponse(
-			1L,
-			"오늘의 TOP 100: 일본",
-			100
-		)
-	}
+    fun getMetadata(id: Long): PlaylistMetaDataResponse {
+        return PlaylistMetaDataResponse(
+            1L,
+            "오늘의 TOP 100: 일본",
+            100
+        )
+    }
 }

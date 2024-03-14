@@ -10,9 +10,9 @@ import org.testcontainers.containers.MariaDBContainer
 @Profile(value = ["local", "test"])
 class ContainerConfiguration {
 
-	@Bean
-	@ServiceConnection
-	fun mariaDbContainer(): MariaDBContainer<*> {
-		return MariaDBContainer("mariadb:10.11.6")
-	}
+    @Bean
+    @ServiceConnection
+    fun mariaDbContainer(): MariaDBContainer<*> {
+        return MariaDBContainer("mariadb:10.11.6")
+    }
 }

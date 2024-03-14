@@ -5,12 +5,12 @@ import jakarta.persistence.Embeddable
 
 @Embeddable
 data class RoomMember(
-	val playerId: Long,
-	val nickname: String,
+    val playerId: Long,
+    val nickname: String,
 ) {
-	companion object {
-		fun of(player: Player): RoomMember {
-			return RoomMember(player.id, player.nickname)
-		}
-	}
+    companion object {
+        fun of(player: Player): RoomMember {
+            return RoomMember(player.id, player.nickname)
+        }
+    }
 }

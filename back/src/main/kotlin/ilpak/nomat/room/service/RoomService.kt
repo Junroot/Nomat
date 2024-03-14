@@ -14,28 +14,33 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 @Service
 class RoomService(
-	private val playlistService: PlaylistService,
-	private val roomRepository: RoomRepository
+    private val playlistService: PlaylistService,
+    private val roomRepository: RoomRepository
 ) {
 
-	fun getRooms(): List<RoomResponse> {
-		val rooms = roomRepository.findAll()
+    fun getRooms(): List<RoomResponse> {
+        val rooms = roomRepository.findAll()
 
-		return rooms.mapNotNull { RoomResponse.of(it) }
-	}
+        return rooms.mapNotNull { RoomResponse.of(it) }
+    }
 
-	fun getRoom(roomId: Long): RoomResponse {
-		val room = roomRepository.findByIdOrNull(roomId) ?: throw NotFoundException("not found room.($roomId)")
-		return RoomResponse.of(room)
-	}
+    fun getRoom(roomId: Long): RoomResponse {
+        val room = roomRepository.findByIdOrNull(roomId) ?: throw NotFoundException("not found room.($roomId)")
+        return RoomResponse.of(room)
+    }
 
-	@Transactional
-	fun createRoom(roomRequest: RoomRequest): RoomResponse {
-		val playlistMetadata = playlistService.getMetadata(roomRequest.playlistId)
+    @Transactional
+    fun createRoom(roomRequest: RoomRequest): RoomResponse {
+        val playlistMetadata = playlistService.getMetadata(roomRequest.playlistId)
 
-		val room = Room(roomRequest.title, roomRequest.password, emptyList(), RoomPlaylist(playlistMetadata.id, playlistMetadata.name, playlistMetadata.count))
-		val savedRoom = roomRepository.save(room)
+        val room = Room(
+            roomRequest.title,
+            roomRequest.password,
+            emptyList(),
+            RoomPlaylist(playlistMetadata.id, playlistMetadata.name, playlistMetadata.count)
+        )
+        val savedRoom = roomRepository.save(room)
 
-		return RoomResponse.of(savedRoom)
-	}
+        return RoomResponse.of(savedRoom)
+    }
 }

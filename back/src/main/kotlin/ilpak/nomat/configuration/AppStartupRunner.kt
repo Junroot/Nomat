@@ -15,15 +15,24 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 @Profile("local")
 class AppStartupRunner(
-	private val roomRepository: RoomRepository,
-	private val playerRepository: PlayerRepository,
+    private val roomRepository: RoomRepository,
+    private val playerRepository: PlayerRepository,
 ) : ApplicationRunner {
 
-	@Transactional
-	override fun run(args: ApplicationArguments?) {
-		repeat(40) {
-			val player = playerRepository.save(Player(nickname = "ROOT#3465"))
-			roomRepository.save(Room(title = "들어오셈", null, members = listOf(RoomMember.of(player)), playlist = RoomPlaylist(1L, "오늘의 TOP 100: 일본", 100)))
-		}
-	}
+    @Transactional
+    override fun run(args: ApplicationArguments?) {
+        repeat(40) {
+            val player = playerRepository.save(Player(nickname = "ROOT#3465"))
+            roomRepository.save(
+                Room(
+                    title = "들어오셈", null, members = listOf(RoomMember.of(player)),
+                    playlist = RoomPlaylist(
+                        1L,
+                        "오늘의 TOP 100: 일본",
+                        100
+                    )
+                )
+            )
+        }
+    }
 }
