@@ -1,34 +1,66 @@
 package ilpak.nomat.room.controller
 
-import org.hamcrest.Matchers.`is`
+import ilpak.nomat.room.domain.Room
+import ilpak.nomat.room.domain.RoomMember
+import ilpak.nomat.room.domain.RoomPlaylist
+import ilpak.nomat.room.domain.RoomRepository
+import ilpak.nomat.room.dto.RoomRequest
+import ilpak.nomat.room.dto.RoomResponse
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
+import org.springframework.test.web.reactive.server.expectBody
+import kotlin.test.assertNotNull
 
-@AutoConfigureMockMvc
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class RoomControllerTest(
+class RoomControllerTest : AbstractIntegrationTest() {
+
 	@Autowired
-	private val mockMvc: MockMvc
-) {
+	private lateinit var roomRepository: RoomRepository
+
+	@BeforeEach
+	override fun setUp() {
+		super.setUp()
+		roomRepository.save(Room("들어오셈", null, listOf(RoomMember(1L, "ROOT#3465")), RoomPlaylist(1L, "오늘의 TOP 100: 일본", 100)))
+	}
 
 	@Test
-	fun getRooms() {
+	fun `방 리스트 조회`() {
+		client.get().uri("/rooms")
+			.exchange()
+			.expectStatus().isOk()
+			.expectBody()
+			.jsonPath("$.length()").isEqualTo(1)
+			.jsonPath("$[0].title").isEqualTo("들어오셈")
+			.jsonPath("$[0].playlist.id").isEqualTo(1)
+			.jsonPath("$[0].playlist.name").isEqualTo("오늘의 TOP 100: 일본")
+			.jsonPath("$[0].playlist.count").isEqualTo(100)
+			.jsonPath("$[0].masterNickname").isEqualTo("ROOT#3465")
+	}
 
-		mockMvc.get("/rooms")
-			.andExpect {
-				status { isOk() }
-				content {
-					jsonPath("$.length()", `is`(40))
-					jsonPath("$[0].title", `is`("들어오셈"))
-					jsonPath("$[0].playlist.id", `is`(1))
-					jsonPath("$[0].playlist.name", `is`("오늘의 TOP 100: 일본"))
-					jsonPath("$[0].playlist.count", `is`(100))
-					jsonPath("$[0].masterNickname", `is`("ROOT#3465"))
-				}
-			}
+	@Test
+	fun `방 생성 및 조회`() {
+		val result = client.post().uri("/rooms")
+			.bodyValue(
+				RoomRequest(
+					"테스트",
+					100,
+					null,
+					1L,
+				)
+			)
+			.exchange()
+			.expectStatus().isCreated()
+			.expectBody<RoomResponse>()
+			.returnResult()
+			.responseBody
+
+		assertNotNull(result)
+
+		client.get().uri("/rooms/{roomId}", result.id)
+			.exchange()
+			.expectStatus().isOk()
+			.expectBody()
+			.jsonPath("$.id").isEqualTo(result.id)
+			.jsonPath("$.title").isEqualTo(result.title)
 	}
 }
