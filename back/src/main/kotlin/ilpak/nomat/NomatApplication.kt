@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class NomatApplication
 
 fun main(args: Array<String>) {
-	runApplication<NomatApplication>(*args)
+    runApplication<NomatApplication>(*args)
 }

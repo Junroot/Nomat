@@ -1,0 +1,21 @@
+spring:
+  profiles:
+    default: local
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  jpa:
+    show-sql: true
+  flyway:
+    clean-disabled: false
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  jpa:
+    show-sql: true
+  flyway:
+    clean-disabled: false
