@@ -51,6 +51,8 @@ import SearchInput from "@/components/lobby/SearchInput.vue";
 import Me from "@/components/lobby/Me.vue";
 import RoomCreate from "@/components/lobby/RoomCreate.vue";
 
+import axios from "@/plugins/axios";
+
 export default {
   components: {
     NavigationBar,
@@ -66,6 +68,11 @@ export default {
       isRoomCreation: false,
     };
   },
+  created() {
+            axios.get("")
+                .then(res => console.log(res))
+                .catch(error => console.log(error))
+ },
   methods: {
     onClickCreateRoom() {
       this.isRoomCreation = true;
