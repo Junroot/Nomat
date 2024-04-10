@@ -5,16 +5,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: local
-  jpa:
-    show-sql: true
-  flyway:
-    clean-disabled: false
----
-spring:
-  config:
-    activate:
-      on-profile: test
+      on-profile: local | test
   jpa:
     show-sql: true
   flyway:
