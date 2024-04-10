@@ -33,35 +33,35 @@ export default {
   components: {
     PlaylistIcon,
     MusicIcon,
-    UserIcon,
+    UserIcon
   },
   props: {
     roomId: {
-      type: String,
-      required: true,
+      type: Number,
+      required: true
     },
     roomName: {
       type: String,
-      required: true,
+      required: true
     },
     playListName: {
       type: String,
-      required: true,
+      required: true
     },
     playlistCount: {
       type: Number,
-      required: true,
+      required: true
     },
     master: {
       type: String,
-      required: true,
-    },
+      required: true
+    }
   },
   methods: {
-    moveToRoom: function () {
+    moveToRoom: function() {
       location.replace(`/rooms/${this.roomId}`);
-    },
-  },
+    }
+  }
 };
 </script>
 

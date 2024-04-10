@@ -10,3 +10,6 @@ spring:
     show-sql: true
   flyway:
     clean-disabled: false
+app:
+  cors:
+    origins: http://localhost:3000/

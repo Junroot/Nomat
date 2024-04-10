@@ -1,5 +1,6 @@
 package ilpak.nomat.room.controller
 
+import ilpak.nomat.room.dto.RoomDetailResponse
 import ilpak.nomat.room.dto.RoomRequest
 import ilpak.nomat.room.dto.RoomResponse
 import ilpak.nomat.room.service.RoomService
@@ -24,8 +25,8 @@ class RoomController(
     }
 
     @GetMapping("/{roomId}")
-    fun getRoom(@PathVariable roomId: Long): RoomResponse {
-        return roomService.getRoom(roomId)
+    fun getRoom(@PathVariable roomId: Long): RoomDetailResponse {
+        return roomService.getRoomDetail(roomId)
     }
 
     @ResponseStatus(HttpStatus.CREATED)

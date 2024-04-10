@@ -1,10 +1,13 @@
 package ilpak.nomat.room.service
 
 import ilpak.nomat.exception.NotFoundException
+import ilpak.nomat.player.repository.PlayerRepository
 import ilpak.nomat.playlist.service.PlaylistService
 import ilpak.nomat.room.domain.Room
+import ilpak.nomat.room.domain.RoomMember
 import ilpak.nomat.room.domain.RoomPlaylist
 import ilpak.nomat.room.domain.RoomRepository
+import ilpak.nomat.room.dto.RoomDetailResponse
 import ilpak.nomat.room.dto.RoomRequest
 import ilpak.nomat.room.dto.RoomResponse
 import org.springframework.data.repository.findByIdOrNull
@@ -15,7 +18,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class RoomService(
     private val playlistService: PlaylistService,
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository,
+    private val playerRepository: PlayerRepository
 ) {
 
     fun getRooms(): List<RoomResponse> {
@@ -24,9 +28,9 @@ class RoomService(
         return rooms.mapNotNull { RoomResponse.of(it) }
     }
 
-    fun getRoom(roomId: Long): RoomResponse {
+    fun getRoomDetail(roomId: Long): RoomDetailResponse {
         val room = roomRepository.findByIdOrNull(roomId) ?: throw NotFoundException("not found room.($roomId)")
-        return RoomResponse.of(room)
+        return RoomDetailResponse.of(room)
     }
 
     @Transactional
@@ -36,8 +40,14 @@ class RoomService(
         val room = Room(
             roomRequest.title,
             roomRequest.password,
-            emptyList(),
-            RoomPlaylist(playlistMetadata.id, playlistMetadata.name, playlistMetadata.count)
+            playerRepository.findAll().map { RoomMember(it.id, it.nickname) },
+            RoomPlaylist(
+                playlistMetadata.id,
+                playlistMetadata.name,
+                playlistMetadata.count,
+                playlistMetadata.master,
+                playlistMetadata.comment
+            )
         )
         val savedRoom = roomRepository.save(room)
 

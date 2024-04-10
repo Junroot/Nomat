@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts">
-import type { PlayerData } from "@/components/room/players/PlayerData";
+import type { PlayerResponse } from "@/components/room/players/PlayerData";
 import Player from "@/components/room/players/Player.vue";
 
 export default {
@@ -33,7 +33,7 @@ export default {
     },
     players: {
       required: true,
-      type: Array<PlayerData>,
+      type: Array<PlayerResponse>,
     },
   },
 };
