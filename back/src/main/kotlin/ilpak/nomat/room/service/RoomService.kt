@@ -34,7 +34,7 @@ class RoomService(
     }
 
     @Transactional
-    fun createRoom(roomRequest: RoomRequest): RoomResponse {
+    fun createRoom(roomRequest: RoomRequest): RoomDetailResponse {
         val playlistMetadata = playlistService.getMetadata(roomRequest.playlistId)
 
         val room = Room(
@@ -51,6 +51,6 @@ class RoomService(
         )
         val savedRoom = roomRepository.save(room)
 
-        return RoomResponse.of(savedRoom)
+        return RoomDetailResponse.of(savedRoom)
     }
 }

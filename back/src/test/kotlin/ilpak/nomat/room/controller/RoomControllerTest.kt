@@ -7,6 +7,7 @@ import ilpak.nomat.room.domain.Room
 import ilpak.nomat.room.domain.RoomMember
 import ilpak.nomat.room.domain.RoomPlaylist
 import ilpak.nomat.room.domain.RoomRepository
+import ilpak.nomat.room.dto.RoomDetailResponse
 import ilpak.nomat.room.dto.RoomRequest
 import ilpak.nomat.room.dto.RoomResponse
 import org.junit.jupiter.api.BeforeEach
@@ -53,7 +54,7 @@ class RoomControllerTest : AbstractIntegrationTest() {
             )
             .exchange()
             .expectStatus().isCreated()
-            .expectBody<RoomResponse>()
+            .expectBody<RoomDetailResponse>()
             .returnResult()
             .responseBody
 
@@ -79,5 +80,10 @@ class RoomControllerTest : AbstractIntegrationTest() {
             .expectStatus().isOk()
             .expectBody()
             .jsonPath("$.length()").isEqualTo(1)
+            .jsonPath("$[0].title").isEqualTo(result.title)
+            .jsonPath("$[0].playlist.id").isEqualTo(1)
+            .jsonPath("$[0].playlist.name").isEqualTo(result.playlist.name)
+            .jsonPath("$[0].playlist.count").isEqualTo(result.playlist.count)
+            .jsonPath("$[0].masterNickname").isEqualTo("ROOT#3465")
     }
 }

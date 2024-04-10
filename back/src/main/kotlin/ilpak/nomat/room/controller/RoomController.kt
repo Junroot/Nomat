@@ -31,7 +31,7 @@ class RoomController(
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun createRoom(@RequestBody roomRequest: RoomRequest): RoomResponse {
+    fun createRoom(@RequestBody roomRequest: RoomRequest): RoomDetailResponse {
         return roomService.createRoom(roomRequest)
     }
 }
