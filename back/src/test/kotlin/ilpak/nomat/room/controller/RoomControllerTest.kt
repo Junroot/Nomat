@@ -28,20 +28,6 @@ class RoomControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `방 리스트 조회`() {
-        client.get().uri("/rooms")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .jsonPath("$.length()").isEqualTo(1)
-            .jsonPath("$[0].title").isEqualTo("들어오셈")
-            .jsonPath("$[0].playlist.id").isEqualTo(1)
-            .jsonPath("$[0].playlist.name").isEqualTo("오늘의 TOP 100: 일본")
-            .jsonPath("$[0].playlist.count").isEqualTo(100)
-            .jsonPath("$[0].masterNickname").isEqualTo("ROOT#3465")
-    }
-
-    @Test
     fun `방 생성, 리스트 조회, 상세 조회`() {
         val result = client.post().uri("/rooms")
             .bodyValue(
