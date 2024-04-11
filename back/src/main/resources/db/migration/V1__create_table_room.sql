@@ -12,7 +12,9 @@ CREATE TABLE IF NOT EXISTS room
     `password`     VARCHAR(30),
     playlist_id    BIGINT      NOT NULL,
     playlist_name  VARCHAR(30) NOT NULL,
-    playlist_count INTEGER     NOT NULL
+    playlist_count INTEGER     NOT NULL,
+    playlist_master VARCHAR(30) NOT NULL,
+    playlist_comment VARCHAR(1000) NOT NULL
 ) DEFAULT CHARACTER SET 'utf8mb4'
   COLLATE 'utf8mb4_unicode_ci';
 

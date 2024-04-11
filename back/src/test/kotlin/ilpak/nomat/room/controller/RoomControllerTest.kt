@@ -1,10 +1,13 @@
 package ilpak.nomat.room.controller
 
 import ilpak.nomat.integration.AbstractIntegrationTest
+import ilpak.nomat.player.domain.Player
+import ilpak.nomat.player.repository.PlayerRepository
 import ilpak.nomat.room.domain.Room
 import ilpak.nomat.room.domain.RoomMember
 import ilpak.nomat.room.domain.RoomPlaylist
 import ilpak.nomat.room.domain.RoomRepository
+import ilpak.nomat.room.dto.RoomDetailResponse
 import ilpak.nomat.room.dto.RoomRequest
 import ilpak.nomat.room.dto.RoomResponse
 import org.junit.jupiter.api.BeforeEach
@@ -16,37 +19,16 @@ import kotlin.test.assertNotNull
 class RoomControllerTest : AbstractIntegrationTest() {
 
     @Autowired
-    private lateinit var roomRepository: RoomRepository
+    private lateinit var playerRepository: PlayerRepository
 
     @BeforeEach
     override fun setUp() {
         super.setUp()
-        roomRepository.save(
-            Room(
-                "들어오셈",
-                null,
-                listOf(RoomMember(1L, "ROOT#3465")),
-                RoomPlaylist(1L, "오늘의 TOP 100: 일본", 100)
-            )
-        )
+        playerRepository.save(Player(nickname = "ROOT#3465"))
     }
 
     @Test
-    fun `방 리스트 조회`() {
-        client.get().uri("/rooms")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .jsonPath("$.length()").isEqualTo(1)
-            .jsonPath("$[0].title").isEqualTo("들어오셈")
-            .jsonPath("$[0].playlist.id").isEqualTo(1)
-            .jsonPath("$[0].playlist.name").isEqualTo("오늘의 TOP 100: 일본")
-            .jsonPath("$[0].playlist.count").isEqualTo(100)
-            .jsonPath("$[0].masterNickname").isEqualTo("ROOT#3465")
-    }
-
-    @Test
-    fun `방 생성 및 조회`() {
+    fun `방 생성, 리스트 조회, 상세 조회`() {
         val result = client.post().uri("/rooms")
             .bodyValue(
                 RoomRequest(
@@ -58,7 +40,7 @@ class RoomControllerTest : AbstractIntegrationTest() {
             )
             .exchange()
             .expectStatus().isCreated()
-            .expectBody<RoomResponse>()
+            .expectBody<RoomDetailResponse>()
             .returnResult()
             .responseBody
 
@@ -70,5 +52,24 @@ class RoomControllerTest : AbstractIntegrationTest() {
             .expectBody()
             .jsonPath("$.id").isEqualTo(result.id)
             .jsonPath("$.title").isEqualTo(result.title)
+            .jsonPath("$.playlist.id").isEqualTo(1L)
+            .jsonPath("$.playlist.name").isEqualTo("오늘의 TOP 100: 일본")
+            .jsonPath("$.playlist.count").isEqualTo(100)
+            .jsonPath("$.playlist.master").isEqualTo("ROOT#3465")
+            .jsonPath("$.playlist.comment").isNotEmpty()
+            .jsonPath("$.players.length()").isEqualTo(1)
+            .jsonPath("$.players[0].nickname").isEqualTo("ROOT#3465")
+            .jsonPath("$.players[0].isMaster").isEqualTo(true)
+
+        client.get().uri("/rooms")
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.length()").isEqualTo(1)
+            .jsonPath("$[0].title").isEqualTo(result.title)
+            .jsonPath("$[0].playlist.id").isEqualTo(1)
+            .jsonPath("$[0].playlist.name").isEqualTo(result.playlist.name)
+            .jsonPath("$[0].playlist.count").isEqualTo(result.playlist.count)
+            .jsonPath("$[0].masterNickname").isEqualTo("ROOT#3465")
     }
 }

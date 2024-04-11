@@ -13,37 +13,39 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       vue({
-        template: { transformAssetUrls },
+        template: { transformAssetUrls }
       }),
       // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
       vuetify({
         autoImport: true,
         styles: {
-          configFile: "src/styles/settings.scss",
-        },
+          configFile: "src/styles/settings.scss"
+        }
       }),
       ViteFonts({
         google: {
           families: [
             {
               name: "Roboto",
-              styles: "wght@100;300;400;500;700;900",
-            },
-          ],
-        },
-      }),
+              styles: "wght@100;300;400;500;700;900"
+            }
+          ]
+        }
+      })
     ],
     define: {
-      "process.env.VUE_APP_API_ORIGIN": JSON.stringify(env.VUE_APP_API_ORIGIN),
+      "process.env.VUE_APP_SERVER_BASE_URL": JSON.stringify(
+        env.VUE_APP_SERVER_BASE_URL
+      )
     },
     resolve: {
       alias: {
-        "@": fileURLToPath(new URL("./src", import.meta.url)),
+        "@": fileURLToPath(new URL("./src", import.meta.url))
       },
-      extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
+      extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"]
     },
     server: {
-      port: 3000,
-    },
+      port: 3000
+    }
   };
 });

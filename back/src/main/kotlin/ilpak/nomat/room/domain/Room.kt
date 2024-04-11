@@ -26,4 +26,8 @@ class Room(
 
     val master: RoomMember?
         get() = members.firstOrNull()
+
+    fun isMaster(roomMember: RoomMember): Boolean {
+        return roomMember == master
+    }
 }
