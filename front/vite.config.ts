@@ -33,7 +33,11 @@ export default defineConfig(({ mode }) => {
         }
       })
     ],
-    define: { "process.env": env },
+    define: {
+      "process.env.VUE_APP_SERVER_BASE_URL": JSON.stringify(
+        env.VUE_APP_SERVER_BASE_URL
+      )
+    },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url))
