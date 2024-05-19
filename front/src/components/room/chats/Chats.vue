@@ -25,6 +25,6 @@ export default {
 
 <style>
 .chats {
-  background-color: var(--tertiary-50);
+  background-color: var(--primary-50);
 }
 </style>

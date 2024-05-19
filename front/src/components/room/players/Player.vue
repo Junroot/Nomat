@@ -35,11 +35,11 @@ export default {
 
 <style>
 .player:hover {
-  background-color: var(--primary-300);
-  color: var(--font-dark);
+  background-color: var(--primary-200);
+  color: var(--font-light);
 }
 
 .player:hover svg {
-  fill: var(--font-dark);
+  fill: var(--font-light);
 }
 </style>

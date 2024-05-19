@@ -1,11 +1,10 @@
 <template>
-  <v-sheet class="w-100">
+  <v-sheet class="w-100 border rounded-xl">
     <v-text-field
       clearable
       placeholder="방 이름, 플레이리스트, 플레이어 이름으로 검색"
       variant="solo"
       class="w-100 h-100"
-      bg-color="var(--tertiary-100)"
       base-color="var(--font-dark)"
       color="var(--font-dark)"
       density="comfortable"

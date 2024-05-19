@@ -10,7 +10,7 @@
             clearable
             variant="solo"
             placeholder="1자 이상 입력"
-            bg-color="var(--tertiary-50)"
+            bg-color="var(--primary-100)"
             base-color="var(--font-dark)"
             color="var(--font-dark)"
             density="compact"
@@ -27,7 +27,7 @@
             :items="Array.from({ length: maxRoomCapacity }, (_, i) => i + 1)"
             v-model="selectedRoomCapacity"
             variant="solo"
-            bg-color="var(--tertiary-50)"
+            bg-color="var(--primary-100)"
             base-color="var(--font-dark)"
             density="compact"
             rounded
@@ -47,7 +47,7 @@
                 inset
                 flat
                 density="compact"
-                color="var(--primary-450)"
+                color="var(--primary-200)"
                 hide-details
               ></v-switch>
             </div>
@@ -58,7 +58,7 @@
                 type="password"
                 clearable
                 variant="solo"
-                bg-color="var(--tertiary-50)"
+                bg-color="var(--primary-100)"
                 base-color="var(--font-dark)"
                 color="var(--font-dark)"
                 density="compact"
@@ -78,7 +78,7 @@
             @update:search="onSearch"
             @update:model-value="onSelect"
             variant="solo"
-            bg-color="var(--tertiary-50)"
+            bg-color="var(--primary-100)"
             base-color="var(--font-dark)"
             class="flex-full-width"
             :custom-filter="customFilter"
@@ -211,15 +211,15 @@ export default {
 
 <style>
 .room-create {
-  background-color: var(--primary-100);
+  background-color: var(--primary-50);
 }
 
 .v-select__content {
-  background-color: var(--tertiary-100);
+  background-color: var(--primary-100);
 }
 
 .v-autocomplete__content {
-  background-color: var(--tertiary-100);
+  background-color: var(--primary-100);
 }
 
 .v-list-item__overlay {
@@ -227,11 +227,11 @@ export default {
 }
 
 .v-list-item:hover {
-  background-color: var(--tertiary-50);
+  background-color: var(--primary-200);
 }
 
 .v-input--disabled .v-field__overlay {
-  background-color: #203c3b;
+  background-color: var(--primary-50);
 }
 
 .v-input--error .v-field__overlay {
@@ -239,7 +239,7 @@ export default {
 }
 
 .create-button {
-  background-color: var(--primary-300) !important;
+  background-color: var(--secondary) !important;
   color: var(--font-dark) !important;
 }
 
@@ -252,7 +252,7 @@ export default {
 }
 
 .cancel-button {
-  background-color: var(--tertiary-50) !important;
+  background-color: var(--primary-200) !important;
   color: var(--font-light) !important;
 }
 

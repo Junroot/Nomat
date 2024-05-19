@@ -11,8 +11,8 @@
 
 @use "vuetify/settings" with (
   $overlay-opacity: 0.75,
-  $switch-track-background: #0a3331,
-  $switch-thumb-background: #0a3331
+  $switch-track-background: var(--primary-100),
+  $switch-thumb-background: var(--primary-450)
 );
 
 @font-face {
@@ -22,25 +22,14 @@
 
 :root {
   --translucent-background-color: #000000cc;
-  --background-color: #191c1c;
-  --primary-50: #0a3331;
-  --primary-100: #115552;
-  --primary-200: #22aaa4;
-  --primary-300: #55ddd7;
-  --primary-400: #aaeeeb;
-  --primary-450: #ddf8f7;
-  --secondary-50: #250638;
-  --secondary-100: #3d0a5c;
-  --secondary-200: #7914b8;
-  --secondary-300: #ac47eb;
-  --secondary-400: #d6a3f5;
-  --secondary-450: #eedafb;
-  --tertiary-50: #182524;
-  --tertiary-100: #283e3c;
-  --tertiary-200: #507c79;
-  --tertiary-300: #83afac;
-  --tertiary-400: #c1d7d6;
-  --tertiary-450: #e6efef;
+  --background-color: #141517;
+  --primary-50: #141517;
+  --primary-100: #1c1e21;
+  --primary-200: #26282c;
+  --primary-300: #2f3237;
+  --primary-400: #393c41;
+  --primary-450: #42464c;
+  --secondary: #6bcbd3;
   --error-50: #34090e;
   --error-100: #570f18;
   --error-200: #ae1e2e;
@@ -48,7 +37,7 @@
   --error-400: #f0a8b0;
   --error-450: #f9dcdf;
   --font-dark: #1c2525;
-  --font-light: #e0e3e2;
+  --font-light: #dfe2ea;
   --font-primary: #4fe2de;
 }
 
