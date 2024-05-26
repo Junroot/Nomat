@@ -10,7 +10,7 @@
             clearable
             variant="solo"
             placeholder="1자 이상 입력"
-            bg-color="var(--primary-100)"
+            bg-color="var(--primary-200)"
             base-color="var(--font-dark)"
             color="var(--font-dark)"
             density="compact"
@@ -27,7 +27,7 @@
             :items="Array.from({ length: maxRoomCapacity }, (_, i) => i + 1)"
             v-model="selectedRoomCapacity"
             variant="solo"
-            bg-color="var(--primary-100)"
+            bg-color="var(--primary-200)"
             base-color="var(--font-dark)"
             density="compact"
             rounded
@@ -55,10 +55,11 @@
               <v-text-field
                 v-model="password"
                 :disabled="!usePassword"
+                v-if="usePassword"
                 type="password"
                 clearable
                 variant="solo"
-                bg-color="var(--primary-100)"
+                bg-color="var(--primary-200)"
                 base-color="var(--font-dark)"
                 color="var(--font-dark)"
                 density="compact"
@@ -78,7 +79,7 @@
             @update:search="onSearch"
             @update:model-value="onSelect"
             variant="solo"
-            bg-color="var(--primary-100)"
+            bg-color="var(--primary-200)"
             base-color="var(--font-dark)"
             class="flex-full-width"
             :custom-filter="customFilter"
@@ -215,7 +216,7 @@ export default {
 }
 
 .v-select__content {
-  background-color: var(--primary-100);
+  background-color: var(--primary-200);
 }
 
 .v-autocomplete__content {
@@ -231,7 +232,7 @@ export default {
 }
 
 .v-input--disabled .v-field__overlay {
-  background-color: var(--primary-50);
+  background-color: var(--primary-100);
 }
 
 .v-input--error .v-field__overlay {
