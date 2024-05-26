@@ -10,6 +10,10 @@ const routes = [
     path: "/rooms/:id",
     component: () => import("@/views/Room.vue"),
   },
+  {
+    path: "/login",
+    component: () => import("@/views/Login.vue"),
+  },
 ];
 
 const router = createRouter({
