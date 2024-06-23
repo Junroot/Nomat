@@ -48,7 +48,7 @@ export default {
 
 <style>
 .room-playlist {
-  background-color: var(--primary-50);
+  background-color: var(--primary-100);
   color: var(--font-light);
 }
 </style>

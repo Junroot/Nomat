@@ -5,7 +5,7 @@
       placeholder="채팅 입력"
       variant="solo"
       class="w-100 h-100 chat-input"
-      bg-color="var(--tertiary-100)"
+      bg-color="var(--primary-200)"
       base-color="var(--font-dark)"
       color="var(--font-dark)"
       density="comfortable"

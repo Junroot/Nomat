@@ -81,7 +81,7 @@ button {
 }
 
 .profile:hover {
-  background-color: var(--tertiary-100);
+  background-color: var(--primary-200);
 }
 
 .nickname {
