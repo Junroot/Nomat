@@ -19,13 +19,20 @@
         :fluid="true"
       >
         <v-row>
-          <v-col v-for="n in 24" :key="n" cols="12" md="6" xl="4" xxl="3">
+          <v-col
+            v-for="room in rooms"
+            :key="room.id"
+            cols="12"
+            md="6"
+            xl="4"
+            xxl="3"
+          >
             <Room
-              room-id="1"
-              room-name="들어오셈"
-              play-list-name="오늘의 TOP 100: 일본"
-              :playlist-count="100"
-              master="ROOT#34565"
+              :room-id="room.id"
+              :room-name="room.title"
+              :play-list-name="room.playlist.name"
+              :playlist-count="room.playlist.count"
+              :master="room.masterNickname"
             ></Room>
           </v-col>
         </v-row>
@@ -50,8 +57,18 @@ import Room from "@/components/lobby/Room.vue";
 import SearchInput from "@/components/lobby/SearchInput.vue";
 import Me from "@/components/lobby/Me.vue";
 import RoomCreate from "@/components/lobby/RoomCreate.vue";
-
 import axios from "@/plugins/axios";
+
+type RoomResponse = {
+  id: number;
+  title: string;
+  playlist: {
+    id: number;
+    name: string;
+    count: number;
+  };
+  masterNickname: string;
+};
 
 export default {
   components: {
@@ -61,23 +78,28 @@ export default {
     Room,
     SearchInput,
     Me,
-    RoomCreate,
+    RoomCreate
   },
   data() {
     return {
       isRoomCreation: false,
+      rooms: [] as RoomResponse[]
     };
   },
   created() {
-            axios.get("")
-                .then(res => console.log(res))
-                .catch(error => console.log(error))
- },
+    axios
+      .get("/rooms")
+      .then((response: { status: number; data: RoomResponse[] }) => {
+        if (response.status == 200) {
+          this.rooms = response.data;
+        }
+      });
+  },
   methods: {
     onClickCreateRoom() {
       this.isRoomCreation = true;
-    },
-  },
+    }
+  }
 };
 </script>
 

@@ -11,17 +11,17 @@
         class="pa-2 h-100 d-flex flex-column overflow-auto hide-scrollbar first-col"
       >
         <v-sheet class="text-h2 pa-2 flex-0-0 font-weight-bold">{{
-          roomName
+          room?.title || ""
         }}</v-sheet>
         <v-sheet class="my-1 flex-0-0"
           ><RoomPlaylist
-            :title="playlistName"
-            :maker="playlistMaker"
-            :comment="playlistComment"
+            :title="room?.playlist.name || ''"
+            :maker="room?.playlist.master || ''"
+            :comment="room?.playlist.comment || ''"
           ></RoomPlaylist
         ></v-sheet>
         <v-sheet class="my-1 flex-0-1">
-          <Players :players="players" :max-players="20"></Players>
+          <Players :players="room?.players || []" :max-players="20"></Players>
         </v-sheet>
       </v-sheet>
       <v-sheet class="pa-2 d-flex flex-column second-col">
@@ -43,6 +43,21 @@ import ArrowBackIcon from "@/icons/ArrowBackIcon.vue";
 import PlayIcon from "@/icons/PlayIcon.vue";
 import Chats from "@/components/room/chats/Chats.vue";
 import ChatInput from "@/components/room/chats/ChatInput.vue";
+import { PlayerResponse } from "@/components/room/players/PlayerData";
+import axios from "@/plugins/axios";
+
+type RoomResponse = {
+  id: number;
+  title: string;
+  playlist: {
+    id: number;
+    name: string;
+    count: number;
+    master: string;
+    comment: string;
+  };
+  players: PlayerResponse[];
+};
 
 export default {
   components: {
@@ -53,120 +68,114 @@ export default {
     PlayIcon,
     Players,
     Chats,
-    ChatInput,
+    ChatInput
   },
-  data: function () {
+  data() {
     return {
-      roomName: "들어오셈",
-      playlistName: "오늘의 TOP 100: 일본",
-      playlistMaker: "ROOT#3465",
-      playlistComment:
-        "오늘의 일본 인기곡 Top 100으로 구성된 맵입니다. 재미있게 즐겨 주세요!",
-      players: [
-        {
-          nickname: "ROOT#3454",
-          photoUrl: "/favicon.ico",
-          isMaster: true,
-        },
-        {
-          nickname: "Hassium#0846",
-          photoUrl: "/favicon.ico",
-          isMaster: false,
-        },
-      ],
+      roomId: this.$route.params.id,
+      room: null as RoomResponse | null,
       chats: [
         {
           type: "System",
           contents: ["Hassium#0846님이 입장하셨습니다."],
           photoUrl: null,
-          nickname: null,
+          nickname: null
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
+          nickname: "Hassium#0846"
         },
         {
           type: "Player",
           contents: ["안녕하세요.", "재밌어 보이네요!"],
           photoUrl: "/favicon.ico",
-          nickname: "Hassium#0846",
-        },
-      ],
+          nickname: "Hassium#0846"
+        }
+      ]
     };
+  },
+  created() {
+    axios
+      .get(`/rooms/${this.roomId}`)
+      .then((response: { status: number; data: RoomResponse }) => {
+        if (response.status == 200) {
+          this.room = response.data;
+        }
+      });
   },
   methods: {
     onClickLobby() {
       window.location.href = "/";
-    },
-  },
+    }
+  }
 };
 </script>
 

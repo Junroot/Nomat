@@ -17,16 +17,13 @@ abstract class AbstractIntegrationTest {
 
     @Autowired
     protected lateinit var flyway: Flyway
-    private var webTestClient: WebTestClient? = null
-    protected val client: WebTestClient
-        get() {
-            return webTestClient ?: synchronized(this) {
-                webTestClient ?: WebTestClient
-                    .bindToServer()
-                    .baseUrl("http://localhost:$port")
-                    .build()
-            }
-        }
+    protected val client: WebTestClient by lazy {
+        WebTestClient
+            .bindToServer()
+            .baseUrl("http://localhost:$port")
+            .build()
+    }
+
 
     @BeforeEach
     fun setUp() {

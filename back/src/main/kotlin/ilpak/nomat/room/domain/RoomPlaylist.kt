@@ -10,4 +10,8 @@ data class RoomPlaylist(
     val name: String,
     @Column(name = "playlist_count")
     val count: Int,
+    @Column(name = "playlist_master")
+    val master: String,
+    @Column(name = "playlist_comment")
+    val comment: String,
 )
