@@ -5,7 +5,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: local | test
   jpa:
     show-sql: true
   flyway:
