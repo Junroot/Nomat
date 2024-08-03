@@ -5,7 +5,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: local | test
+      on-profile: local
   jpa:
     show-sql: true
   flyway:
@@ -13,3 +13,13 @@ spring:
 app:
   cors:
     origins: http://localhost:3000/
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+app:
+  cors:
+    origins: https://nomat.netlify.app/
