@@ -4,7 +4,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import org.testcontainers.containers.MariaDBContainer
+import org.testcontainers.containers.MySQLContainer
 
 @Configuration(proxyBeanMethods = false)
 @Profile(value = ["local", "test"])
@@ -12,7 +12,7 @@ class ContainerConfiguration {
 
     @Bean
     @ServiceConnection
-    fun mariaDbContainer(): MariaDBContainer<*> {
-        return MariaDBContainer("mariadb:10.11.6")
+    fun mariaDbContainer(): MySQLContainer<*> {
+        return MySQLContainer("mysql:8.0.39")
     }
 }
