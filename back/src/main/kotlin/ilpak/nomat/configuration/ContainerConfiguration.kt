@@ -12,7 +12,7 @@ class ContainerConfiguration {
 
     @Bean
     @ServiceConnection
-    fun mariaDbContainer(): MySQLContainer<*> {
+    fun mySQLContainer(): MySQLContainer<*> {
         return MySQLContainer("mysql:8.0.39")
     }
 }

@@ -7,7 +7,7 @@ on:
     paths:
       - "back/**"
 jobs:
-  push_to_registry:
+  build:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-22.04
     steps:
@@ -20,4 +20,6 @@ jobs:
         with:
           context: ./back
           push: true
-          tags: junroot0909/nomat:latest
+          tags:
+            - junroot0909/nomat:latest
+            - junroot0909/nomat:${{ github.sha }}
