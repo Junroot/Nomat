@@ -1,5 +1,6 @@
 name: push "back" to develop branch
 on:
+  workflow_dispatch:
   push:
     branches:
       - "develop"
