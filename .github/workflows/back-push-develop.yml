@@ -20,6 +20,4 @@ jobs:
         with:
           context: ./back
           push: true
-          tags:
-            - junroot0909/nomat:latest
-            - junroot0909/nomat:${{ github.sha }}
+          tags: junroot0909/nomat:latest, junroot0909/nomat:${{ github.sha }}
