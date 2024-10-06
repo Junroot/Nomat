@@ -7,7 +7,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: nomat-back-deployment
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 5
   metrics:
     - type: Resource
@@ -16,9 +16,3 @@ spec:
         target:
           type: Utilization
           averageUtilization: 50
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
