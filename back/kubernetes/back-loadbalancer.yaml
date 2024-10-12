@@ -5,7 +5,7 @@ metadata:
   annotations:
     service.beta.kubernetes.io/ncloud-load-balancer-layer-type: "nplb"
     service.beta.kubernetes.io/ncloud-load-balancer-ssl-certificate-no: "nrn:PUB:CertificateManager::3135065:Certificate/Internal/33361"
-
+    service.beta.kubernetes.io/ncloud-load-balancer-proxy-protocol: "true"
 spec:
   ports:
   - port: 443
