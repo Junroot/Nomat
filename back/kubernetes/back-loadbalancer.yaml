@@ -4,8 +4,8 @@ metadata:
   name: back-loadbalancer
   annotations:
     service.beta.kubernetes.io/ncloud-load-balancer-layer-type: "nplb"
-    service.beta.kubernetes.io/ncloud-load-balancer-internal: "false"
-    service.beta.kubernetes.io/ncloud-load-balancer-size: "SMALL"
+    service.beta.kubernetes.io/ncloud-load-balancer-ssl-certificate-no: "nrn:PUB:CertificateManager::3135065:Certificate/Internal/33361"
+
 spec:
   ports:
   - port: 443
