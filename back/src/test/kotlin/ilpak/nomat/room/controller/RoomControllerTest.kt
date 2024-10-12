@@ -3,13 +3,8 @@ package ilpak.nomat.room.controller
 import ilpak.nomat.integration.AbstractIntegrationTest
 import ilpak.nomat.player.domain.Player
 import ilpak.nomat.player.repository.PlayerRepository
-import ilpak.nomat.room.domain.Room
-import ilpak.nomat.room.domain.RoomMember
-import ilpak.nomat.room.domain.RoomPlaylist
-import ilpak.nomat.room.domain.RoomRepository
 import ilpak.nomat.room.dto.RoomDetailResponse
 import ilpak.nomat.room.dto.RoomRequest
-import ilpak.nomat.room.dto.RoomResponse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

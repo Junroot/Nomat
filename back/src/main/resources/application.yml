@@ -8,8 +8,33 @@ spring:
       on-profile: local | test
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: validate
   flyway:
     clean-disabled: false
 app:
   cors:
     origins: http://localhost:3000/
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 10
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+app:
+  cors:
+    origins: https://nomat.netlify.app/

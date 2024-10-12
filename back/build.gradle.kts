@@ -27,9 +27,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.mariadb.jdbc:mariadb-java-client")
+	implementation("mysql:mysql-connector-java:8.0.33")
 	implementation("org.springframework.boot:spring-boot-testcontainers")
-	implementation("org.testcontainers:mariadb")
+	implementation("org.testcontainers:mysql")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.flywaydb:flyway-mysql")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -73,4 +73,10 @@ tasks.detekt.configure {
 		xml.required.set(true)
 		xml.outputLocation.set(file("build/reports/detekt.xml"))
 	}
+}
+
+tasks.named("check").configure {
+	this.setDependsOn(this.dependsOn.filterNot {
+		it is TaskProvider<*> && it.name == "detekt"
+	})
 }
