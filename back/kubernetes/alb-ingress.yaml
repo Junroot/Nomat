@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   annotations:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}, {"HTTPS":443}]'
-    alb.ingress.kubernetes.io/ssl-certificate-no: "33362"
+    alb.ingress.kubernetes.io/ssl-certificate-no: "33364"
     alb.ingress.kubernetes.io/healthcheck-path: "/health"
     alb.ingress.kubernetes.io/ssl-redirect: "443"
   name: alb-ingress
