@@ -3,12 +3,12 @@ apiVersion: v1
 metadata:
   name: back-loadbalancer
   annotations:
-    service.beta.kubernetes.io/ncloud-load-balancer-layer-type: "nlb"
+    service.beta.kubernetes.io/ncloud-load-balancer-layer-type: "nplb"
     service.beta.kubernetes.io/ncloud-load-balancer-internal: "false"
     service.beta.kubernetes.io/ncloud-load-balancer-size: "SMALL"
 spec:
   ports:
-  - port: 80
+  - port: 443
     targetPort: 8080
   selector:
     app: nomat-back
