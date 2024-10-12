@@ -8,7 +8,8 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - http:
+    - host: "*.nomat.live"
+      http:
         paths:
           - path: /
             pathType: Prefix
@@ -16,4 +17,4 @@ spec:
               service:
                 name: back-service
                 port:
-                  name: http
+                  number: 8080
