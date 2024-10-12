@@ -16,6 +16,8 @@ spec:
       containers:
         - name: nomat-back
           image: junroot0909/nomat:latest
+          ports:
+            - containerPort: 8080
           resources:
             requests:
               cpu: "250m"
