@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: kustomization
 resources:
-  - manifests
+  - manifests/
 images:
   - name: junroot0909/nomat
     newTag: latest
