@@ -36,4 +36,4 @@ jobs:
       - name: argo cd sync
         uses: clowdhaus/argo-cd-action/@main
         with:
-          command: argocd app sync nomat --insecure
+          command: app sync nomat --insecure
