@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nomat-example
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Junroot/Nomat.git
+    path: back/kubernetes
+    targetRevision: develop
+    kustomize:
+      images:
+        - name: junroot0909/nomat
+          newTag: latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nomat
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
