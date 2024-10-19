@@ -21,3 +21,16 @@ jobs:
           context: ./back
           push: true
           tags: junroot0909/nomat:latest, junroot0909/nomat:${{ github.sha }}
+      - uses: clowdhaus/argo-cd-action/@main
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        with:
+          command: app set nomat 
+          options: --kustomize-image junroot0909/nomat:${{ github.sha }}
+      - uses: clowdhaus/argo-cd-action/@main
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        with:
+          command: argocd app sync nomat
