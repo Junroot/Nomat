@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: kustomization
 resources:
-  - https://github.com/Junroot//back/kubernetes
+  - https://github.com/Junroot/Nomat//back/kubernetes
 images:
   - name: junroot0909/nomat
     newTag: latest
