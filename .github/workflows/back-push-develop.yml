@@ -24,7 +24,7 @@ jobs:
       - uses: clowdhaus/argo-cd-action/@main
         with:
           command: login ${{ secrets.ARGOCD_SERVER }} 
-          options: --name ${{ secrets.ARGOCD_USER_NAME }} --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }} --insecure
+          options: --username ${{ secrets.ARGOCD_USER_NAME }} --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }} --insecure
       - uses: clowdhaus/argo-cd-action/@main
         with:
           command: app set nomat 
