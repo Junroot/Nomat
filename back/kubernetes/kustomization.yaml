@@ -4,6 +4,7 @@ metadata:
   name: kustomization
 resources:
   - .
+namePrefix: back-
 images:
   - name: junroot0909/nomat
     newTag: latest

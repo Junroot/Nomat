@@ -6,7 +6,7 @@ metadata:
     alb.ingress.kubernetes.io/ssl-certificate-no: "33364"
     alb.ingress.kubernetes.io/healthcheck-path: "/health"
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-  name: alb-ingress
+  name: back-alb-ingress
 spec:
   ingressClassName: alb
   rules:
