@@ -3,7 +3,10 @@ kind: Kustomization
 metadata:
   name: kustomization
 resources:
-  - manifests/
+  - back-alb-ingress.yaml
+  - back-autoscaler.yaml
+  - back-deployment.yaml
+  - back-service.yaml
 images:
   - name: junroot0909/nomat
     newTag: latest
