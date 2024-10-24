@@ -34,8 +34,8 @@ export default defineConfig(({ mode }) => {
       })
     ],
     define: {
-      "process.env.VUE_APP_SERVER_BASE_URL": JSON.stringify(
-        env.VUE_APP_SERVER_BASE_URL
+      "process.env.VITE_SERVER_BASE_URL": JSON.stringify(
+        env.VITE_SERVER_BASE_URL
       )
     },
     resolve: {
