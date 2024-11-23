@@ -4,14 +4,15 @@ import ilpak.nomat.auth.NomatOAuth2UserService
 import ilpak.nomat.configuration.filter.TokenAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
-
 @Configuration
+@Profile("!test")
 class SecurityConfiguration(
     private val nomatOAuth2UserService: NomatOAuth2UserService,
     private val nomatAuthenticationSuccessHandler: NomatAuthenticationSuccessHandler,
