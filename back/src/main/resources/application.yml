@@ -91,4 +91,4 @@ app:
   cors:
     origins: https://dev.nomat.live
 jwt:
-  domain: .nomat.live
+  domain: nomat.live
