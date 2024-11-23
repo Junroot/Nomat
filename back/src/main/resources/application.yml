@@ -57,7 +57,7 @@ spring:
         registration:
           discord:
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/discord"
+            redirect-uri: "https://dev-api.nomat.live/login/oauth2/code/discord"
             scope:
               - identify
               - email
