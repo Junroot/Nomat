@@ -2,6 +2,7 @@ package ilpak.nomat.room.controller
 
 import ilpak.nomat.integration.AbstractIntegrationTest
 import ilpak.nomat.player.domain.Player
+import ilpak.nomat.player.domain.RegistrationType
 import ilpak.nomat.player.repository.PlayerRepository
 import ilpak.nomat.room.dto.RoomDetailResponse
 import ilpak.nomat.room.dto.RoomRequest
@@ -19,7 +20,7 @@ class RoomControllerTest : AbstractIntegrationTest() {
     @BeforeEach
     override fun setUp() {
         super.setUp()
-        playerRepository.save(Player(nickname = "ROOT#3465"))
+        playerRepository.save(Player(nickname = "ROOT#3465", registrationType = RegistrationType.DISCORD, registrationId = "abc"))
     }
 
     @Test

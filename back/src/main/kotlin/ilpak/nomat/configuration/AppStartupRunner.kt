@@ -1,6 +1,7 @@
 package ilpak.nomat.configuration
 
 import ilpak.nomat.player.domain.Player
+import ilpak.nomat.player.domain.RegistrationType
 import ilpak.nomat.player.repository.PlayerRepository
 import ilpak.nomat.room.domain.Room
 import ilpak.nomat.room.domain.RoomMember
@@ -26,7 +27,13 @@ class AppStartupRunner(
     @Transactional
     override fun run(args: ApplicationArguments?) {
         repeat(LOCAL_ROOM_COUNT) {
-            val player = playerRepository.save(Player(nickname = "ROOT#3465"))
+            val player = playerRepository.save(
+                Player(
+                    nickname = "ROOT#3465",
+                    registrationType = RegistrationType.DISCORD,
+                    registrationId = "abc"
+                )
+            )
             roomRepository.save(
                 Room(
                     title = "들어오셈", null, members = listOf(RoomMember.of(player)),
