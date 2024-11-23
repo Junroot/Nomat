@@ -37,6 +37,10 @@ jwt:
 ---
 server:
   forward-headers-strategy: framework
+  tomcat:
+    accesslog:
+      enabled: true
+      pattern: %{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %b
 spring:
   config:
     activate:
