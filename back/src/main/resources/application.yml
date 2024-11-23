@@ -35,6 +35,8 @@ jwt:
   key: 391127b4502a4730af75ad2972a6a129c71b25b18cbb240ca7b6589fc83691fc332621329d6fd4bd33d8d5d1cfe07024942db1ca1099e6f087a62d601a8c69c56b4818266b17a799dd9afd09c7a101b84843050434a66c96796fc8fb9c92b1ba9fd659e2ada8a9092df0134bce96b2e617a76c80164abd715d7959e6611bfd0ff02caaa7bb73be72941ed944c80ca6fb2f4ca117b4177ed884ee735d71bd65966f29317240a38b10e43fd770b6cbd14f2d2e9b4ff04e3696c24960d1fc63fd7cefa923538e29f4b473e11210fbd04753a181e0babfe4968a06df34a9598a9f51248ff022be05ffbe7b0428531fe085ca1895ee0c86532f6f8f9e3044b5ef3809
   domain: localhost
 ---
+server:
+  forward-headers-strategy: framework
 spring:
   config:
     activate:
@@ -57,7 +59,7 @@ spring:
         registration:
           discord:
             authorization-grant-type: authorization_code
-            redirect-uri: "https://dev-api.nomat.live/login/oauth2/code/discord"
+            redirect-uri: "{baseUrl}/login/oauth2/code/discord"
             scope:
               - identify
               - email
