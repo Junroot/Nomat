@@ -2,6 +2,16 @@ spring:
   profiles:
     default: local
 ---
+server:
+  forward-headers-strategy: native
+  tomcat:
+    accesslog:
+      enabled: true
+      pattern: 'header:"%{X-Forwarded-For}i" url:%h %l %u %t \"%r\" %>s %b'
+      prefix: stdout
+      directory: /dev
+      suffix:
+      file-date-format:
 spring:
   config:
     activate:
@@ -36,11 +46,15 @@ jwt:
   domain: localhost
 ---
 server:
-  forward-headers-strategy: framework
+  forward-headers-strategy: native
   tomcat:
     accesslog:
       enabled: true
-      pattern: %{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %b
+      pattern: 'header:"%{X-Forwarded-For}i" url:%h %l %u %t \"%r\" %>s %b'
+      prefix: stdout
+      directory: /dev
+      suffix:
+      file-date-format:
 spring:
   config:
     activate:
