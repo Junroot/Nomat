@@ -29,7 +29,7 @@ class NomatOAuth2UserService(
                 )
             )
 
-        return NomatOauth2User(player.id, oAuth2User)
+        return NomatOAuth2User(player.id, oAuth2User)
     }
 
     private fun getRegistrationType(userRequest: OAuth2UserRequest): RegistrationType? {
