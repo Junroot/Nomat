@@ -1,5 +1,6 @@
 package ilpak.nomat.configuration
 
+import ilpak.nomat.auth.HttpCookieOAuth2AuthorizationRequestRepository
 import ilpak.nomat.auth.NomatOAuth2UserService
 import ilpak.nomat.configuration.filter.TokenAuthenticationFilter
 import org.springframework.context.annotation.Bean
@@ -11,12 +12,14 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
+
 @Configuration
 @Profile("!test")
 class SecurityConfiguration(
     private val nomatOAuth2UserService: NomatOAuth2UserService,
     private val nomatAuthenticationSuccessHandler: NomatAuthenticationSuccessHandler,
     private val tokenAuthenticationFilter: TokenAuthenticationFilter,
+    private val httpCookieOAuth2AuthorizationRequestRepository: HttpCookieOAuth2AuthorizationRequestRepository,
 ) {
 
     @Bean
@@ -27,6 +30,11 @@ class SecurityConfiguration(
         }.oauth2Login { oauth2Login ->
             oauth2Login.authorizationEndpoint { }
                 .userInfoEndpoint { userInfoEndpoint -> userInfoEndpoint.userService(nomatOAuth2UserService) }
+                .authorizationEndpoint {
+                    it.authorizationRequestRepository(
+                        httpCookieOAuth2AuthorizationRequestRepository
+                    )
+                }
                 .successHandler(nomatAuthenticationSuccessHandler)
         }
             .formLogin { it.disable() }

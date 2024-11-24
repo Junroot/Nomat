@@ -1,6 +1,6 @@
 package ilpak.nomat.configuration
 
-import ilpak.nomat.auth.NomatOauth2User
+import ilpak.nomat.auth.NomatOAuth2User
 import ilpak.nomat.auth.TokenService
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -26,7 +26,7 @@ class NomatAuthenticationSuccessHandler(
         response: HttpServletResponse,
         authentication: Authentication
     ) {
-        val nomatOauth2User = authentication.principal as NomatOauth2User
+        val nomatOauth2User = authentication.principal as NomatOAuth2User
         val token = tokenService.getNewToken(nomatOauth2User.playerId)
         response.addCookie(
             Cookie(TokenService.TOKEN_COOKIE_KEY, token).also {

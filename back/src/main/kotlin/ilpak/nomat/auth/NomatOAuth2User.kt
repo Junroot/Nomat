@@ -3,7 +3,7 @@ package ilpak.nomat.auth
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.core.user.OAuth2User
 
-class NomatOauth2User(
+class NomatOAuth2User(
     val playerId: Long,
     private val defaultOAuth2User: OAuth2User,
 ) : OAuth2User {
