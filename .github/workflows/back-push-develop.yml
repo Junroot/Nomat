@@ -36,7 +36,7 @@ jobs:
           REPO_URL="https://github.com/Junroot/Nomat.git"
           REPO_DIR="$HOME/Nomat"
           BRANCH=${GITHUB_REF##*/}
-          ENV_FILE="HOME/.env"
+          ENV_FILE="$HOME/.env"
 
           cd "$REPO_DIR"
           if [ ! -d "$REPO_DIR/.git" ]; then
