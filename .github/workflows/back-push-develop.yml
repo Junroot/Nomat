@@ -33,20 +33,19 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
           echo "Current directory: $(pwd)"
 
-          source .env
+          source ${HOME}/.env
           
           REPO_URL="https://github.com/Junroot/Nomat.git"
           REPO_DIR="$HOME/Nomat"
           BRANCH=${GITHUB_REF##*/}
 
-          if [ -d "$REPO_DIR/.git" ]; then
-            cd "$REPO_DIR"
-            git pull origin "$BRANCH"
-          else
+          cd "$REPO_DIR"
+          if [ ! -d "$REPO_DIR/.git" ]; then
             git clone "$REPO_URL" "$REPO_DIR"
-            cd "$REPO_DIR"
-            git pull origin "$BRANCH"
           fi
+            
+          git reset --hard
+          git pull origin "$BRANCH"
 
           cd "$REPO_DIR/back/infra"
           TAG=${{ github.sha }} docker compose up -d
