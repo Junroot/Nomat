@@ -12,6 +12,8 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTID: /run/secrets/oauth2_client_registration_discord_client_id
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTSECRET: oauth2_client_registration_discord_client_secret
       JWT_KEY: /run/secrets/jwt_key
+    networks:
+      - backend
     secrets:
       - db_url
       - db_username
@@ -35,6 +37,7 @@ services:
 networks:
   backend:
     driver: overlay
+    attachable: true
 configs:
   nginx_conf:
     file: ./nginx.conf
@@ -44,14 +47,14 @@ configs:
     file: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
 secrets:
   db_url:
-    environment: "DB_URL"
+    environment: DB_URL
   db_username:
-    environment: "DB_USERNAME"
+    environment: DB_USERNAME
   db_password:
-    environment: "DB_PASSWORD"
+    environment: DB_PASSWORD
   oauth2_client_registration_discord_client_id:
-    environment: "OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENT_ID"
+    environment: OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENT_ID
   oauth2_client_registration_discord_client_secret:
-    environment: "OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENT_SECRET"
+    environment: OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENT_SECRET
   jwt_key:
-    environment: "JWT_KEY"
+    environment: JWT_KEY

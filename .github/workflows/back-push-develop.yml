@@ -28,7 +28,6 @@ jobs:
           PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
-          TAG: ${{ github.sha }}
         run: |
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
           ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
@@ -48,5 +47,5 @@ jobs:
           fi
 
           cd "$REPO_DIR/back/infra"
-          docker compose up -d
+          TAG=${{ github.sha }} docker compose up -d
           '

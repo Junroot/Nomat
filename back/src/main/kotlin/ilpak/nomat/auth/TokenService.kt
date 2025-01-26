@@ -12,7 +12,7 @@ class TokenService(
     @Value("\${jwt.key}")
     private val key: String
 ) {
-    private val secretKey = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(key))
+    private val secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(key))
 
     fun getNewToken(playerId: Long): String {
         return Jwts.builder()
