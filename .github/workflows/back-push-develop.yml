@@ -47,6 +47,6 @@ jobs:
             git pull origin "$BRANCH"
           fi
 
-          cd "$REPO_DIR/infra"
+          cd "$REPO_DIR/back/infra"
           docker compose up -d
           '
