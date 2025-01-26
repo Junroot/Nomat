@@ -1,7 +1,7 @@
 name: nomat-back
 services:
   spring-app:
-    image: junroot0909/nomat:latest
+    image: junroot0909/nomat:${TAG:-latest}
     deploy:
       replicas: 2
     environment:
@@ -28,12 +28,20 @@ services:
     configs:
       - source: nginx_conf
         target: /etc/nginx/nginx.conf
+      - source: ssl_certificate
+        target: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
+      - source: ssl_certificate_key
+        target: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
 networks:
   backend:
     driver: overlay
 configs:
   nginx_conf:
     file: ./nginx.conf
+  ssl_certificate:
+    file: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
+  ssl_certificate_key:
+    file: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
 secrets:
   db_url:
     environment: "DB_URL"
