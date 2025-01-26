@@ -32,6 +32,8 @@ jobs:
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
           ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
           echo "Current directory: $(pwd)"
+
+          source .env
           
           REPO_URL="https://github.com/Junroot/Nomat.git"
           REPO_DIR="$HOME/Nomat"

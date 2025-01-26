@@ -67,6 +67,9 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 10
     driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     show-sql: true
     hibernate:
@@ -76,6 +79,8 @@ spring:
       client:
         registration:
           discord:
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTID}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTSECRET}
             authorization-grant-type: authorization_code
             redirect-uri: "https://api.dev.nomat.live/login/oauth2/code/discord"
             scope:
@@ -91,4 +96,5 @@ app:
   cors:
     origins: https://dev.nomat.live
 jwt:
+  key: ${JWT_KEY}
   domain: dev.nomat.live
