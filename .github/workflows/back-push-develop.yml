@@ -23,17 +23,19 @@ jobs:
           context: ./back
           push: true
           tags: junroot0909/nomat:latest, junroot0909/nomat:${{ github.sha }}
-      - name: argo cd login
-        uses: clowdhaus/argo-cd-action/@main
-        with:
-          command: login ${{ secrets.ARGOCD_SERVER }} 
-          options: --username ${{ secrets.ARGOCD_USER_NAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-      - name: argo cd set parameters
-        uses: clowdhaus/argo-cd-action/@main
-        with:
-          command: app set nomat 
-          options: --kustomize-image junroot0909/nomat:${{ github.sha }} --insecure
-      - name: argo cd sync
-        uses: clowdhaus/argo-cd-action/@main
-        with:
-          command: app sync nomat --insecure
+      - name: deploy docker compose to EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+          GITHUB_REF: ${{ github.ref }}
+          TAG: ${{ github.sha }}
+        run: |
+          echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
+          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST}
+          echo "Current directory: $(pwd)"
+          echo "Listing home directory:"
+          ls -la ~
+
+          curl -O https://raw.githubusercontent.com/Junroot/Nomat/${GITHUB_REF}/back/kubernetes/back-deployment.yaml
+          docker compose up -d

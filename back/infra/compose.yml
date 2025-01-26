@@ -1,0 +1,57 @@
+name: nomat-back
+services:
+  spring-app:
+    image: junroot0909/nomat:${TAG:-latest}
+    deploy:
+      replicas: 2
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: /run/secrets/db_url
+      SPRING_DATASOURCE_USERNAME: /run/secrets/db_username
+      SPRING_DATASOURCE_PASSWORD: /run/secrets/db_password
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTID: /run/secrets/oauth2_client_registration_discord_client_id
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTSECRET: oauth2_client_registration_discord_client_secret
+      JWT_KEY: /run/secrets/jwt_key
+    secrets:
+      - db_url
+      - db_username
+      - db_password
+      - oauth2_client_registration_discord_client_id
+      - oauth2_client_registration_discord_client_secret
+      - jwt_key
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    networks:
+      - backend
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+      - source: ssl_certificate
+        target: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
+      - source: ssl_certificate_key
+        target: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
+networks:
+  backend:
+    driver: overlay
+configs:
+  nginx_conf:
+    file: ./nginx.conf
+  ssl_certificate:
+    file: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
+  ssl_certificate_key:
+    file: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
+secrets:
+  db_url:
+    environment: "DB_URL"
+  db_username:
+    environment: "DB_USERNAME"
+  db_password:
+    environment: "DB_PASSWORD"
+  oauth2_client_registration_discord_client_id:
+    environment: "OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENT_ID"
+  oauth2_client_registration_discord_client_secret:
+    environment: "OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENT_SECRET"
+  jwt_key:
+    environment: "JWT_KEY"
