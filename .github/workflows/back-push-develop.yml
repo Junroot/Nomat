@@ -32,12 +32,11 @@ jobs:
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
           ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
           echo "Current directory: $(pwd)"
-
-          source ${HOME}/.env
           
           REPO_URL="https://github.com/Junroot/Nomat.git"
           REPO_DIR="$HOME/Nomat"
           BRANCH=${GITHUB_REF##*/}
+          ENV_FILE="HOME/.env"
 
           cd "$REPO_DIR"
           if [ ! -d "$REPO_DIR/.git" ]; then
@@ -48,5 +47,5 @@ jobs:
           git pull origin "$BRANCH"
 
           cd "$REPO_DIR/back/infra"
-          TAG=${{ github.sha }} docker compose up -d
+          TAG=${{ github.sha }} docker compose --env-file $ENV_FILE up -d
           '
