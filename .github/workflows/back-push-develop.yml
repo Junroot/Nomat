@@ -31,7 +31,7 @@ jobs:
           TAG: ${{ github.sha }}
         run: |
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
-          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST}
+          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
           echo "Current directory: $(pwd)"
           
           REPO_URL="https://github.com/Junroot/Nomat.git"
@@ -49,3 +49,4 @@ jobs:
 
           cd "$REPO_DIR/infra"
           docker compose up -d
+          '
