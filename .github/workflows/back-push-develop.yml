@@ -28,14 +28,24 @@ jobs:
           PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
-          GITHUB_REF: ${{ github.ref }}
           TAG: ${{ github.sha }}
         run: |
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
           ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST}
           echo "Current directory: $(pwd)"
-          echo "Listing home directory:"
-          ls -la ~
+          
+          REPO_URL="https://github.com/Junroot/Nomat.git"
+          REPO_DIR="$HOME/Nomat"
+          BRANCH=${GITHUB_REF##*/}
 
-          curl -O https://raw.githubusercontent.com/Junroot/Nomat/${GITHUB_REF}/back/kubernetes/back-deployment.yaml
+          if [ -d "$REPO_DIR/.git" ]; then
+            cd "$REPO_DIR"
+            git pull origin "$BRANCH"
+          else
+            git clone "$REPO_URL" "$REPO_DIR"
+            cd "$REPO_DIR"
+            git pull origin "$BRANCH"
+          fi
+
+          cd "$REPO_DIR/infra"
           docker compose up -d
