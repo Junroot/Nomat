@@ -1,4 +1,4 @@
-name: push "back" to develop branch
+name: Backend's push to develop
 on:
   workflow_dispatch:
   push:
@@ -8,7 +8,7 @@ on:
       - "back/**"
 jobs:
   build:
-    name: Push Docker image to Docker Hub
+    name: push Docker image to Docker Hub
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
           context: ./back
           push: true
           tags: junroot0909/nomat:latest, junroot0909/nomat:${{ github.sha }}
-      - name: deploy docker compose to EC2
+      - name: deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
