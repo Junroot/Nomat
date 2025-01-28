@@ -13,6 +13,8 @@ services:
         monitor: 60s
         failure_action: rollback
         order: start-first
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_DATASOURCE_URL: jdbc:mysql://${DB_URL}/nomat
