@@ -1,0 +1,45 @@
+name: Infra's push to develop
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "develop"
+    paths:
+      - "infra/**"
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: deploy to EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+        run: |
+          echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
+          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
+          echo "Current directory: $(pwd)"
+        
+          REPO_URL="https://github.com/Junroot/Nomat.git"
+          REPO_DIR="$HOME/Nomat"
+          BRANCH=${GITHUB_REF##*/}
+        
+          if [ ! -d "$REPO_DIR/.git" ]; then
+          git clone "$REPO_URL" "$REPO_DIR"
+          fi
+        
+          cd "$REPO_DIR"
+          git reset --hard
+          git pull origin "$BRANCH"
+
+          cd ~
+          if [ ! -d infra ]; then
+          mkdir infra
+          fi
+          cp -r ./Nomat/infra/app/* infra
+          cp .env ./infra/.env
+          cd infra
+
+          export $(xargs < .env)
+          docker stack config -c compose.yml | sudo docker stack deploy -c - nomat-back
+          '

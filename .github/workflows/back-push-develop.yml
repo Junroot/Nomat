@@ -8,7 +8,6 @@ on:
       - "back/**"
 jobs:
   build:
-    name: push Docker image to Docker Hub
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -31,29 +30,6 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
           ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
-          echo "Current directory: $(pwd)"
           
-          REPO_URL="https://github.com/Junroot/Nomat.git"
-          REPO_DIR="$HOME/Nomat"
-          BRANCH=${GITHUB_REF##*/}
-          ENV_FILE="$HOME/.env"
-          
-          if [ ! -d "$REPO_DIR/.git" ]; then
-            git clone "$REPO_URL" "$REPO_DIR"
-          fi
-          
-          cd "$REPO_DIR"
-          git reset --hard
-          git pull origin "$BRANCH"
-
-          cd ~
-          if [ ! -d infra ]; then
-            mkdir infra
-          fi
-          cp -r ./Nomat/back/infra/app/* infra
-          cp .env ./infra/.env
-          cd infra
-
-          export $(xargs < .env)
-          docker stack config -c compose.yml | sudo TAG=${{ github.sha }} docker stack deploy -c - nomat-back
+          docker service update --image junroot0909/nomat:${{ github.sha }} nomat-back_spring-app
           '

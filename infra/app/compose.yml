@@ -1,6 +1,6 @@
 services:
   spring-app:
-    image: junroot0909/nomat:${TAG:-latest}
+    image: junroot0909/nomat:latest
     deploy:
       replicas: 2
       restart_policy:
