@@ -53,5 +53,7 @@ jobs:
           cp -r ./Nomat/back/infra/* infra
           cp .env ./infra/.env
           cd infra
-          sudo TAG=${{ github.sha }} docker stack deploy -c compose.yml nomat-back
+
+          export $(xargs < .env)
+          docker stack config -c compose.yml | sudo TAG=${{ github.sha }} docker stack deploy -c - nomat-back
           '
