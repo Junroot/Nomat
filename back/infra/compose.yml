@@ -4,6 +4,16 @@ services:
     container_name: spring-app
     deploy:
       replicas: 2
+      restart_policy:
+        delay: 5s
+        max_attempts: 3
+        window: 60s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        monitor: 60s
+        failure_action: rollback
+        order: start-first
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_DATASOURCE_URL: jdbc:mysql://${DB_URL}/nomat
@@ -23,11 +33,11 @@ services:
     networks:
       - backend
     configs:
-      - source: nginx_conf
+      - source: nginx_conf-1
         target: /etc/nginx/nginx.conf
-      - source: ssl_certificate
+      - source: ssl_certificate-1
         target: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
-      - source: ssl_certificate_key
+      - source: ssl_certificate_key-1
         target: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
 networks:
   backend:
@@ -35,9 +45,10 @@ networks:
     driver: overlay
     attachable: true
 configs:
-  nginx_conf:
+  # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
+  nginx_conf-1:
     file: ./nginx.conf
-  ssl_certificate:
+  ssl_certificate-1:
     file: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
-  ssl_certificate_key:
+  ssl_certificate_key-1:
     file: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
