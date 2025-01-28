@@ -50,7 +50,7 @@ jobs:
           if [ ! -d infra ]; then
             mkdir infra
           fi
-          cp -r ./Nomat/back/infra/* infra
+          cp -r ./Nomat/back/infra/app/* infra
           cp .env ./infra/.env
           cd infra
 

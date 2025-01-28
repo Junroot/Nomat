@@ -1,7 +1,6 @@
 services:
   spring-app:
     image: junroot0909/nomat:${TAG:-latest}
-    container_name: spring-app
     deploy:
       replicas: 2
       restart_policy:
@@ -26,7 +25,6 @@ services:
       - backend
   nginx:
     image: nginx:alpine
-    container_name: nginx
     ports:
       - "80:80"
       - "443:443"
