@@ -1,7 +1,7 @@
-name: nomat-back
 services:
   spring-app:
     image: junroot0909/nomat:${TAG:-latest}
+    container_name: spring-app
     deploy:
       replicas: 2
     environment:
@@ -16,6 +16,7 @@ services:
       - backend
   nginx:
     image: nginx:alpine
+    container_name: nginx
     ports:
       - "80:80"
       - "443:443"
@@ -30,6 +31,7 @@ services:
         target: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
 networks:
   backend:
+    name: backend
     driver: overlay
     attachable: true
 configs:

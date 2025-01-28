@@ -37,15 +37,18 @@ jobs:
           REPO_DIR="$HOME/Nomat"
           BRANCH=${GITHUB_REF##*/}
           ENV_FILE="$HOME/.env"
-
-          cd "$REPO_DIR"
+          
           if [ ! -d "$REPO_DIR/.git" ]; then
             git clone "$REPO_URL" "$REPO_DIR"
           fi
-            
+          
+          cd "$REPO_DIR"
           git reset --hard
           git pull origin "$BRANCH"
 
-          cd "$REPO_DIR/back/infra"
-          TAG=${{ github.sha }} docker compose --env-file $ENV_FILE up -d
+          cd ~
+          cp -r ./Nomat/back/infra infra
+          cp .env ./infra/.env
+          cd infra
+          sudo TAG=${{ github.sha }} docker stack deploy -c compose.yml nomat-back
           '
