@@ -47,7 +47,10 @@ jobs:
           git pull origin "$BRANCH"
 
           cd ~
-          cp -r ./Nomat/back/infra infra
+          if [ ! -d infra ]; then
+            mkdir infra
+          fi
+          cp -r ./Nomat/back/infra/* infra
           cp .env ./infra/.env
           cd infra
           sudo TAG=${{ github.sha }} docker stack deploy -c compose.yml nomat-back
