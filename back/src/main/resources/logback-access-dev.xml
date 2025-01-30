@@ -2,7 +2,9 @@
 <configuration debug="false">
     <appender name="Stash" class="net.logstash.logback.appender.LogstashAccessTcpSocketAppender">
         <destination>${LOGSTASH_URL}</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashAccessEncoder" />
+        <encoder class="net.logstash.logback.encoder.LogstashAccessEncoder">
+            <customFields>{"logType":"access-log"}</customFields>
+        </encoder>
         <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
     <appender-ref ref="Stash"/>

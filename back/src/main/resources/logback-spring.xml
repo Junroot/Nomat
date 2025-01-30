@@ -13,11 +13,13 @@
     <springProfile name="dev">
         <appender name="Stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
             <destination>${LOGSTASH_URL}</destination>
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"logType":"app-log"}</customFields>
+            </encoder>
             <keepAliveDuration>5 minutes</keepAliveDuration>
         </appender>
 
-        <root level="DEBUG">
+        <root level="INFO">
             <appender-ref ref="Stash" />
         </root>
     </springProfile>
