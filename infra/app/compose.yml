@@ -28,6 +28,7 @@ services:
       - backend
   nginx:
     image: nginx:alpine
+    network_mode: "host"
     ports:
       - "80:80"
       - "443:443"
