@@ -1,17 +1,5 @@
-spring:
-  profiles:
-    default: local
----
 server:
   forward-headers-strategy: framework
-  tomcat:
-    accesslog:
-      enabled: true
-      pattern: 'header:"%{X-Forwarded-For}i" url:%h %l %u %t \"%r\" %>s %b'
-      prefix: stdout
-      directory: /dev
-      suffix:
-      file-date-format:
 spring:
   config:
     activate:
@@ -19,7 +7,6 @@ spring:
   flyway:
     clean-disabled: false
   jpa:
-    show-sql: true
     hibernate:
       ddl-auto: validate
   security:
@@ -44,17 +31,14 @@ app:
 jwt:
   key: cGFzc3dvcmRwYXNzdzByZHBhNTV3MHJkcGE1NXdvcmQ
   domain: localhost
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE
 ---
 server:
   forward-headers-strategy: framework
-  tomcat:
-    accesslog:
-      enabled: true
-      pattern: 'header:"%{X-Forwarded-For}i" url:%h %l %u %t \"%r\" %>s %b'
-      prefix: stdout
-      directory: /dev
-      suffix:
-      file-date-format:
 spring:
   config:
     activate:
@@ -71,7 +55,6 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
-    show-sql: true
     hibernate:
       ddl-auto: validate
   security:
@@ -98,3 +81,8 @@ app:
 jwt:
   key: ${JWT_KEY}
   domain: dev.nomat.live
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE
