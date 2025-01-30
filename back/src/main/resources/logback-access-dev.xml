@@ -5,7 +5,7 @@
         <encoder class="net.logstash.logback.encoder.LogstashAccessEncoder">
             <customFields>{"logType":"access-log"}</customFields>
             <fieldNames>
-                <requestHeaders>X-Real-IP</requestHeaders>
+                <requestHeaders>request_headers</requestHeaders>
             </fieldNames>
         </encoder>
         <keepAliveDuration>5 minutes</keepAliveDuration>
