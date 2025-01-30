@@ -34,7 +34,7 @@ services:
     networks:
       - backend
     configs:
-      - source: nginx_conf-1
+      - source: nginx_conf-2
         target: /etc/nginx/nginx.conf
       - source: ssl_certificate-1
         target: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
@@ -47,7 +47,7 @@ networks:
     attachable: true
 configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
-  nginx_conf-1:
+  nginx_conf-2:
     file: ./nginx.conf
   ssl_certificate-1:
     file: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
