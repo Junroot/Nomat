@@ -2,6 +2,7 @@ package ilpak.nomat.configuration
 
 import ilpak.nomat.auth.HttpCookieOAuth2AuthorizationRequestRepository
 import ilpak.nomat.auth.NomatOAuth2UserService
+import ilpak.nomat.configuration.filter.MDCLoggingFilter
 import ilpak.nomat.configuration.filter.TokenAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,6 +20,7 @@ class SecurityConfiguration(
     private val nomatOAuth2UserService: NomatOAuth2UserService,
     private val nomatAuthenticationSuccessHandler: NomatAuthenticationSuccessHandler,
     private val tokenAuthenticationFilter: TokenAuthenticationFilter,
+    private val mdcLoggingFilter: MDCLoggingFilter,
     private val httpCookieOAuth2AuthorizationRequestRepository: HttpCookieOAuth2AuthorizationRequestRepository,
 ) {
 
@@ -43,6 +45,7 @@ class SecurityConfiguration(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .exceptionHandling { it.authenticationEntryPoint(Http403ForbiddenEntryPoint()) }
             .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(mdcLoggingFilter, TokenAuthenticationFilter::class.java)
             .build()
     }
 

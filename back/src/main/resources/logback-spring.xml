@@ -3,7 +3,7 @@
     <springProfile name="local | test">
         <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
             <layout class="ch.qos.logback.classic.PatternLayout">
-                <Pattern>[SERVER] %d{yyyy/MM/dd:HH:mm:ss Z} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+                <Pattern>[SERVER] %d{yyyy/MM/dd:HH:mm:ss Z} %X{requestId} %X{requestPlayerId} [%thread] %-5level %logger{36} - %msg%n</Pattern>
             </layout>
         </appender>
         <root level="INFO">
