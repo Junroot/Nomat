@@ -1,10 +1,11 @@
 <template>
   <v-sheet class="w-screen h-screen overflow-hidden d-flex flex-row">
+    <VideoPlayer v-if="status === 'playing'"></VideoPlayer>
     <NavigationBar>
       <NavigationBarItem v-on:click="onClickLobby" label="대기실"
         ><ArrowBackIcon></ArrowBackIcon
       ></NavigationBarItem>
-      <NavigationBarItem label="시작"><PlayIcon></PlayIcon></NavigationBarItem>
+      <NavigationBarItem v-on:click="onClickPlay" label="시작"><PlayIcon></PlayIcon></NavigationBarItem>
     </NavigationBar>
     <v-sheet class="w-100 d-flex flex-row">
       <v-sheet
@@ -45,6 +46,7 @@ import Chats from "@/components/room/chats/Chats.vue";
 import ChatInput from "@/components/room/chats/ChatInput.vue";
 import { PlayerResponse } from "@/components/room/players/PlayerData";
 import axios from "@/plugins/axios";
+import VideoPlayer from "@/components/video-player/VideoPlayer.vue";
 
 type RoomResponse = {
   id: number;
@@ -68,12 +70,14 @@ export default {
     PlayIcon,
     Players,
     Chats,
-    ChatInput
+    ChatInput,
+    VideoPlayer,
   },
   data() {
     return {
       roomId: this.$route.params.id,
       room: null as RoomResponse | null,
+      status: "ready",
       chats: [
         {
           type: "System",
@@ -174,6 +178,9 @@ export default {
   methods: {
     onClickLobby() {
       window.location.href = "/";
+    },
+    onClickPlay() {
+      this.status = "playing";
     }
   }
 };
