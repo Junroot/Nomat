@@ -3,6 +3,7 @@
     "baseUrl": ".",
     "target": "esnext",
     "useDefineForClassFields": true,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "composite": true,
     "module": "esnext",
