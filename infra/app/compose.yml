@@ -40,10 +40,6 @@ services:
     configs:
       - source: nginx_conf-2
         target: /etc/nginx/nginx.conf
-      - source: ssl_certificate-1
-        target: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
-      - source: ssl_certificate_key-1
-        target: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
 networks:
   backend:
     name: backend
@@ -53,7 +49,3 @@ configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
   nginx_conf-2:
     file: ./nginx.conf
-  ssl_certificate-1:
-    file: /etc/letsencrypt/live/api.dev.nomat.live/fullchain.pem
-  ssl_certificate_key-1:
-    file: /etc/letsencrypt/live/api.dev.nomat.live/privkey.pem
