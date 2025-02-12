@@ -1,11 +1,11 @@
 package ilpak.nomat.room.controller
 
 import ilpak.nomat.integration.AbstractIntegrationTest
-import ilpak.nomat.player.domain.Player
-import ilpak.nomat.player.domain.RegistrationType
-import ilpak.nomat.player.repository.PlayerRepository
-import ilpak.nomat.room.dto.RoomDetailResponse
-import ilpak.nomat.room.dto.RoomRequest
+import ilpak.nomat.player.application.PlayerService
+import ilpak.nomat.player.application.domain.RegistrationType
+import ilpak.nomat.player.application.dto.PlayerRequest
+import ilpak.nomat.room.application.dto.RoomDetailResponse
+import ilpak.nomat.room.application.dto.RoomRequest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,12 +15,18 @@ import kotlin.test.assertNotNull
 class RoomControllerTest : AbstractIntegrationTest() {
 
     @Autowired
-    private lateinit var playerRepository: PlayerRepository
+    private lateinit var playerService: PlayerService
 
     @BeforeEach
     override fun setUp() {
         super.setUp()
-        playerRepository.save(Player(nickname = "ROOT#3465", registrationType = RegistrationType.DISCORD, registrationId = "abc"))
+        playerService.save(
+            PlayerRequest(
+                nickname = "ROOT#3465",
+                registrationType = RegistrationType.DISCORD,
+                registrationId = "abc"
+            )
+        )
     }
 
     @Test
