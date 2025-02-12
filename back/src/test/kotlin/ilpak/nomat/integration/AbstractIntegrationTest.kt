@@ -8,13 +8,14 @@ import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAu
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 
-@ActiveProfiles("test")
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = [TestSecurityConfiguration::class]
 )
+@TestPropertySource(properties = ["spring.profiles.active=test"])
 @EnableAutoConfiguration(exclude = [OAuth2ClientAutoConfiguration::class])
 abstract class AbstractIntegrationTest {
 
