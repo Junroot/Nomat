@@ -1,7 +1,7 @@
 package ilpak.nomat.room.application
 
 import ilpak.nomat.infrastructure.exception.NotFoundException
-import ilpak.nomat.player.out.jpa.PlayerJpaRepository
+import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.room.application.domain.Room
 import ilpak.nomat.room.application.domain.RoomMember
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class RoomService(
     private val playlistService: PlaylistService,
     private val roomRepository: RoomRepository,
-    private val playerJpaRepository: PlayerJpaRepository
+    private val playerService: PlayerService,
 ) {
 
     fun getRooms(): List<RoomResponse> {
@@ -39,7 +39,7 @@ class RoomService(
         val room = Room(
             roomRequest.title,
             roomRequest.password,
-            playerJpaRepository.findAll().map { RoomMember(it.id, it.nickname) },
+            playerService.findAll().map { RoomMember(it.id, it.nickname) },
             RoomPlaylist(
                 playlistMetadata.name,
                 playlistMetadata.count,

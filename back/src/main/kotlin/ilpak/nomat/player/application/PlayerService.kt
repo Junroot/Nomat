@@ -8,16 +8,19 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
+@Transactional(readOnly = true)
 class PlayerService(
     private val playerRepository: PlayerRepository
 ) {
 
-    @Transactional(readOnly = true)
     fun exists(playerId: Long): Boolean {
         return playerRepository.existsById(playerId)
     }
 
-    @Transactional(readOnly = true)
+    fun findAll(): List<PlayerResponse> {
+        return playerRepository.findAll().map { PlayerResponse(it) }
+    }
+
     fun findByRegistrationTypeAndRegistrationId(
         registrationType: RegistrationType,
         registrationId: String
@@ -26,6 +29,7 @@ class PlayerService(
             ?.let { PlayerResponse(it) }
     }
 
+    @Transactional
     fun save(request: PlayerRequest): PlayerResponse {
         return PlayerResponse(playerRepository.save(request.toDomain()))
     }
