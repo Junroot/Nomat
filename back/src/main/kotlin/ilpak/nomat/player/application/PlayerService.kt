@@ -29,6 +29,10 @@ class PlayerService(
             ?.let { PlayerResponse(it) }
     }
 
+    fun findByIdIn(ids: Set<Long>): List<PlayerResponse> {
+        return playerRepository.findByIdIn(ids).map { PlayerResponse(it) }
+    }
+
     @Transactional
     fun save(request: PlayerRequest): PlayerResponse {
         return PlayerResponse(playerRepository.save(request.toDomain()))

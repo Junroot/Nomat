@@ -4,7 +4,7 @@ import ilpak.nomat.infrastructure.exception.NotFoundException
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.room.application.domain.Room
-import ilpak.nomat.room.application.domain.RoomMember
+import ilpak.nomat.room.application.domain.RoomEntry
 import ilpak.nomat.room.application.domain.RoomPlaylist
 import ilpak.nomat.room.application.domain.RoomRepository
 import ilpak.nomat.room.application.dto.RoomDetailResponse
@@ -23,13 +23,21 @@ class RoomService(
 
     fun getRooms(): List<RoomResponse> {
         val rooms = roomRepository.findAll()
+        val masterIds = rooms.mapNotNull { it.master?.playerId }.toSet()
+        val nicknameByMasterId = playerService.findByIdIn(masterIds).associate { it.id to it.nickname }
 
-        return rooms.map { RoomResponse.of(it) }
+        return rooms.mapNotNull {
+            val masterId = it.master?.playerId ?: return@mapNotNull null
+            val nickname = nicknameByMasterId[masterId] ?: return@mapNotNull null
+            RoomResponse.of(it, nickname)
+        }
     }
 
     fun getRoomDetail(roomId: Long): RoomDetailResponse {
         val room = roomRepository.findById(roomId) ?: throw NotFoundException("not found room.($roomId)")
-        return RoomDetailResponse.of(room)
+        val players = playerService.findByIdIn(room.playerIds + room.playlistMasterId)
+        val nicknameByPlayerId = players.associate { it.id to it.nickname }
+        return RoomDetailResponse.of(room, nicknameByPlayerId)
     }
 
     @Transactional
@@ -39,17 +47,19 @@ class RoomService(
         val room = Room(
             roomRequest.title,
             roomRequest.password,
-            playerService.findAll().map { RoomMember(it.id, it.nickname) },
             RoomPlaylist(
                 playlistMetadata.name,
                 playlistMetadata.count,
-                playlistMetadata.master,
+                playlistMetadata.masterId,
                 playlistMetadata.comment,
                 playlistMetadata.id,
             )
         )
         val savedRoom = roomRepository.save(room)
+        val players = playerService.findAll()
+        savedRoom.entries.addAll(players.map { RoomEntry(it.id) })
+        val nicknameByPlayerId = players.associate { it.id to it.nickname }
 
-        return RoomDetailResponse.of(savedRoom)
+        return RoomDetailResponse.of(savedRoom, nicknameByPlayerId)
     }
 }

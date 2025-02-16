@@ -3,13 +3,6 @@ package ilpak.nomat.player.out
 import ilpak.nomat.player.application.domain.Player
 import ilpak.nomat.player.application.domain.PlayerRepository
 import ilpak.nomat.player.application.domain.RegistrationType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 
@@ -23,53 +16,31 @@ private class PlayerRepositoryImpl(
     }
 
     override fun findAll(): List<Player> {
-        return playerJpaRepository.findAll().map { it.toDomain() }
+        return playerJpaRepository.findAll().toList()
     }
 
     override fun findByRegistrationTypeAndRegistrationId(
         registrationType: RegistrationType,
         registrationId: String
     ): Player? {
-        return playerJpaRepository.findByRegistrationTypeAndRegistrationId(registrationType, registrationId)?.toDomain()
+        return playerJpaRepository.findByRegistrationTypeAndRegistrationId(registrationType, registrationId)
+    }
+
+    override fun findByIdIn(ids: Set<Long>): List<Player> {
+        return playerJpaRepository.findByIdIn(ids)
     }
 
     override fun save(player: Player): Player {
-        return playerJpaRepository.save(PlayerEntity(player)).toDomain()
+        return playerJpaRepository.save(player)
     }
 }
 
-private interface PlayerJpaRepository : CrudRepository<PlayerEntity, Long> {
+private interface PlayerJpaRepository : CrudRepository<Player, Long> {
 
     fun findByRegistrationTypeAndRegistrationId(
         registrationType: RegistrationType,
         registrationId: String
-    ): PlayerEntity?
-}
+    ): Player?
 
-@Entity(name = "player")
-private class PlayerEntity(
-    val nickname: String,
-    @Column(columnDefinition = "varchar(20)")
-    @Enumerated(value = EnumType.STRING)
-    val registrationType: RegistrationType,
-    val registrationId: String,
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-) {
-    constructor(player: Player) : this(
-        player.nickname,
-        player.registrationType,
-        player.registrationId,
-        player.id
-    )
-
-    fun toDomain(): Player {
-        return Player(
-            nickname,
-            registrationType,
-            registrationId,
-            id
-        )
-    }
+    fun findByIdIn(ids: Set<Long>): List<Player>
 }

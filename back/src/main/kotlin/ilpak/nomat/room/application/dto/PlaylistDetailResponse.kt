@@ -10,12 +10,12 @@ data class PlaylistDetailResponse(
     val comment: String,
 ) {
     companion object {
-        fun of(playlist: RoomPlaylist): PlaylistDetailResponse {
+        fun of(playlist: RoomPlaylist, masterNickname: String): PlaylistDetailResponse {
             return PlaylistDetailResponse(
                 playlist.id,
                 playlist.name,
                 playlist.count,
-                playlist.master,
+                masterNickname,
                 playlist.comment
             )
         }

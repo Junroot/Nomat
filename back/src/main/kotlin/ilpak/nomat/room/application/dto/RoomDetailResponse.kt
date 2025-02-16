@@ -9,16 +9,19 @@ class RoomDetailResponse(
     val players: List<RoomMemberResponse>
 ) {
     companion object {
-        fun of(room: Room): RoomDetailResponse {
+        fun of(room: Room, nicknameByPlayerId: Map<Long, String>): RoomDetailResponse {
+            val playlistMasterNickname = nicknameByPlayerId[room.playlistMasterId]
+                ?: throw IllegalStateException("playlistMasterNickname not found")
+
             return RoomDetailResponse(
                 room.id,
                 room.title,
-                PlaylistDetailResponse.of(room.playlist),
-                room.members.map {
+                PlaylistDetailResponse.of(room.playlist, playlistMasterNickname),
+                room.entries.mapNotNull {
                     RoomMemberResponse(
-                        it.nickname,
+                        nicknameByPlayerId[it.playerId] ?: return@mapNotNull null,
                         "",
-                        room.isMaster(it)
+                        room.isMaster(it),
                     )
                 }
             )
