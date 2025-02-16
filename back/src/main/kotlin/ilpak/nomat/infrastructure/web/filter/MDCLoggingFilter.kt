@@ -12,7 +12,9 @@ import java.util.*
 class MDCLoggingFilter : Filter {
 
     override fun doFilter(p0: ServletRequest?, p1: ServletResponse?, p2: FilterChain?) {
-        MDC.put(REQUEST_ID, UUID.randomUUID().toString())
+        val requestId = UUID.randomUUID().toString()
+        MDC.put(REQUEST_ID, requestId)
+        p0?.setAttribute(REQUEST_ID, requestId)
         p2?.doFilter(p0, p1)
         MDC.clear()
     }
