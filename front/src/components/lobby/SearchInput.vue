@@ -1,5 +1,5 @@
 <template>
-  <v-sheet class="w-100 border rounded-xl">
+  <v-sheet class="w-100 rounded-xl search-input">
     <v-text-field
       clearable
       placeholder="방 이름, 플레이리스트, 플레이어 이름으로 검색"
@@ -28,3 +28,10 @@ export default {
   },
 };
 </script>
+
+<style>
+.search-input {
+  background-color: var(--primary-450);
+  max-width: 1264px;
+}
+</style>
