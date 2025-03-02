@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+.me {
+  position: relative;
+}
+
+.profile {
+  position: absolute;
+  overflow: hidden;
+  top: 0;
+}
+
+.profile:hover {
+    @apply bg-zinc-700;
+}
+
+.nickname {
+  display: inline-block;
+}
