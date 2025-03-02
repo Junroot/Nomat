@@ -1,51 +1,9 @@
-// Plugins
-import vue from "@vitejs/plugin-vue";
-import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
-import ViteFonts from "unplugin-fonts/vite";
+import { reactRouter } from "@react-router/dev/vite";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import svgr from "vite-plugin-svgr";
 
-// Utilities
-import { defineConfig, loadEnv } from "vite";
-import { fileURLToPath, URL } from "node:url";
-
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-  return {
-    plugins: [
-      vue({
-        template: { transformAssetUrls }
-      }),
-      // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
-      vuetify({
-        autoImport: true,
-        styles: {
-          configFile: "src/styles/settings.scss"
-        }
-      }),
-      ViteFonts({
-        google: {
-          families: [
-            {
-              name: "Roboto",
-              styles: "wght@100;300;400;500;700;900"
-            }
-          ]
-        }
-      })
-    ],
-    define: {
-      "process.env.VITE_SERVER_BASE_URL": JSON.stringify(
-        env.VITE_SERVER_BASE_URL
-      )
-    },
-    resolve: {
-      alias: {
-        "@": fileURLToPath(new URL("./src", import.meta.url))
-      },
-      extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"]
-    },
-    server: {
-      port: 3000
-    }
-  };
+export default defineConfig({
+  plugins: [tailwindcss(), reactRouter(), tsconfigPaths(), svgr()],
 });

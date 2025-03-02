@@ -2,7 +2,7 @@
   <v-sheet
     class="w-100 my-1 d-flex flex-column text-center justify-center align-center navigation-bar-item"
   >
-    <v-sheet :width="80" :height="80" class="flex-grow-0 flex-shrink-0">
+    <v-sheet :width="64" :height="64" class="flex-grow-0 flex-shrink-0">
       <slot></slot>
     </v-sheet>
     <v-sheet class="w-full">{{ label }}</v-sheet>
@@ -19,7 +19,6 @@ export default {
   },
 };
 </script>
-
 <style lang="scss" scoped>
 .navigation-bar-item {
   cursor: pointer;
