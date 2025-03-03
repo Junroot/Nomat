@@ -71,7 +71,7 @@ spring:
             client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTID}
             client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DISCORD_CLIENTSECRET}
             authorization-grant-type: authorization_code
-            redirect-uri: "https://api.dev.nomat.live/login/oauth2/code/discord"
+            redirect-uri: "{baseUrl}/login/oauth2/code/discord"
             scope:
               - identify
               - email
