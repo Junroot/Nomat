@@ -25,9 +25,9 @@ class AppStartupRunner(
     @Transactional
     override fun run(args: ApplicationArguments?) {
         repeat(LOCAL_ROOM_COUNT) {
-            val player = playerService.save(
+            playerService.save(
                 PlayerRequest(
-                    nickname = "ROOT#3465",
+                    nickname = "ROOT",
                     registrationType = RegistrationType.DISCORD,
                     registrationId = "abc"
                 )

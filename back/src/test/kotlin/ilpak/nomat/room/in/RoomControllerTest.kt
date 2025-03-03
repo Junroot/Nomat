@@ -1,26 +1,31 @@
-package ilpak.nomat.room.controller
+package ilpak.nomat.room.`in`
 
-import ilpak.nomat.integration.AbstractIntegrationTest
+import ilpak.nomat.integration.IntegrationTest
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.player.application.domain.RegistrationType
 import ilpak.nomat.player.application.dto.PlayerRequest
+import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomRequest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import kotlin.test.assertNotNull
 
-class RoomControllerTest : AbstractIntegrationTest() {
+@IntegrationTest
+class RoomControllerTest(
+    @Autowired private val client: WebTestClient,
+    @Autowired private val playerService: PlayerService,
+) {
 
-    @Autowired
-    private lateinit var playerService: PlayerService
+    private lateinit var playerResponse: PlayerResponse
+
 
     @BeforeEach
-    override fun setUp() {
-        super.setUp()
-        playerService.save(
+    fun setUp() {
+        playerResponse = playerService.save(
             PlayerRequest(
                 nickname = "ROOT#3465",
                 registrationType = RegistrationType.DISCORD,
@@ -32,6 +37,7 @@ class RoomControllerTest : AbstractIntegrationTest() {
     @Test
     fun `방 생성, 리스트 조회, 상세 조회`() {
         val result = client.post().uri("/rooms")
+            .header("playerId", playerResponse.id.toString())
             .bodyValue(
                 RoomRequest(
                     "테스트",
@@ -49,6 +55,7 @@ class RoomControllerTest : AbstractIntegrationTest() {
         assertNotNull(result)
 
         client.get().uri("/rooms/{roomId}", result.id)
+            .header("playerId", playerResponse.id.toString())
             .exchange()
             .expectStatus().isOk()
             .expectBody()
@@ -64,6 +71,7 @@ class RoomControllerTest : AbstractIntegrationTest() {
             .jsonPath("$.players[0].isMaster").isEqualTo(true)
 
         client.get().uri("/rooms")
+            .header("playerId", playerResponse.id.toString())
             .exchange()
             .expectStatus().isOk()
             .expectBody()

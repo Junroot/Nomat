@@ -29,7 +29,7 @@ export default function RoomView() {
                     <NavigationItem icon={<PlayIcon></PlayIcon>} title={"시작하기"}></NavigationItem>
                 </div>
                 <div className="grow-0 shrink-0">
-                    <Me nickname="ROOT#3465"></Me>
+                    <Me></Me>
                 </div>
             </NavigationBar>
             <ColumnsContainer>

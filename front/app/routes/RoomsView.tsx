@@ -20,9 +20,7 @@ export default function RoomsView() {
                         <NavigationItem icon={<PlaylistIcon></PlaylistIcon>} title={"플레이리스트"}></NavigationItem>
                     </Link>
                 </div>
-                <div className="grow-0 shrink-0">
-                    <Me nickname="ROOT#3465"></Me>
-                </div>
+                <div className="grow-0 shrink-0"><Me></Me></div>
             </NavigationBar>
             <ColumnsContainer>
                 <SearchBar query={query} setQuery={setQuery}></SearchBar>
