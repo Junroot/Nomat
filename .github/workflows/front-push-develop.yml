@@ -22,7 +22,7 @@ jobs:
         uses: nwtgck/actions-netlify@v2.0
         with:
           production-branch: develop
-          publish-dir: "./front/dist"
+          publish-dir: "./front/build/client"
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
