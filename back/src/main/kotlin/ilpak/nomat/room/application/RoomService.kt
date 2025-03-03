@@ -1,5 +1,6 @@
 package ilpak.nomat.room.application
 
+import ilpak.nomat.infrastructure.exception.ExceptionCode
 import ilpak.nomat.infrastructure.exception.NotFoundException
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.PlaylistService
@@ -34,7 +35,7 @@ class RoomService(
     }
 
     fun getRoomDetail(roomId: Long): RoomDetailResponse {
-        val room = roomRepository.findById(roomId) ?: throw NotFoundException("not found room.($roomId)")
+        val room = roomRepository.findById(roomId) ?: throw NotFoundException(ExceptionCode.ROOM)
         val players = playerService.findByIdIn(room.playerIds + room.playlistMasterId)
         val nicknameByPlayerId = players.associate { it.id to it.nickname }
         return RoomDetailResponse.of(room, nicknameByPlayerId)

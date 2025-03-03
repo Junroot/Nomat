@@ -1,3 +1,6 @@
 package ilpak.nomat.infrastructure.exception
 
-class NotFoundException(message: String) : RuntimeException(message)
+import org.springframework.http.HttpStatus
+
+class NotFoundException(exceptionCode: ExceptionCode) :
+    AbstractNomatException("${exceptionCode.name} not found", HttpStatus.NOT_FOUND)

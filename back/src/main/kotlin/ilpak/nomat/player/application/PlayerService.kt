@@ -1,5 +1,7 @@
 package ilpak.nomat.player.application
 
+import ilpak.nomat.infrastructure.exception.ExceptionCode
+import ilpak.nomat.infrastructure.exception.NotFoundException
 import ilpak.nomat.player.application.domain.PlayerRepository
 import ilpak.nomat.player.application.domain.RegistrationType
 import ilpak.nomat.player.application.dto.PlayerRequest
@@ -27,6 +29,12 @@ class PlayerService(
     ): PlayerResponse? {
         return playerRepository.findByRegistrationTypeAndRegistrationId(registrationType, registrationId)
             ?.let { PlayerResponse(it) }
+    }
+
+    fun findById(id: Long): PlayerResponse {
+        return playerRepository.findById(id)
+            ?. let { PlayerResponse(it) }
+            ?: throw NotFoundException(ExceptionCode.PLAYER)
     }
 
     fun findByIdIn(ids: Set<Long>): List<PlayerResponse> {

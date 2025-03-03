@@ -30,7 +30,7 @@ spring:
             user-name-attribute: username
 app:
   cors:
-    origins: http://localhost:3000/
+    origins: http://localhost:5173/
 jwt:
   key: cGFzc3dvcmRwYXNzdzByZHBhNTV3MHJkcGE1NXdvcmQ
   domain: localhost

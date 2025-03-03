@@ -13,10 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.WebUtils
 
 @Component
-class TokenAuthenticationFilter(
-    private val tokenService: TokenService,
-    private val playerService: PlayerService,
-) : OncePerRequestFilter() {
+class TokenAuthenticationFilter(private val tokenService: TokenService) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -25,7 +22,7 @@ class TokenAuthenticationFilter(
     ) {
         val token = WebUtils.getCookie(request, TokenService.TOKEN_COOKIE_KEY)?.value
         val playerId = token?.let { tokenService.getPlayerId(it) }
-        if (playerId != null && playerService.exists(playerId)) {
+        if (playerId != null) {
             val authentication = UsernamePasswordAuthenticationToken.authenticated(playerId, token, emptyList())
             SecurityContextHolder.getContext().authentication = authentication
             MDC.put("requestPlayerId", playerId.toString())

@@ -24,9 +24,7 @@ export default function PlaylistsView() {
                     </Link>
                     <NavigationItem clicked icon={<PlaylistIcon></PlaylistIcon>} title={"플레이리스트"}></NavigationItem>
                 </div>
-                <div className="grow-0 shrink-0">
-                    <Me nickname="ROOT#3465"></Me>
-                </div>
+                <div className="grow-0 shrink-0"><Me></Me></div>
             </NavigationBar>
             <ColumnsContainer>
                 <Column1>

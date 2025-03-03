@@ -4,6 +4,7 @@ import ilpak.nomat.player.application.domain.Player
 import ilpak.nomat.player.application.domain.PlayerRepository
 import ilpak.nomat.player.application.domain.RegistrationType
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -24,6 +25,10 @@ private class PlayerRepositoryImpl(
         registrationId: String
     ): Player? {
         return playerJpaRepository.findByRegistrationTypeAndRegistrationId(registrationType, registrationId)
+    }
+
+    override fun findById(id: Long): Player? {
+        return playerJpaRepository.findByIdOrNull(id)
     }
 
     override fun findByIdIn(ids: Set<Long>): List<Player> {
