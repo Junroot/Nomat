@@ -13,6 +13,7 @@ import type PlaylistResponse from "~/utils/PlaylistResponse";
 import { fetchPlaylist } from "~/utils/api";
 import UserIcon from "~/assets/user.svg?react";
 import SongIcon from "~/assets/song.svg?react";
+import MusicPlayer from "~/components/ui/MusicPlayer";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -113,6 +114,7 @@ export default function PlaylistsView() {
                                     </div>
                                     <div className="flex flex-col">
                                         <p className="text-3xl font-bold">대표곡 미리 듣기</p>
+                                        <MusicPlayer embedId={"lWl5viCqGSc"} startTimeSec={30} endTimeSec={60}></MusicPlayer>
                                     </div>
                                 </div>
                             </div>
