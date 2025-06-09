@@ -50,9 +50,9 @@ export default function PlaylistsView() {
             <ColumnsContainer>
                 <Column1>
                     <div className="flex flex-row p-4 gap-4">
-                        <p className="text-4xl font-bold">즐겨찾기</p>
-                        <p className="text-4xl font-bold text-zinc-600">내가 만든</p>
-                        <p className="text-4xl font-bold text-zinc-600">전체</p>
+                        <p className="text-3xl font-bold">즐겨찾기</p>
+                        <p className="text-3xl font-bold text-zinc-600">내가 만든</p>
+                        <p className="text-3xl font-bold text-zinc-600">전체</p>
                     </div>
                     <div className="flex flex-row gap-2">
                         <div className="w-32">
@@ -76,7 +76,7 @@ export default function PlaylistsView() {
                             />
                         </div>
                     </div>
-                    <div className="flex flex-col grow py-2 bg-zinc-800 rounded-xl overflow-y-auto">
+                    <div className="flex flex-col grow py-2 bg-zinc-800 rounded-2xl overflow-y-auto">
                         {
                             [...Array(20)].map((_, i) => 
                                 <div key={i} id={i.toString()} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
@@ -94,15 +94,17 @@ export default function PlaylistsView() {
                             )
                         }   
                     </div>
-                    <button className="bg-cyan-400 py-2 text-zinc-900 rounded-full cursor-pointer text-2xl font-bold">
-                        새 플레이리스트
-                    </button>
+                        <Link className="w-full" to="/playlists/create">
+                            <button className="w-full bg-cyan-400 py-2 text-zinc-900 rounded-full cursor-pointer text-2xl font-bold">
+                                새 플레이리스트
+                            </button>
+                        </Link>
                 </Column1>
                 <Column2>
                     {
                         selectedPlaylist !== null && 
                             <div className="w-full h-full flex flex-col justify-center p-4">
-                                <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-lg p-8 gap-4">
+                                <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
                                     <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
                                     <div className="flex flex-col">
                                         <p><UserIcon className="inline-block"/>{selectedPlaylist.creatorNickname}</p>
