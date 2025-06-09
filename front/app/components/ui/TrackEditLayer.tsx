@@ -139,14 +139,18 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
     }
 
 	function isRepresentative() {
-		return props.selectedIndex !== null && props.representativeIndex !== null && props.representativeIndex === props.selectedIndex
+		return isEditing() && props.representativeIndex !== null && props.representativeIndex === props.selectedIndex
+	}
+
+	function isEditing(){
+		return props.selectedIndex !== null
 	}
 
     return (
         <div className="flex flex-col">
 			<div className="flex flex-row">
-				<h2 className="flex-1 text-xl font-bold mb-4">곡 편집</h2>
-				{ props.selectedIndex !== null
+				<h2 className="flex-1 text-xl font-bold mb-4">{ isEditing() ? "곡 편집" : "곡 추가"}</h2>
+				{ isEditing()
 					&& (isRepresentative() ? <FilledStarIcon></FilledStarIcon>
 						: <StarIcon className="cursor-pointer" onClick={() => props.setRepresentativeIndex(props.selectedIndex)}></StarIcon>) }
 			</div>
