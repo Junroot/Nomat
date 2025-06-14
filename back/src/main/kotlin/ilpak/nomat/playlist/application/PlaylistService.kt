@@ -3,8 +3,10 @@ package ilpak.nomat.playlist.application
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponse
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
+@Transactional(readOnly = true)
 class PlaylistService(
     private val playerService: PlayerService,
 ) {

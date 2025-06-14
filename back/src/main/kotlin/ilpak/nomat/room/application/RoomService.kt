@@ -14,8 +14,8 @@ import ilpak.nomat.room.application.dto.RoomResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Transactional(readOnly = true)
 @Service
+@Transactional(readOnly = true)
 class RoomService(
     private val playlistService: PlaylistService,
     private val roomRepository: RoomRepository,
