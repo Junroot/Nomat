@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
-    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.access.PatternLayout">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
             <pattern>[ACCESS] %t{yyyy/MM/dd:HH:mm:ss Z} %reqAttribute{requestId} %h %l %u "%r" %s %b</pattern>
-        </layout>
+        </encoder>
     </appender>
-    <appender-ref ref="Console"/>
+    <appender-ref ref="STDOUT"/>
 </configuration>

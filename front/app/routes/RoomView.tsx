@@ -35,7 +35,7 @@ export default function RoomView() {
             <ColumnsContainer>
                 <Column1>
                     <p className="text-4xl font-bold">{title}</p>
-                    <div className="w-full p-4 flex flex-col gap-1 bg-zinc-800 rounded-xl">
+                    <div className="w-full p-4 flex flex-col gap-1 bg-zinc-800 rounded-2xl">
                         <div className="inline-flex items-end gap-1 text-2xl font-bold">
                             <PlaylistIcon className="size-8"></PlaylistIcon>
                             <p>{playlistTitle}</p>
@@ -43,7 +43,7 @@ export default function RoomView() {
                         <p className="text-md text-zinc-400">by. {playlistMater}</p>
                         <p className="text-md mt-4 text-zinc-200">{playlistDescription}</p>
                     </div>
-                    <div className="w-full p-4 flex flex-col gap-2 bg-zinc-800 rounded-xl">
+                    <div className="w-full p-4 flex flex-col gap-2 bg-zinc-800 rounded-2xl">
                         <div className="inline-flex items-end gap-1 text-2xl font-bold">
                             <UsersIcon className="size-8"></UsersIcon>
                             <p>플레이어</p>

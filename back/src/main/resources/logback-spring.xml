@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <springProfile name="local | test">
-        <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
-            <layout class="ch.qos.logback.classic.PatternLayout">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
                 <Pattern>[SERVER] %d{yyyy/MM/dd:HH:mm:ss Z} %X{requestId} %X{requestPlayerId} [%thread] %highlight(%-5level) %logger{36} - %msg%n</Pattern>
-            </layout>
+            </encoder>
         </appender>
         <root level="INFO">
-            <appender-ref ref="Console" />
+            <appender-ref ref="STDOUT" />
         </root>
+        <logger name="org.testcontainers" level="INFO"/>
+        <logger name="tc" level="INFO"/>
+        <logger name="com.github.dockerjava" level="WARN"/>
+        <logger name="com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.wire" level="OFF"/>
     </springProfile>
     <springProfile name="dev">
         <appender name="Stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
@@ -22,6 +26,10 @@
         <root level="INFO">
             <appender-ref ref="Stash" />
         </root>
+        <logger name="org.testcontainers" level="INFO"/>
+        <logger name="tc" level="INFO"/>
+        <logger name="com.github.dockerjava" level="WARN"/>
+        <logger name="com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.wire" level="OFF"/>
     </springProfile>
 </configuration>
 

@@ -1,9 +1,9 @@
 import SearchIcon from "~/assets/search.svg?react"
 
 interface SearchBarProps {
-    query: string;
-    setQuery: (query: string) => void;
-  }
+  query: string;
+  setQuery: (query: string) => void;
+}
 
 export default function SearchBar({ query, setQuery }: SearchBarProps) {
     return (
