@@ -12,6 +12,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  jooq:
+    sql-dialect: mysql
   security:
     oauth2:
       client:

@@ -1,6 +1,7 @@
 package ilpak.nomat.player.`in`
 
 import ilpak.nomat.integration.IntegrationTest
+import ilpak.nomat.integration.util.auth
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.player.application.domain.RegistrationType
 import ilpak.nomat.player.application.dto.PlayerRequest
@@ -12,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.WebTestClient
 
 @IntegrationTest
-class PlayerControllerTest(
+class PlayerStepControllerTest(
     @Autowired val client: WebTestClient,
     @Autowired val playerService: PlayerService,
 ) {
@@ -33,7 +34,7 @@ class PlayerControllerTest(
     @Test
     fun getMe() {
         client.get().uri("/players/me")
-            .header("playerId", playerResponse.id.toString())
+			.auth(playerResponse)
             .exchange()
             .expectStatus().isOk()
             .expectBody()
