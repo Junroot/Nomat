@@ -41,6 +41,14 @@ class PlaylistControllerTest(
 							endTimeSec = 208,
 							repeatCount = 2,
 							additionalTitles = setOf("Monster", "Kaibutsu"),
+						),
+						PlaylistCreationRequestTrack(
+							embedId = "07SWfNXgKGo",
+							title = "삼원색",
+							startTimeSec = 0,
+							endTimeSec = 200,
+							repeatCount = 1,
+							additionalTitles = setOf(),
 						)
 					)
 				)
@@ -61,6 +69,14 @@ class PlaylistControllerTest(
 							endTimeSec = 208,
 							repeatCount = 2,
 							additionalTitles = setOf("Monster", "Kaibutsu"),
+						),
+						PlaylistTrackResponse(
+							embedId = "07SWfNXgKGo",
+							title = "삼원색",
+							startTimeSec = 0,
+							endTimeSec = 200,
+							repeatCount = 1,
+							additionalTitles = setOf(),
 						)
 					)
 				)

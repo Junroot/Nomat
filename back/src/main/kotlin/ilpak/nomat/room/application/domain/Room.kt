@@ -7,6 +7,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import org.hibernate.annotations.GenericGenerator
+import org.hibernate.annotations.Parameter
 
 @Entity
 class Room(
@@ -17,7 +19,16 @@ class Room(
     @CollectionTable(name = "room_entry", joinColumns = [JoinColumn(name = "room_id")])
     val entries: MutableList<RoomEntry> = mutableListOf(),
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "room_id_generator")
+	@GenericGenerator(
+		name = "room_id_generator",
+		strategy = "sequence",
+		parameters = [
+			Parameter(name = "sequence_name", value = "room_sequence"),
+			Parameter(name = "increment_size", value = "1000"),
+			Parameter(name = "optimizer", value = "pooled-lotl"),
+		]
+	)
     val id: Long = 0,
 ) {
 

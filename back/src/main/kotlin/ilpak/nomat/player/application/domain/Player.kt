@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import org.hibernate.annotations.GenericGenerator
+import org.hibernate.annotations.Parameter
 
 @Entity
 class Player(
@@ -16,6 +18,15 @@ class Player(
     val registrationType: RegistrationType,
     val registrationId: String,
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "player_id_generator")
+	@GenericGenerator(
+		name = "player_id_generator",
+		strategy = "sequence",
+		parameters = [
+			Parameter(name = "sequence_name", value = "player_sequence"),
+			Parameter(name = "increment_size", value = "1000"),
+			Parameter(name = "optimizer", value = "pooled-lotl"),
+		]
+	)
     val id: Long = 0,
 )

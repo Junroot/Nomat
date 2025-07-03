@@ -4,6 +4,9 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import org.hibernate.annotations.GenericGenerator
+import org.hibernate.annotations.Parameter
+import org.hibernate.id.enhanced.SequenceStyleGenerator
 
 @Entity
 class Playlist(
@@ -11,7 +14,16 @@ class Playlist(
 	val masterId: Long,
 	var description: String,
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "playlist_id_generator")
+	@GenericGenerator(
+		name = "playlist_id_generator",
+		strategy = "sequence",
+		parameters = [
+			Parameter(name = SequenceStyleGenerator.SEQUENCE_PARAM, value = "playlist_sequence"),
+			Parameter(name = SequenceStyleGenerator.INCREMENT_PARAM, value = "1000"),
+			Parameter(name = SequenceStyleGenerator.OPT_PARAM, value = "pooled-lotl"),
+		]
+	)
 	val id: Long = 0L,
 ) {
 
