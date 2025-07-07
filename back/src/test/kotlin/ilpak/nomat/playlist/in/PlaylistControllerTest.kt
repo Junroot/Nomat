@@ -56,31 +56,36 @@ class PlaylistControllerTest(
 			.exchange()
 			.expectStatus().isCreated
 			.expectBody<PlaylistResponse>()
-			.isEqualTo(
-				PlaylistResponse(
-					id = 1L,
-					title = "요아소비 플리",
-					description = "저의 최애 아티스트인 요아소비의 플레이리스트 입니다.",
-					tracks = listOf(
-						PlaylistTrackResponse(
-							embedId = "dy90tA3TT1c",
-							title = "괴물",
-							startTimeSec = 0,
-							endTimeSec = 208,
-							repeatCount = 2,
-							additionalTitles = setOf("Monster", "Kaibutsu"),
-						),
-						PlaylistTrackResponse(
-							embedId = "07SWfNXgKGo",
-							title = "삼원색",
-							startTimeSec = 0,
-							endTimeSec = 200,
-							repeatCount = 1,
-							additionalTitles = setOf(),
+			.value {
+				assertThat(it).usingRecursiveComparison()
+					.ignoringCollectionOrder()
+					.ignoringFields("id")
+					.isEqualTo(
+						PlaylistResponse(
+							id = 0,
+							title = "요아소비 플리",
+							description = "저의 최애 아티스트인 요아소비의 플레이리스트 입니다.",
+							tracks = listOf(
+								PlaylistTrackResponse(
+									embedId = "dy90tA3TT1c",
+									title = "괴물",
+									startTimeSec = 0,
+									endTimeSec = 208,
+									repeatCount = 2,
+									additionalTitles = setOf("Monster", "Kaibutsu"),
+								),
+								PlaylistTrackResponse(
+									embedId = "07SWfNXgKGo",
+									title = "삼원색",
+									startTimeSec = 0,
+									endTimeSec = 200,
+									repeatCount = 1,
+									additionalTitles = setOf(),
+								)
+							)
 						)
 					)
-				)
-			)
+			}
 	}
 
 	@Test

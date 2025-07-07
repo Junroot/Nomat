@@ -1,9 +1,6 @@
 package ilpak.nomat.playlist.application.domain
 
 import jakarta.persistence.*
-import org.hibernate.annotations.GenericGenerator
-import org.hibernate.annotations.Parameter
-import org.hibernate.id.enhanced.SequenceStyleGenerator
 
 @Entity
 class Track(
@@ -20,15 +17,13 @@ class Track(
 	@JoinColumn(name = "playlist_id")
 	val playlist: Playlist,
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "track_id_generator")
-	@GenericGenerator(
+	@GeneratedValue(strategy = GenerationType.TABLE, generator = "track_id_generator")
+	@TableGenerator(
 		name = "track_id_generator",
-		strategy = "sequence",
-		parameters = [
-			Parameter(name = SequenceStyleGenerator.SEQUENCE_PARAM, value = "track_sequence"),
-			Parameter(name = SequenceStyleGenerator.INCREMENT_PARAM, value = "1000"),
-			Parameter(name = SequenceStyleGenerator.OPT_PARAM, value = "pooled-lotl"),
-		]
+		table = "hibernate_sequences",
+		pkColumnName = "sequence_name",
+		pkColumnValue = "track",
+		allocationSize = 1000,
 	)
 	val id: Long = 0L,
 ) {

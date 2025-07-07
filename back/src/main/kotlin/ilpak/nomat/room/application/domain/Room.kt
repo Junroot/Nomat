@@ -1,47 +1,37 @@
 package ilpak.nomat.room.application.domain
 
-import jakarta.persistence.CollectionTable
-import jakarta.persistence.ElementCollection
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import org.hibernate.annotations.GenericGenerator
-import org.hibernate.annotations.Parameter
+import jakarta.persistence.*
 
 @Entity
 class Room(
-    val title: String,
-    val password: String?,
-    val playlist: RoomPlaylist,
-    @ElementCollection
-    @CollectionTable(name = "room_entry", joinColumns = [JoinColumn(name = "room_id")])
-    val entries: MutableList<RoomEntry> = mutableListOf(),
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "room_id_generator")
-	@GenericGenerator(
+	val title: String,
+	val password: String?,
+	val playlist: RoomPlaylist,
+	@ElementCollection
+	@CollectionTable(name = "room_entry", joinColumns = [JoinColumn(name = "room_id")])
+	val entries: MutableList<RoomEntry> = mutableListOf(),
+	@Id
+	@GeneratedValue(strategy = GenerationType.TABLE, generator = "room_id_generator")
+	@TableGenerator(
 		name = "room_id_generator",
-		strategy = "sequence",
-		parameters = [
-			Parameter(name = "sequence_name", value = "room_sequence"),
-			Parameter(name = "increment_size", value = "1000"),
-			Parameter(name = "optimizer", value = "pooled-lotl"),
-		]
+		table = "hibernate_sequences",
+		pkColumnName = "sequence_name",
+		pkColumnValue = "room",
+		allocationSize = 1000,
 	)
-    val id: Long = 0,
+	val id: Long = 0,
 ) {
 
-    val master: RoomEntry?
-        get() = entries.firstOrNull()
+	val master: RoomEntry?
+		get() = entries.firstOrNull()
 
-    val playerIds: Set<Long>
-        get() = entries.map { it.playerId }.toSet()
+	val playerIds: Set<Long>
+		get() = entries.map { it.playerId }.toSet()
 
-    val playlistMasterId: Long
-        get() = playlist.masterId
+	val playlistMasterId: Long
+		get() = playlist.masterId
 
-    fun isMaster(roomMember: RoomEntry): Boolean {
-        return roomMember == master
-    }
+	fun isMaster(roomMember: RoomEntry): Boolean {
+		return roomMember == master
+	}
 }
