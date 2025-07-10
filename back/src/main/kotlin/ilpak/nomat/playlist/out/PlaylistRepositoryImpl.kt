@@ -19,10 +19,10 @@ private class PlaylistRepositoryImpl(
 	}
 
 	override fun countByMasterId(masterId: Long): Long {
-		return playlistJpaRepository.countByMasterId(masterId)
+		return playlistJpaRepository.countByAuditMetadataCreatedBy(masterId)
 	}
 }
 
 private interface PlaylistJpaRepository: CrudRepository<Playlist, Long> {
-	fun countByMasterId(masterId: Long): Long
+	fun countByAuditMetadataCreatedBy(masterId: Long): Long
 }

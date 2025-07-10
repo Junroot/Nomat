@@ -1,8 +1,11 @@
 package ilpak.nomat.playlist.application.domain
 
+import ilpak.nomat.common.AuditMetadata
 import jakarta.persistence.*
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 class Track(
 	val embedId: String,
 	var title: String,
@@ -16,6 +19,8 @@ class Track(
 	@ManyToOne
 	@JoinColumn(name = "playlist_id")
 	val playlist: Playlist,
+	@Embedded
+	val auditMetadata: AuditMetadata = AuditMetadata(),
 	@Id
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "track_id_generator")
 	@TableGenerator(

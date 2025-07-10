@@ -1,5 +1,6 @@
 package ilpak.nomat.playlist.application.dto
 
+import ilpak.nomat.infrastructure.exception.InternalServerErrorException
 import ilpak.nomat.playlist.application.domain.Playlist
 
 data class PlaylistMetaDataResponse(
@@ -15,7 +16,8 @@ data class PlaylistMetaDataResponse(
 				playlist.id,
 				playlist.title,
 				trackCount,
-				playlist.masterId,
+				playlist.auditMetadata.createdBy
+					?: throw InternalServerErrorException("createdBy is null for playlist id: ${playlist.id}"),
 				playlist.description
 			)
 		}

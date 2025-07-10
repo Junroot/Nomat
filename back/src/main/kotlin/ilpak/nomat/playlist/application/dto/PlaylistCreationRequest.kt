@@ -1,6 +1,6 @@
 package ilpak.nomat.playlist.application.dto
 
-import ilpak.nomat.infrastructure.exception.InvalidParameterException
+import ilpak.nomat.infrastructure.exception.BadRequestException
 import ilpak.nomat.playlist.application.domain.Playlist
 import ilpak.nomat.playlist.application.domain.Track
 import jakarta.validation.constraints.Max
@@ -17,10 +17,9 @@ data class PlaylistCreationRequest(
 	val tracks: List<PlaylistCreationRequestTrack>,
 ) {
 
-	fun toDomain(masterId: Long): Playlist {
+	fun toDomain(): Playlist {
 		return Playlist(
 			title = title,
-			masterId = masterId,
 			description = description,
 		)
 	}
@@ -43,7 +42,7 @@ data class PlaylistCreationRequestTrack(
 ) {
 	init {
 		if (startTimeSec > endTimeSec) {
-			throw InvalidParameterException("startTimeSec must be less than or equal to endTimeSec")
+			throw BadRequestException("startTimeSec must be less than or equal to endTimeSec")
 		}
 	}
 

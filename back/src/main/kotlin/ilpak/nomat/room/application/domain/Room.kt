@@ -1,8 +1,11 @@
 package ilpak.nomat.room.application.domain
 
+import ilpak.nomat.common.AuditMetadata
 import jakarta.persistence.*
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 class Room(
 	val title: String,
 	val password: String?,
@@ -10,6 +13,8 @@ class Room(
 	@ElementCollection
 	@CollectionTable(name = "room_entry", joinColumns = [JoinColumn(name = "room_id")])
 	val entries: MutableList<RoomEntry> = mutableListOf(),
+	@Embedded
+	val auditMetadata: AuditMetadata = AuditMetadata(),
 	@Id
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "room_id_generator")
 	@TableGenerator(

@@ -1,12 +1,15 @@
 CREATE TABLE IF NOT EXISTS playlist
 (
     id BIGINT NOT NULL PRIMARY KEY,
-    master_id BIGINT NOT NULL,
     title VARCHAR(150) NOT NULL,
-    description VARCHAR(600) NOT NULL
+    description VARCHAR(600) NOT NULL,
+    created_by BIGINT NOT NULL,
+    created_date DATETIME NOT NULL,
+    modified_by BIGINT NOT NULL,
+    modified_date DATETIME NOT NULL
 ) DEFAULT CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci';
 
-CREATE INDEX i_master_id ON playlist (master_id);
+CREATE INDEX i_created_by ON playlist (created_by);
 
 CREATE TABLE IF NOT EXISTS track
 (
@@ -16,7 +19,11 @@ CREATE TABLE IF NOT EXISTS track
     start_time_sec INTEGER NOT NULL,
     end_time_sec INTEGER NOT NULL,
     repeat_count INTEGER NOT NULL,
-    playlist_id BIGINT NOT NULL
+    playlist_id BIGINT NOT NULL,
+    created_by BIGINT NOT NULL,
+    created_date DATETIME NOT NULL,
+    modified_by BIGINT NOT NULL,
+    modified_date DATETIME NOT NULL
 ) DEFAULT CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci';
 
 CREATE INDEX i_playlist_id ON track (playlist_id);
@@ -42,4 +49,11 @@ CREATE TABLE IF NOT EXISTS hibernate_sequences(
     sequence_name VARCHAR(255) NOT NULL PRIMARY KEY,
     next_val BIGINT
 );
+
+ALTER TABLE player ADD created_date DATETIME NOT NULL;
+ALTER TABLE player ADD modified_date DATETIME NOT NULL;
+ALTER TABLE room ADD created_date DATETIME NOT NULL;
+ALTER TABLE room ADD created_by BIGINT NOT NULL;
+ALTER TABLE room ADD modified_date DATETIME NOT NULL;
+ALTER TABLE room ADD modified_by BIGINT NOT NULL;
 

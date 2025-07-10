@@ -1,12 +1,16 @@
 package ilpak.nomat.playlist.application.domain
 
+import ilpak.nomat.common.AuditMetadata
 import jakarta.persistence.*
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 class Playlist(
 	var title: String,
-	val masterId: Long,
 	var description: String,
+	@Embedded
+	val auditMetadata: AuditMetadata = AuditMetadata(),
 	@Id
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "playlist_id_generator")
 	@TableGenerator(

@@ -23,7 +23,7 @@ class PlaylistService(
 	fun save(masterId: Long, request: PlaylistCreationRequest): PlaylistResponse {
 		validateToSave(masterId)
 
-		val playlist = request.toDomain(masterId)
+		val playlist = request.toDomain()
 		val savedPlaylist = playlistRepository.save(playlist)
 
 		val tracks = request.tracks.map { it.toDomain(savedPlaylist) }
