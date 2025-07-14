@@ -35,7 +35,7 @@ class PlaylistService(
 	private fun validateToSave(masterId: Long) {
 		val countByMasterId = playlistRepository.countByMasterId(masterId)
 		if (countByMasterId >= Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER) {
-			throw ForbiddenException("player cannot create more than ${Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER} playlists.")
+			throw ForbiddenException("플레이어는 최대 ${Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER}개의 플레이리스트를 만들 수 있습니다.")
 		}
 	}
 

@@ -3,6 +3,7 @@ package ilpak.nomat.playlist.`in`
 import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
 import ilpak.nomat.playlist.application.dto.PlaylistResponse
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
@@ -19,7 +20,7 @@ private class PlaylistController(
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	fun save(@AuthenticationPrincipal playerId: Long, @RequestBody request: PlaylistCreationRequest): PlaylistResponse {
+	fun save(@AuthenticationPrincipal playerId: Long, @Valid @RequestBody request: PlaylistCreationRequest): PlaylistResponse {
 		return playlistService.save(playerId, request)
 	}
 }
