@@ -5,7 +5,7 @@ import ilpak.nomat.room.application.domain.RoomPlaylist
 data class PlaylistDetailResponse(
     val id: Long,
     val name: String,
-    val count: Int,
+    val count: Long,
     val master: String,
     val comment: String,
 ) {
@@ -14,7 +14,7 @@ data class PlaylistDetailResponse(
             return PlaylistDetailResponse(
                 playlist.id,
                 playlist.name,
-                playlist.count,
+                playlist.trackCount,
                 masterNickname,
                 playlist.comment
             )

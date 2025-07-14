@@ -1,14 +1,20 @@
 package ilpak.nomat.room.application.domain
 
+import ilpak.nomat.common.AuditMetadata
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.ElementCollection
+import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.TableGenerator
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 class Room(
     val title: String,
     val password: String?,
@@ -16,8 +22,17 @@ class Room(
     @ElementCollection
     @CollectionTable(name = "room_entry", joinColumns = [JoinColumn(name = "room_id")])
     val entries: MutableList<RoomEntry> = mutableListOf(),
+    @Embedded
+    val auditMetadata: AuditMetadata = AuditMetadata(),
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "room_id_generator")
+    @TableGenerator(
+        name = "room_id_generator",
+        table = "hibernate_sequences",
+        pkColumnName = "sequence_name",
+        pkColumnValue = "room",
+        allocationSize = 1000,
+    )
     val id: Long = 0,
 ) {
 

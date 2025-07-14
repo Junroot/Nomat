@@ -1,5 +1,6 @@
 package ilpak.nomat.integration
 
+import ilpak.nomat.NomatApplication
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
@@ -15,8 +16,8 @@ import java.lang.annotation.Inherited
 @Inherited
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [TestConfiguration::class],
-    properties = ["spring.main.allow-bean-definition-overriding=true"]
+    classes = [NomatApplication::class, TestConfiguration::class],
+    properties = ["spring.main.allow-bean-definition-overriding=true"],
 )
 @TestPropertySource(properties = ["spring.profiles.active=test"])
 @EnableAutoConfiguration(exclude = [OAuth2ClientAutoConfiguration::class])

@@ -4,6 +4,15 @@ spring:
   config:
     activate:
       on-profile: local | test
+  datasource:
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 10
+      data-source-properties:
+        rewriteBatchedStatements: true
   flyway:
     clean-disabled: false
   jpa:
@@ -12,6 +21,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        order_inserts: true
+        order_updates: true
+        rewrite_batched_statements: true
+        jdbc:
+          batch_size: 1000
   security:
     oauth2:
       client:
@@ -53,6 +67,8 @@ spring:
       max-lifetime: 1800000
       maximum-pool-size: 10
       minimum-idle: 10
+      data-source-properties:
+        rewriteBatchedStatements: true
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -63,6 +79,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        order_inserts: true
+        order_updates: true
+        rewrite_batched_statements: true
+        jdbc:
+          batch_size: 1000
   security:
     oauth2:
       client:

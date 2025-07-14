@@ -60,7 +60,7 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
             }
         }
     )
-    const maxTitleLength = 50
+    const maxTitleLength = 100
     const maxAdditoinalTitlesCount = 10
 
     useEffect(() => {
@@ -154,7 +154,7 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 					&& (isRepresentative() ? <FilledStarIcon></FilledStarIcon>
 						: <StarIcon className="cursor-pointer" onClick={() => props.setRepresentativeIndex(props.selectedIndex)}></StarIcon>) }
 			</div>
-			<div className="flex flex-col items-center gap-2">
+			<div className="flex flex-row items-center gap-2">
 				<div className="p-2">
 					{ getEmbedIdByUrl(youTubeUrl) ?
 						<YouTube videoId={getEmbedIdByUrl(youTubeUrl) ?? ""} opts={youTubeOptions} onReady={onYouTubeReady}></YouTube>
@@ -213,8 +213,8 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 					<div className="flex-1 flex flex-row gap-1 flex-wrap text-nowrap px-4 py-1">
 						{
 							additionalTitles.map((title, index) =>
-								<button key={index} className="flex flex-row items-center bg-zinc-600 rounded-full px-3 gap-1">
-									<p>{title}</p>
+								<button key={index} className="flex flex-row items-center bg-zinc-600 rounded-full px-3 gap-1 overflow-hidden">
+									<p className="truncate whitespace-nowrap">{title}</p>
 									<CloseIcon className="size-4 cursor-pointer" fill="red" onClick={() => setAdditionalTitles([...additionalTitles.slice(0, index), ...additionalTitles.slice(index + 1)])}></CloseIcon>
 								</button>
 							)

@@ -28,6 +28,7 @@ export default function PlaylistCreateView() {
 	const [alertMessage, setAlertMessage] = useState("")
 	const descriptionRef = useRef<HTMLTextAreaElement>(null)
 	const navigate = useNavigate()
+	const maxTitleLength = 100
 	const maxDescriptionLength = 500
 
 	function goBack() {
@@ -115,6 +116,7 @@ export default function PlaylistCreateView() {
 								placeholder="검색어"
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
+								maxLength={maxTitleLength}
 								className="w-full pl-[8px] focus:outline-none"
 							/>
 						</div>

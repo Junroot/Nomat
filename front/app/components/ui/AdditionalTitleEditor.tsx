@@ -8,7 +8,7 @@ interface AdditionalTitleEditorProps {
 
 export default function AdditionalTitleEditor({maxAdditionalTitlesCount, additionalTitles, setAdditionalTitles}: AdditionalTitleEditorProps) {
     const [additionalTitle, setAdditionalTitle] = useState("")
-    const maxTitleLength = 50
+    const maxTitleLength = 100
 
     function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key !== "Enter" || e.nativeEvent.isComposing) return

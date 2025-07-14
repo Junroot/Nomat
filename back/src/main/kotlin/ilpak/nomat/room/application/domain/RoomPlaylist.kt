@@ -7,8 +7,8 @@ import jakarta.persistence.Embeddable
 class RoomPlaylist(
     @Column(name = "playlist_name")
     val name: String,
-    @Column(name = "playlist_count")
-    val count: Int,
+    @Column(name = "track_count")
+    val trackCount: Long,
     @Column(name = "playlist_master_id")
     val masterId: Long,
     @Column(name = "playlist_comment")

@@ -1,7 +1,7 @@
 package ilpak.nomat.room.application
 
-import ilpak.nomat.infrastructure.exception.ExceptionCode
 import ilpak.nomat.infrastructure.exception.NotFoundException
+import ilpak.nomat.infrastructure.exception.NotFoundResource
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.room.application.domain.Room
@@ -14,8 +14,8 @@ import ilpak.nomat.room.application.dto.RoomResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Transactional(readOnly = true)
 @Service
+@Transactional(readOnly = true)
 class RoomService(
     private val playlistService: PlaylistService,
     private val roomRepository: RoomRepository,
@@ -35,7 +35,7 @@ class RoomService(
     }
 
     fun getRoomDetail(roomId: Long): RoomDetailResponse {
-        val room = roomRepository.findById(roomId) ?: throw NotFoundException(ExceptionCode.ROOM)
+        val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
         val players = playerService.findByIdIn(room.playerIds + room.playlistMasterId)
         val nicknameByPlayerId = players.associate { it.id to it.nickname }
         return RoomDetailResponse.of(room, nicknameByPlayerId)
@@ -43,14 +43,14 @@ class RoomService(
 
     @Transactional
     fun createRoom(roomRequest: RoomRequest): RoomDetailResponse {
-        val playlistMetadata = playlistService.getMetadata(roomRequest.playlistId)
+        val playlistMetadata = playlistService.getPlaylistMetadata(roomRequest.playlistId)
 
         val room = Room(
             roomRequest.title,
             roomRequest.password,
             RoomPlaylist(
                 playlistMetadata.name,
-                playlistMetadata.count,
+                playlistMetadata.trackCount,
                 playlistMetadata.masterId,
                 playlistMetadata.comment,
                 playlistMetadata.id,
