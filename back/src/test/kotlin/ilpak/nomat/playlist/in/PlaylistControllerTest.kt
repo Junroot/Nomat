@@ -41,6 +41,7 @@ class PlaylistControllerTest(
 							endTimeSec = 208,
 							repeatCount = 2,
 							additionalTitles = setOf("Monster", "Kaibutsu"),
+							isRepresentative = true,
 						),
 						PlaylistCreationRequestTrack(
 							embedId = "07SWfNXgKGo",
@@ -49,6 +50,7 @@ class PlaylistControllerTest(
 							endTimeSec = 200,
 							repeatCount = 1,
 							additionalTitles = setOf(),
+							isRepresentative = false,
 						)
 					)
 				)
@@ -65,6 +67,7 @@ class PlaylistControllerTest(
 							id = 0,
 							title = "요아소비 플리",
 							description = "저의 최애 아티스트인 요아소비의 플레이리스트 입니다.",
+							masterId = playerResponse.id,
 							tracks = listOf(
 								PlaylistTrackResponse(
 									embedId = "dy90tA3TT1c",
@@ -73,6 +76,7 @@ class PlaylistControllerTest(
 									endTimeSec = 208,
 									repeatCount = 2,
 									additionalTitles = setOf("Monster", "Kaibutsu"),
+									isRepresentative = true,
 								),
 								PlaylistTrackResponse(
 									embedId = "07SWfNXgKGo",
@@ -81,8 +85,9 @@ class PlaylistControllerTest(
 									endTimeSec = 200,
 									repeatCount = 1,
 									additionalTitles = setOf(),
+									isRepresentative = false,
 								)
-							)
+							),
 						)
 					)
 			}
@@ -109,6 +114,7 @@ class PlaylistControllerTest(
 							endTimeSec = 208,
 							repeatCount = 2,
 							additionalTitles = setOf("Monster", "Kaibutsu"),
+							isRepresentative = true,
 						)
 					)
 				)

@@ -19,7 +19,8 @@ fun dummyPlaylistCreationRequest(
 			startTimeSec = 0,
 			endTimeSec = 180,
 			repeatCount = 1,
-			additionalTitles = setOf("Test Track Alt")
+			additionalTitles = setOf("Test Track Alt"),
+			isRepresentative = true
 		)
 	)
 ): PlaylistCreationRequest {

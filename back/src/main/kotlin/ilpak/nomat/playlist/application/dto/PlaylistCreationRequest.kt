@@ -16,6 +16,12 @@ data class PlaylistCreationRequest(
 	@field:Size(min = 1, max = Playlist.MAX_TRACK_COUNT)
 	val tracks: List<PlaylistCreationRequestTrack>,
 ) {
+	init {
+		val representativeCount = tracks.count { it.isRepresentative }
+		if (representativeCount != 1) {
+			throw BadRequestException("There must be exactly one representative track in the playlist")
+		}
+	}
 
 	fun toDomain(): Playlist {
 		return Playlist(
@@ -39,6 +45,7 @@ data class PlaylistCreationRequestTrack(
 	val repeatCount: Int,
 	@field:Size(min = 1, max = Track.MAX_ADDITIONAL_TITLE_COUNT)
 	val additionalTitles: Set<@Length(min = 1, max = Track.MAX_TITLE_LENGTH) String>,
+	val isRepresentative: Boolean,
 ) {
 	init {
 		if (startTimeSec > endTimeSec) {
@@ -55,6 +62,7 @@ data class PlaylistCreationRequestTrack(
 			repeatCount = repeatCount,
 			additionalTitles = additionalTitles,
 			playlist = playlist,
+			isRepresentative = isRepresentative,
 		)
 	}
 }

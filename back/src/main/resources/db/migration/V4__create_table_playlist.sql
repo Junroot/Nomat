@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS track
     end_time_sec INTEGER NOT NULL,
     repeat_count INTEGER NOT NULL,
     playlist_id BIGINT NOT NULL,
+    is_representative BOOLEAN NOT NULL,
     created_by BIGINT NOT NULL,
     created_date DATETIME NOT NULL,
     modified_by BIGINT NOT NULL,
