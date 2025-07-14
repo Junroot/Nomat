@@ -26,6 +26,7 @@ spring:
         rewrite_batched_statements: true
         jdbc:
           batch_size: 1000
+    open-in-view: false
   security:
     oauth2:
       client:
@@ -84,6 +85,7 @@ spring:
         rewrite_batched_statements: true
         jdbc:
           batch_size: 1000
+    open-in-view: false
   security:
     oauth2:
       client:
