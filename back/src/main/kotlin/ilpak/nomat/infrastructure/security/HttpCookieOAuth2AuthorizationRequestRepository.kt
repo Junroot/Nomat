@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.util.WebUtils
 import java.util.*
 
-
 @Component
 class HttpCookieOAuth2AuthorizationRequestRepository(
     private val objectMapper: ObjectMapper

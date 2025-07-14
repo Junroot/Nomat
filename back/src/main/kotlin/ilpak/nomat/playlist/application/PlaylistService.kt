@@ -15,33 +15,33 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional(readOnly = true)
 class PlaylistService(
-	private val playlistRepository: PlaylistRepository,
-	private val trackRepository: TrackRepository,
+    private val playlistRepository: PlaylistRepository,
+    private val trackRepository: TrackRepository,
 ) {
 
-	@Transactional
-	fun save(masterId: Long, request: PlaylistCreationRequest): PlaylistResponse {
-		validateToSave(masterId)
+    @Transactional
+    fun save(masterId: Long, request: PlaylistCreationRequest): PlaylistResponse {
+        validateToSave(masterId)
 
-		val playlist = request.toDomain()
-		val savedPlaylist = playlistRepository.save(playlist)
+        val playlist = request.toDomain()
+        val savedPlaylist = playlistRepository.save(playlist)
 
-		val tracks = request.tracks.map { it.toDomain(savedPlaylist) }
-		val savedTracks = trackRepository.saveAll(tracks)
+        val tracks = request.tracks.map { it.toDomain(savedPlaylist) }
+        val savedTracks = trackRepository.saveAll(tracks)
 
-		return PlaylistResponse.of(savedPlaylist, savedTracks)
-	}
+        return PlaylistResponse.of(savedPlaylist, savedTracks)
+    }
 
-	private fun validateToSave(masterId: Long) {
-		val countByMasterId = playlistRepository.countByMasterId(masterId)
-		if (countByMasterId >= Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER) {
-			throw ForbiddenException("플레이어는 최대 ${Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER}개의 플레이리스트를 만들 수 있습니다.")
-		}
-	}
+    private fun validateToSave(masterId: Long) {
+        val countByMasterId = playlistRepository.countByMasterId(masterId)
+        if (countByMasterId >= Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER) {
+            throw ForbiddenException("플레이어는 최대 ${Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER}개의 플레이리스트를 만들 수 있습니다.")
+        }
+    }
 
-	fun getPlaylistMetadata(id: Long): PlaylistMetaDataResponse {
-		val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
-		val trackCount = trackRepository.countByPlaylist(playlist)
-		return PlaylistMetaDataResponse.of(playlist, trackCount)
-	}
+    fun getPlaylistMetadata(id: Long): PlaylistMetaDataResponse {
+        val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
+        val trackCount = trackRepository.countByPlaylist(playlist)
+        return PlaylistMetaDataResponse.of(playlist, trackCount)
+    }
 }

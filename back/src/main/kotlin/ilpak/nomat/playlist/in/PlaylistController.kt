@@ -15,12 +15,15 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/playlists")
 private class PlaylistController(
-	private val playlistService: PlaylistService
+    private val playlistService: PlaylistService
 ) {
 
-	@ResponseStatus(HttpStatus.CREATED)
-	@PostMapping
-	fun save(@AuthenticationPrincipal playerId: Long, @Valid @RequestBody request: PlaylistCreationRequest): PlaylistResponse {
-		return playlistService.save(playerId, request)
-	}
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping
+    fun save(
+        @AuthenticationPrincipal playerId: Long,
+        @Valid @RequestBody request: PlaylistCreationRequest
+    ): PlaylistResponse {
+        return playlistService.save(playerId, request)
+    }
 }

@@ -1,7 +1,6 @@
 package ilpak.nomat.infrastructure.web.filter
 
 import ilpak.nomat.auth.application.TokenService
-import ilpak.nomat.player.application.PlayerService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

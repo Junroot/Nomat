@@ -7,8 +7,8 @@ import java.time.LocalDateTime
 
 @Embeddable
 data class AuditDateMetadata(
-	@CreatedDate
-	var createdDate: LocalDateTime? = null,
-	@LastModifiedDate
-	var modifiedDate: LocalDateTime? = null,
+    @CreatedDate
+    var createdDate: LocalDateTime? = null,
+    @LastModifiedDate
+    var modifiedDate: LocalDateTime? = null,
 )

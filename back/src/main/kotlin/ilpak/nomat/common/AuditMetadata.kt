@@ -9,12 +9,12 @@ import java.time.LocalDateTime
 
 @Embeddable
 data class AuditMetadata(
-	@CreatedBy
-	var createdBy: Long? = null,
-	@CreatedDate
-	var createdDate: LocalDateTime? = null,
-	@LastModifiedBy
-	var modifiedBy: Long? = null,
-	@LastModifiedDate
-	var modifiedDate: LocalDateTime? = null,
+    @CreatedBy
+    var createdBy: Long? = null,
+    @CreatedDate
+    var createdDate: LocalDateTime? = null,
+    @LastModifiedBy
+    var modifiedBy: Long? = null,
+    @LastModifiedDate
+    var modifiedDate: LocalDateTime? = null,
 )

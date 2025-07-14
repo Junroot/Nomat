@@ -8,21 +8,21 @@ import org.springframework.stereotype.Repository
 
 @Repository
 private class PlaylistRepositoryImpl(
-	private val playlistJpaRepository: PlaylistJpaRepository
-): PlaylistRepository {
-	override fun save(playlist: Playlist): Playlist {
-		return playlistJpaRepository.save(playlist)
-	}
+    private val playlistJpaRepository: PlaylistJpaRepository
+) : PlaylistRepository {
+    override fun save(playlist: Playlist): Playlist {
+        return playlistJpaRepository.save(playlist)
+    }
 
-	override fun findById(id: Long): Playlist? {
-		return playlistJpaRepository.findByIdOrNull(id)
-	}
+    override fun findById(id: Long): Playlist? {
+        return playlistJpaRepository.findByIdOrNull(id)
+    }
 
-	override fun countByMasterId(masterId: Long): Long {
-		return playlistJpaRepository.countByAuditMetadataCreatedBy(masterId)
-	}
+    override fun countByMasterId(masterId: Long): Long {
+        return playlistJpaRepository.countByAuditMetadataCreatedBy(masterId)
+    }
 }
 
-private interface PlaylistJpaRepository: CrudRepository<Playlist, Long> {
-	fun countByAuditMetadataCreatedBy(masterId: Long): Long
+private interface PlaylistJpaRepository : CrudRepository<Playlist, Long> {
+    fun countByAuditMetadataCreatedBy(masterId: Long): Long
 }
