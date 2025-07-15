@@ -3,6 +3,7 @@ package ilpak.nomat.playlist.application
 import ilpak.nomat.infrastructure.exception.ForbiddenException
 import ilpak.nomat.infrastructure.exception.NotFoundException
 import ilpak.nomat.infrastructure.exception.NotFoundResource
+import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.domain.Playlist
 import ilpak.nomat.playlist.application.domain.PlaylistRepository
 import ilpak.nomat.playlist.application.domain.TrackRepository
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class PlaylistService(
     private val playlistRepository: PlaylistRepository,
     private val trackRepository: TrackRepository,
+    private val playerService: PlayerService,
 ) {
 
     @Transactional
@@ -29,7 +31,9 @@ class PlaylistService(
         val tracks = request.tracks.map { it.toDomain(savedPlaylist) }
         val savedTracks = trackRepository.saveAll(tracks)
 
-        return PlaylistResponse.of(savedPlaylist, savedTracks)
+        val master = playerService.findById(masterId)
+
+        return PlaylistResponse.of(savedPlaylist, savedTracks, master)
     }
 
     private fun validateToSave(masterId: Long) {
