@@ -1,14 +1,17 @@
 export default interface PlaylistResponse {
+    id: number,
     title: string,
-    creatorNickname: string,
-    songCount: number,
-    expectedTimeSec: number,
     description: string,
-    representSong: RepresentSongResponse,
+    masterNickname: string,
+    tracks: PlaylistResponseTrack[],
 }
 
-export interface RepresentSongResponse {
-    youtubeKey: string,
+export interface PlaylistResponseTrack {
+    embedId: string,
+    title: string,
     startTimeSec: number,
     endTimeSec: number,
+    repeatCount: number,
+    addtionalTitles: string[],
+    isRepresentative: boolean,
 }

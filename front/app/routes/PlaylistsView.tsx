@@ -19,7 +19,7 @@ export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
     const [selectedSearchType, setSelectedSearchType] = useState(searchTypes[0]);
     const [query, setQuery] = useState("");
-    const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+    const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(null);
     const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistResponse | null>(null);
 
     useEffect(() => {
@@ -33,7 +33,11 @@ export default function PlaylistsView() {
 
     function clickPlaylist(event: React.MouseEvent<HTMLDivElement>) {
         const id = event.currentTarget.id;
-        setSelectedPlaylistId(id);
+        setSelectedPlaylistId(parseInt(id));
+    }
+
+    function expectedTimeSec(playlist: PlaylistResponse): number {
+        return playlist.tracks.reduce((acc, track) => acc + track.endTimeSec - track.startTimeSec, 0);
     }
 
     return (
@@ -107,8 +111,8 @@ export default function PlaylistsView() {
                                 <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
                                     <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
                                     <div className="flex flex-col">
-                                        <p><UserIcon className="inline-block"/>{selectedPlaylist.creatorNickname}</p>
-                                        <p><SongIcon className="inline-block"/>{selectedPlaylist.songCount}곡 (약 {selectedPlaylist.expectedTimeSec / 60}분)</p>
+                                        <p><UserIcon className="inline-block"/>{selectedPlaylist.masterNickname}</p>
+                                        <p><SongIcon className="inline-block"/>{selectedPlaylist.tracks.length}곡 (약 {Math.round(expectedTimeSec(selectedPlaylist) / 60)}분)</p>
                                     </div>
                                     <div className="flex flex-col">
                                         <p className="text-3xl font-bold">소개</p>
