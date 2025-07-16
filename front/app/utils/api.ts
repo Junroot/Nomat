@@ -17,6 +17,7 @@ client.interceptors.response.use(
         if (error.response?.status === 403) {
             window.location.href = window.origin + "/login"
         }
+        Promise.reject(error)
     }
 )
 
@@ -45,6 +46,7 @@ export async function fetchPlaylist(playlistId: number): Promise<PlaylistRespons
     }
 }
 
-export async function createPlaylist(request: PlaylistRequest): Promise<void> {
-    await client.post("/playlists", request);
+export async function createPlaylist(request: PlaylistRequest): Promise<PlaylistResponse> {
+    const response = await client.post<PlaylistResponse>("/playlists", request);
+    return response.data;
 }

@@ -10,6 +10,6 @@ export interface PlaylistRequestTrack {
     startTimeSec: number;
     endTimeSec: number;
     repeatCount: number;
-    addtionalTitles: string[];
+    additionalTitles: string[];
     isRepresentative: boolean;
 }
