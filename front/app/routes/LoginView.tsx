@@ -1,12 +1,10 @@
 import { useSearchParams } from "react-router"
 import DiscordIcon from "~/assets/discord.svg?react"
-import MeStore from "~/stores/MeStore"
 
 export default function LoginView() {
     const [searchParams] = useSearchParams()
     const redirectUrlString = searchParams.get("redirectUrl")
     const redirectUrl = redirectUrlString ? new URL(redirectUrlString) : null
-    const meStore = MeStore()
 
     if (redirectUrl && redirectUrl.origin !== window.location.origin) {
         return <div className="w-full h-full flex flex-col justify-center items-center gap-24">

@@ -16,7 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 @Entity
 @EntityListeners(AuditingEntityListener::class)
 class Player(
-    val nickname: String,
+    var nickname: String,
     @Column(columnDefinition = "varchar(20)")
     @Enumerated(value = EnumType.STRING)
     val registrationType: RegistrationType,
@@ -33,4 +33,8 @@ class Player(
         allocationSize = 1000,
     )
     val id: Long = 0,
-)
+) {
+    companion object {
+        const val MAX_NICKNAME_LENGTH = 40
+    }
+}

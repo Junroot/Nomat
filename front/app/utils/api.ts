@@ -17,13 +17,17 @@ client.interceptors.response.use(
         if (error.response?.status === 403) {
             window.location.href = window.origin + "/login"
         }
-        Promise.reject(error)
+        return Promise.reject(error)
     }
 )
 
 export async function fetchMe(): Promise<MeResponse> {
     const response = await client.get<MeResponse>("/players/me")
     return response.data;
+}
+
+export async function updateNickname(nickname: string): Promise<void> {
+    await client.put("/players/me/nickname", { nickname });
 }
 
 export async function fetchPlaylist(playlistId: number): Promise<PlaylistResponse> {
