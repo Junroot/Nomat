@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS track_sequence;
+
+ALTER TABLE player MODIFY COLUMN nickname VARCHAR(50) NOT NULL;
+

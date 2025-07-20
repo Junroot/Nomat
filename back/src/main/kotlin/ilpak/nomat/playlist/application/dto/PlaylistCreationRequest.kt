@@ -46,11 +46,14 @@ data class PlaylistCreationRequestTrack(
     @field:Max(Track.MAX_REPEAT_COUNT.toLong())
     val repeatCount: Int,
     @field:Size(min = 0, max = Track.MAX_ADDITIONAL_TITLE_COUNT, message = "추가 정답은 최대 {max}개까지 입력할 수 있습니다.")
-    val additionalTitles: Set<@Length(
-        min = 1,
-        max = Track.MAX_TITLE_LENGTH,
-        message = "추가 정답은 {min}자 이상 {max}자 이하이어야 합니다."
-    ) String>,
+    val additionalTitles: Set<
+        @Length(
+            min = 1,
+            max = Track.MAX_TITLE_LENGTH,
+            message = "추가 정답은 {min}자 이상 {max}자 이하이어야 합니다."
+        )
+        String
+        >,
     val isRepresentative: Boolean,
 ) {
     init {

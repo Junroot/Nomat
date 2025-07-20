@@ -4,6 +4,7 @@ import ilpak.nomat.infrastructure.exception.NotFoundException
 import ilpak.nomat.infrastructure.exception.NotFoundResource
 import ilpak.nomat.player.application.domain.PlayerRepository
 import ilpak.nomat.player.application.domain.RegistrationType
+import ilpak.nomat.player.application.dto.PlayerNicknameRequest
 import ilpak.nomat.player.application.dto.PlayerRequest
 import ilpak.nomat.player.application.dto.PlayerResponse
 import org.springframework.stereotype.Service
@@ -44,5 +45,12 @@ class PlayerService(
     @Transactional
     fun save(request: PlayerRequest): PlayerResponse {
         return PlayerResponse(playerRepository.save(request.toDomain()))
+    }
+
+    @Transactional
+    fun updateNickname(playerId: Long, request: PlayerNicknameRequest) {
+        val player = playerRepository.findById(playerId) ?: throw NotFoundException(NotFoundResource.PLAYER)
+
+        player.nickname = request.nickname
     }
 }

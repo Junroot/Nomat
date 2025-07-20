@@ -4,6 +4,7 @@ import ilpak.nomat.integration.IntegrationTest
 import ilpak.nomat.integration.util.auth
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.player.application.domain.RegistrationType
+import ilpak.nomat.player.application.dto.PlayerNicknameRequest
 import ilpak.nomat.player.application.dto.PlayerRequest
 import ilpak.nomat.player.application.dto.PlayerResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -40,5 +41,25 @@ class PlayerControllerTest(
 			.expectStatus().isOk()
 			.expectBody<PlayerResponse>()
 			.value { assertThat(it).isEqualTo(playerResponse) }
+	}
+
+	@Test
+	fun updateNickname() {
+		val newNickname = "NewNickname"
+
+		client.put().uri("/players/me/nickname")
+			.auth(playerResponse)
+			.bodyValue(PlayerNicknameRequest(newNickname))
+			.exchange()
+			.expectStatus().isOk()
+
+		client.get().uri("/players/me")
+			.auth(playerResponse)
+			.exchange()
+			.expectStatus().isOk()
+			.expectBody<PlayerResponse>()
+			.value { response ->
+				assertThat(response.nickname).isEqualTo(newNickname)
+			}
 	}
 }

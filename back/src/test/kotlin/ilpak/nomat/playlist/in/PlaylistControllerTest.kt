@@ -67,7 +67,7 @@ class PlaylistControllerTest(
 							id = 0,
 							title = "요아소비 플리",
 							description = "저의 최애 아티스트인 요아소비의 플레이리스트 입니다.",
-							masterId = playerResponse.id,
+							masterNickname = playerResponse.nickname,
 							tracks = listOf(
 								PlaylistTrackResponse(
 									embedId = "dy90tA3TT1c",

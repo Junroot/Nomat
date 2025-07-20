@@ -14,6 +14,8 @@ import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import Column1 from "~/components/layout/Column1";
 import Column2 from "~/components/layout/Column2";
 import TrackCreateLayer, {type Track} from "~/components/ui/TrackEditLayer";
+import { createPlaylist } from "~/utils/api";
+import type { AxiosError } from "axios";
 
 export default function PlaylistCreateView() {
 	const [isBackModalOpen, setIsBackModalOpen] = useState(false)
@@ -65,9 +67,14 @@ export default function PlaylistCreateView() {
 		setPlaylist(newPlaylist);
 	}
 
-	function onClickSave() {
+	async function onClickSave() {
 		if (title.trim() === "") {
 			setAlertMessage("플레이리스트 이름을 입력해주세요.")
+			setIsAlertModalOpen(true)
+			return
+		}
+		if (title.trim().length > maxTitleLength) {
+			setAlertMessage(`플레이리스트 이름은 ${maxTitleLength}자를 초과할 수 없습니다.`)
 			setIsAlertModalOpen(true)
 			return
 		}
@@ -76,13 +83,44 @@ export default function PlaylistCreateView() {
 			setIsAlertModalOpen(true)
 			return
 		}
+		if (description.trim().length > maxDescriptionLength) {
+			setAlertMessage(`플레이리스트 소개는 ${maxDescriptionLength}자를 초과할 수 없습니다.`)
+			setIsAlertModalOpen(true)
+			return
+		}
 		if (playlist.length === 0) {
 			setAlertMessage("플레이리스트에 곡을 추가해주세요.")
 			setIsAlertModalOpen(true)
 			return
 		}
-		setAlertMessage("요청 보내기")
-		setIsAlertModalOpen(true)
+		if (representativeIndex === null) {
+			setAlertMessage("대표곡을 선택해주세요.")
+			setIsAlertModalOpen(true)
+			return
+		}
+
+		try {
+			const request = {
+				title: title.trim(),
+				description: description.trim(),
+				tracks: playlist.map((track, index) => ({
+					embedId: track.embedId,
+					title: track.title.trim(),
+					startTimeSec: track.startTimeSec,
+					endTimeSec: track.endTimeSec,
+					repeatCount: track.repeatCount,
+					additionalTitles: track.additionalTitles.map(title => title.trim()),
+					isRepresentative: index === representativeIndex
+				}))
+			};
+			
+			await createPlaylist(request);
+			navigate("/playlists");
+		} catch (error) {
+			const axiosError = error as AxiosError<{message: string}>;
+			setAlertMessage(axiosError.response?.data?.message ?? "알 수 없는 오류가 발생했습니다.");
+			setIsAlertModalOpen(true);
+		}
 	}
 
 	return (
@@ -113,7 +151,7 @@ export default function PlaylistCreateView() {
 						<div className="w-full h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
 							<input
 								type="text"
-								placeholder="검색어"
+								placeholder="이름"
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								maxLength={maxTitleLength}
@@ -127,7 +165,7 @@ export default function PlaylistCreateView() {
                             <textarea
 								rows={1}
 								ref={descriptionRef}
-								placeholder="검색어"
+								placeholder="소개"
 								value={description}
 								onKeyDown={e => {
 									if (e.key === "Enter") {
