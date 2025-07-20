@@ -1,4 +1,2 @@
 config:
   validation: true
-UnusedPrivateClass:
-  active: false
