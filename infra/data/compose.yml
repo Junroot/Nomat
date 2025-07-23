@@ -30,6 +30,8 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+    networks:
+      - local-prometheus
 volumes:
   db-data:
   prometheus-data:
