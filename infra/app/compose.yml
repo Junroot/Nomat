@@ -37,12 +37,50 @@ services:
     configs:
       - source: nginx_conf-3
         target: /etc/nginx/nginx.conf
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - local-prometheus
+  node-exporter:
+    image: prom/node-exporter:latest
+    networks:
+      - local-prometheus
+  grafana:
+    image: grafana/grafana-oss
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - local-prometheus
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.0.4
+    ports:
+      - "5601:5601"
+    environment:
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
+      ELASTIC_SEARCH_HOST: ${ELASTIC_SEARCH_HOST}
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    restart: unless-stopped
 networks:
   backend:
     name: backend
     driver: overlay
     attachable: true
+  local-prometheus:
+    driver: overlay
 configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
   nginx_conf-3:
     file: ./nginx.conf
+volumes:
+  prometheus-data:
+  grafana-data:
+
