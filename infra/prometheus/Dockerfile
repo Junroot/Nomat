@@ -1,10 +1,5 @@
 FROM prom/prometheus:latest
 
-# envsubst를 사용하기 위해 gettext 패키지를 설치합니다.
-USER root
-RUN apt-get update && apt-get install -y gettext-base
-USER nobody
-
 # 엔트리포인트 스크립트를 복사합니다.
 COPY entrypoint.sh /
 
