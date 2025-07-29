@@ -1,4 +1,4 @@
-FROM prom/prometheus:v2.53.1
+FROM prom/prometheus:latest
 
 # envsubst를 사용하기 위해 gettext 패키지를 설치합니다.
 USER root
