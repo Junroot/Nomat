@@ -42,14 +42,16 @@ services:
       - source: nginx_conf-3
         target: /etc/nginx/nginx.conf
   prometheus:
-    image: prom/prometheus:latest
+    build: ./prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
+    environment:
+      - DATA_NODE_IP=${DATA_NODE_IP:-}
     networks:
       - local-prometheus
+    restart: unless-stopped
   node-exporter:
     image: prom/node-exporter:latest
     networks:
