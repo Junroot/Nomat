@@ -46,6 +46,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     environment:
       - DATA_NODE_IP=${DATA_NODE_IP:-}
