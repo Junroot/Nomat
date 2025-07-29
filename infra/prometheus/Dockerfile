@@ -4,7 +4,9 @@ FROM prom/prometheus:latest
 COPY entrypoint.sh /
 
 # 스크립트에 실행 권한을 부여합니다.
+USER root
 RUN chmod +x /entrypoint.sh
+USER nobody
 
 # 컨테이너 시작 시 entrypoint.sh를 실행하도록 설정합니다.
 ENTRYPOINT ["/entrypoint.sh"]
