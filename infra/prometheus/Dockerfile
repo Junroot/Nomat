@@ -5,8 +5,7 @@ USER root
 RUN apk add --no-cache gettext
 USER nobody
 
-# 템플릿 파일과 엔트리포인트 스크립트를 복사합니다.
-COPY prometheus.yml.template /etc/prometheus/
+# 엔트리포인트 스크립트를 복사합니다.
 COPY entrypoint.sh /
 
 # 스크립트에 실행 권한을 부여합니다.

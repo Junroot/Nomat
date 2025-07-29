@@ -42,7 +42,7 @@ services:
       - source: nginx_conf-3
         target: /etc/nginx/nginx.conf
   prometheus:
-    build: ./prometheus
+    image: junroot0909/prometheus:latest
     ports:
       - "9090:9090"
     volumes:
