@@ -58,7 +58,7 @@ services:
     networks:
       - local-prometheus
   grafana:
-    image: grafana/grafana-oss
+    image: grafana/grafana-oss:12.1.0
     restart: unless-stopped
     ports:
       - "3000:3000"
