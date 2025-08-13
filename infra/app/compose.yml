@@ -73,6 +73,8 @@ services:
     environment:
       ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-http://elasticsearch:9200}
       ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-}
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
     restart: unless-stopped
 networks:
   backend:
@@ -88,4 +90,3 @@ configs:
 volumes:
   prometheus-data:
   grafana-data:
-

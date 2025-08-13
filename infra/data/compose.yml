@@ -1,6 +1,7 @@
 services:
   db:
     image: mysql:8.0.39
+    container_name: db
     ports:
       - "3306:3306"
     environment:
@@ -12,6 +13,7 @@ services:
       - db-data:/var/lib/mysql
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.0.4
+    container_name: elasticsearch
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -29,6 +31,7 @@ services:
     restart: unless-stopped
   logstash:
     image: docker.elastic.co/logstash/logstash:9.0.4
+    container_name: logstash
     ports:
       - "5044:5044"
       - "50000:50000/tcp"
@@ -47,6 +50,7 @@ services:
     restart: unless-stopped
   node-exporter:
     image: prom/node-exporter:v1.9.1
+    container_name: node-exporter
     ports:
       - "9100:9100"
   kafka-broker:
@@ -81,3 +85,5 @@ volumes:
   kafka-data:
 networks:
   elk:
+    driver: bridge
+
