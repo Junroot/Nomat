@@ -76,20 +76,21 @@ export default function TimePicker({timeSec, setTimeSec}: TimePickerProps) {
         // prevent page scroll
         e.preventDefault();
     }
-    
+
     const adjustTime = (deltaSec: number): void => {
         const resultTime = timeSec + deltaSec
         if (resultTime < 0) return
         if (resultTime > 99 * 3600 + 59 * 60 + 59) return
         setTimeSec(resultTime)
     }
-    
+
     return (
         <div className="flex-1 h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
             <input
                 ref={inputRef}
                 type="text"
                 value={formatedTime}
+                readOnly
                 onKeyDown={handleInputKeyDown}
                 className="w-full pl-[8px] focus:outline-none"
             />
