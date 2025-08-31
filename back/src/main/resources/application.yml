@@ -26,6 +26,10 @@ spring:
         rewrite_batched_statements: true
         jdbc:
           batch_size: 1000
+        id:
+          optimizer:
+            pooled:
+              preferred: pooled-lo
     open-in-view: false
   security:
     oauth2:
@@ -85,6 +89,10 @@ spring:
         rewrite_batched_statements: true
         jdbc:
           batch_size: 1000
+        id:
+          optimizer:
+            pooled:
+              preferred: pooled-lo
     open-in-view: false
   security:
     oauth2:

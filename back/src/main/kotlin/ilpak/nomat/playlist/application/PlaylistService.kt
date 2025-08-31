@@ -43,9 +43,21 @@ class PlaylistService(
         }
     }
 
-    fun getPlaylistMetadata(id: Long): PlaylistMetaDataResponse {
+    fun get(id: Long): PlaylistResponse {
         val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
-        val trackCount = trackRepository.countByPlaylist(playlist)
-        return PlaylistMetaDataResponse.of(playlist, trackCount)
+        val tracks = trackRepository.findByPlaylist(playlist)
+        val master = playerService.findById(playlist.masterId)
+        return PlaylistResponse.of(playlist, tracks, master)
+    }
+
+    fun searchByTitle(title: String): List<PlaylistMetaDataResponse> {
+        val playlists = playlistRepository.searchByTitle(title, 1000)
+        val masterIds = playlists.map { it.masterId }.toSet()
+        val masters = playerService.findByIdIn(masterIds).associateBy { it.id }
+
+        return playlists.mapNotNull {
+            val master = masters[it.masterId] ?: return@mapNotNull null
+            PlaylistMetaDataResponse.of(it, master)
+        }
     }
 }

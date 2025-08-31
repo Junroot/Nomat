@@ -10,11 +10,11 @@ import java.time.LocalDateTime
 @Embeddable
 data class AuditMetadata(
     @CreatedBy
-    var createdBy: Long? = null,
+    var createdBy: Long = 0L,
     @CreatedDate
-    var createdDate: LocalDateTime? = null,
+    var createdDate: LocalDateTime = LocalDateTime.MIN,
     @LastModifiedBy
-    var modifiedBy: Long? = null,
+    var modifiedBy: Long = 0L,
     @LastModifiedDate
-    var modifiedDate: LocalDateTime? = null,
+    var modifiedDate: LocalDateTime = LocalDateTime.MIN,
 )

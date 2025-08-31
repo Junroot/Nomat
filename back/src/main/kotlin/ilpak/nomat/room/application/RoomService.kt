@@ -43,17 +43,17 @@ class RoomService(
 
     @Transactional
     fun createRoom(roomRequest: RoomRequest): RoomDetailResponse {
-        val playlistMetadata = playlistService.getPlaylistMetadata(roomRequest.playlistId)
+        val playlist = playlistService.get(roomRequest.playlistId)
 
         val room = Room(
             roomRequest.title,
             roomRequest.password,
             RoomPlaylist(
-                playlistMetadata.name,
-                playlistMetadata.trackCount,
-                playlistMetadata.masterId,
-                playlistMetadata.comment,
-                playlistMetadata.id,
+                playlist.title,
+                playlist.tracks.size.toLong(),
+                playlist.master.id,
+                playlist.description,
+                playlist.id,
             )
         )
         val savedRoom = roomRepository.save(room)

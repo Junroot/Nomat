@@ -2,13 +2,16 @@ package ilpak.nomat.playlist.`in`
 
 import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
+import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponse
 import ilpak.nomat.playlist.application.dto.PlaylistResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -25,5 +28,10 @@ private class PlaylistController(
         @Valid @RequestBody request: PlaylistCreationRequest
     ): PlaylistResponse {
         return playlistService.save(playerId, request)
+    }
+
+    @GetMapping
+    fun searchByTitle(@RequestParam title: String): List<PlaylistMetaDataResponse> {
+        return playlistService.searchByTitle(title)
     }
 }

@@ -8,7 +8,7 @@ data class PlaylistResponse(
     val id: Long,
     val title: String,
     val description: String,
-    val masterNickname: String,
+    val master: PlaylistResponseMaster,
     val tracks: List<PlaylistTrackResponse>
 ) {
     companion object {
@@ -17,8 +17,22 @@ data class PlaylistResponse(
                 playlist.id,
                 playlist.title,
                 playlist.description,
-                master.nickname,
+                PlaylistResponseMaster.of(master),
                 tracks.map { PlaylistTrackResponse.of(it) }
+            )
+        }
+    }
+}
+
+data class PlaylistResponseMaster(
+    val id: Long,
+    val nickname: String,
+) {
+    companion object {
+        fun of(master: PlayerResponse): PlaylistResponseMaster {
+            return PlaylistResponseMaster(
+                master.id,
+                master.nickname
             )
         }
     }

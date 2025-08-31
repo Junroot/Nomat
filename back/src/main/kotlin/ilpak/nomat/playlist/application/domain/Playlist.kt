@@ -28,6 +28,8 @@ class Playlist(
     )
     val id: Long = 0L,
 ) {
+    val masterId: Long
+        get() = auditMetadata.createdBy
 
     companion object {
         const val MAX_TITLE_LENGTH = 100

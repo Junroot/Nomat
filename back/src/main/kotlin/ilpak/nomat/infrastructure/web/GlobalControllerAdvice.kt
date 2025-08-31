@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 private val logger = KotlinLogging.logger { }
 
@@ -56,6 +57,13 @@ private class GlobalControllerAdvice {
     @ResponseBody
     fun httpMessageNotReadableException(exception: HttpMessageNotReadableException): ExceptionResponse {
         return ExceptionResponse("잘못된 요청입니다. 요청 형식을 확인해주세요.")
+    }
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    fun noResourceFoundException(exception: NoResourceFoundException): ExceptionResponse {
+        return ExceptionResponse("존재하지 않는 리소스에 대한 요청입니다.")
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)

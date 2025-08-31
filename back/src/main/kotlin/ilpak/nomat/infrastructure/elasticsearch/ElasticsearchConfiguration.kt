@@ -4,9 +4,11 @@ import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchConnect
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.elasticsearch.client.ClientConfiguration
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories
 
 @Configuration
-class EsClientConfiguration(private val elasticsearchConnectionDetails: ElasticsearchConnectionDetails) :
+@EnableElasticsearchRepositories("ilpak.nomat")
+class ElasticsearchConfiguration(private val elasticsearchConnectionDetails: ElasticsearchConnectionDetails) :
     ElasticsearchConfiguration() {
 
     override fun clientConfiguration(): ClientConfiguration {
