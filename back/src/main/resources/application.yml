@@ -78,6 +78,10 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+  elasticsearch:
+    uris: ${ELASTICSEARCH_HOSTS}
+    username: ${ELASTICSEARCH_USERNAME}
+    password: ${ELASTICSEARCH_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -94,6 +98,10 @@ spring:
             pooled:
               preferred: pooled-lo
     open-in-view: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: nomat-back
   security:
     oauth2:
       client:
