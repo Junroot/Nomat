@@ -6,7 +6,10 @@ import ilpak.nomat.playlist.out.document.PlaylistDocument
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Repository
+import java.io.IOException
 
 @Repository
 private class PlaylistRepositoryImpl(
@@ -25,6 +28,11 @@ private class PlaylistRepositoryImpl(
         return playlistJpaRepository.countByAuditMetadataCreatedBy(masterId)
     }
 
+    @Retryable(
+        value = [IOException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, maxDelay = 1000)
+    )
     override fun searchByTitle(title: String, size: Int): List<Playlist> {
         playlistDocumentRepository.findByTitle(title, Pageable.ofSize(size)).let { documents ->
             val ids = documents.map { it.id }

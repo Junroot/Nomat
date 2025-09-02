@@ -39,6 +39,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 	implementation("org.springframework.data:spring-data-elasticsearch")
+	implementation("org.springframework.retry:spring-retry")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
 	implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 	implementation("ch.qos.logback.access:logback-access-common:2.0.6")
