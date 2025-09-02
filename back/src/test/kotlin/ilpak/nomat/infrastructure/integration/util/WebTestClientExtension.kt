@@ -1,4 +1,4 @@
-package ilpak.nomat.integration.util
+package ilpak.nomat.infrastructure.integration.util
 
 import ilpak.nomat.player.application.dto.PlayerResponse
 import org.springframework.test.web.reactive.server.WebTestClient

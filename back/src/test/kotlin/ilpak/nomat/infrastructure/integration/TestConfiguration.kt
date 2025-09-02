@@ -1,4 +1,4 @@
-package ilpak.nomat.integration
+package ilpak.nomat.infrastructure.integration
 
 import ilpak.nomat.infrastructure.security.SecurityConfiguration
 import org.springframework.boot.test.context.TestConfiguration

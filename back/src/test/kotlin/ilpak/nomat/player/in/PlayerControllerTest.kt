@@ -1,7 +1,7 @@
 package ilpak.nomat.player.`in`
 
-import ilpak.nomat.integration.IntegrationTest
-import ilpak.nomat.integration.util.auth
+import ilpak.nomat.infrastructure.integration.IntegrationTest
+import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.player.application.domain.RegistrationType
 import ilpak.nomat.player.application.dto.PlayerNicknameRequest

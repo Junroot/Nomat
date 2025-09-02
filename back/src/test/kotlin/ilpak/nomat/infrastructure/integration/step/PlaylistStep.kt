@@ -1,6 +1,6 @@
-package ilpak.nomat.integration.step
+package ilpak.nomat.infrastructure.integration.step
 
-import ilpak.nomat.integration.util.auth
+import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequestTrack

@@ -1,4 +1,4 @@
-package ilpak.nomat.integration.step
+package ilpak.nomat.infrastructure.integration.step
 
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.player.application.domain.RegistrationType

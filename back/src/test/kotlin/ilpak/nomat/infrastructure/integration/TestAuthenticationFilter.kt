@@ -1,4 +1,4 @@
-package ilpak.nomat.integration
+package ilpak.nomat.infrastructure.integration
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
