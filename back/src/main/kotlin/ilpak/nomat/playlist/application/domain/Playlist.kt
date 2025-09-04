@@ -35,6 +35,6 @@ class Playlist(
         const val MAX_TITLE_LENGTH = 100
         const val MAX_DESCRIPTION_LENGTH = 500
         const val MAX_TRACK_COUNT = 1000
-        const val MAX_PLAYLIST_COUNT_PER_PLAYER = 100
+        const val MAX_PLAYLIST_COUNT_PER_PLAYER = 1000
     }
 }

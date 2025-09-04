@@ -30,6 +30,11 @@ private class PlaylistController(
         return playlistService.save(playerId, request)
     }
 
+    @GetMapping(params = ["masterId=me"])
+    fun getMyPlaylists(@AuthenticationPrincipal playerId: Long): List<PlaylistMetaDataResponse> {
+        return playlistService.getByMasterId(playerId)
+    }
+
     @GetMapping
     fun searchByTitle(@RequestParam title: String): List<PlaylistMetaDataResponse> {
         return playlistService.searchByTitle(title)

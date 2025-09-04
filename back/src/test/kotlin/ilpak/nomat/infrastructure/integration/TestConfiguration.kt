@@ -16,7 +16,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.filter.OncePerRequestFilter
 
 @TestConfiguration
-@ComponentScan(basePackages = ["ilpak.nomat.integration"], lazyInit = true)
+@ComponentScan(basePackages = ["ilpak.nomat.infrastructure.integration"], lazyInit = true)
 @EnableWebSecurity
 @Lazy
 class TestConfiguration {

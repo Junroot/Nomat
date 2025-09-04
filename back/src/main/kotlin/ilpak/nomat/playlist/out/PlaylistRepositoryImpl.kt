@@ -24,6 +24,10 @@ private class PlaylistRepositoryImpl(
         return playlistJpaRepository.findByIdOrNull(id)
     }
 
+    override fun findByMasterId(masterId: Long): List<Playlist> {
+        return playlistJpaRepository.findByAuditMetadataCreatedBy(masterId)
+    }
+
     override fun countByMasterId(masterId: Long): Long {
         return playlistJpaRepository.countByAuditMetadataCreatedBy(masterId)
     }
@@ -43,6 +47,7 @@ private class PlaylistRepositoryImpl(
 }
 
 private interface PlaylistJpaRepository : CrudRepository<Playlist, Long> {
+    fun findByAuditMetadataCreatedBy(masterId: Long): List<Playlist>
     fun countByAuditMetadataCreatedBy(masterId: Long): Long
 }
 

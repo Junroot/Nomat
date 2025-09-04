@@ -50,6 +50,12 @@ class PlaylistService(
         return PlaylistResponse.of(playlist, tracks, master)
     }
 
+    fun getByMasterId(masterId: Long): List<PlaylistMetaDataResponse> {
+        val master = playerService.findById(masterId)
+        val playlists = playlistRepository.findByMasterId(masterId)
+        return playlists.map { PlaylistMetaDataResponse.of(it, master) }
+    }
+
     fun searchByTitle(title: String): List<PlaylistMetaDataResponse> {
         val playlists = playlistRepository.searchByTitle(title, 1000)
         val masterIds = playlists.map { it.masterId }.toSet()

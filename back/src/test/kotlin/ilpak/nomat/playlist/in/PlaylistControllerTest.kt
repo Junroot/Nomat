@@ -108,8 +108,8 @@ class PlaylistControllerTest(
     }
 
     @Test
-    fun `save_플레이어는 100개까지만 플레이리스트 생성 가능`() {
-        repeat(100) {
+    fun `save_플레이어는 1000개까지만 플레이리스트 생성 가능`() {
+        repeat(1000) {
             playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "플레이리스트 $it"))
         }
 
@@ -134,6 +134,35 @@ class PlaylistControllerTest(
             )
             .exchange()
             .expectStatus().isForbidden()
+    }
+
+    @Test
+    fun getMyPlaylists() {
+        val playlistResponse = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을달리다"))
+
+        client.get().uri("/playlists?masterId=me")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<List<PlaylistMetaDataResponse>>()
+            .value {
+                assertThat(it).usingRecursiveComparison()
+                    .ignoringCollectionOrder()
+                    .ignoringFields("id")
+                    .isEqualTo(
+                        listOf(
+                            PlaylistMetaDataResponse(
+                                id = playlistResponse.id,
+                                title = playlistResponse.title,
+                                description = playlistResponse.description,
+                                master = PlaylistMetaDataResponseMaster(
+                                    id = playerResponse.id,
+                                    nickname = playerResponse.nickname,
+                                ),
+                            )
+                        )
+                    )
+            }
     }
 
     @Test
