@@ -58,6 +58,15 @@ class PlaylistService(
 
     fun searchByTitle(title: String): List<PlaylistMetaDataResponse> {
         val playlists = playlistRepository.searchByTitle(title, 1000)
+        return getPlaylistMetaDataResponses(playlists)
+    }
+
+    fun getRecentlyAddedPlaylists(size: Int): List<PlaylistMetaDataResponse> {
+        val playlists = playlistRepository.findRecentlyAdded(size)
+        return getPlaylistMetaDataResponses(playlists)
+    }
+
+    private fun getPlaylistMetaDataResponses(playlists: List<Playlist>): List<PlaylistMetaDataResponse> {
         val masterIds = playlists.map { it.masterId }.toSet()
         val masters = playerService.findByIdIn(masterIds).associateBy { it.id }
 

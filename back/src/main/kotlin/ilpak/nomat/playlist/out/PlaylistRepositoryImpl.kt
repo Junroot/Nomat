@@ -28,6 +28,10 @@ private class PlaylistRepositoryImpl(
         return playlistJpaRepository.findByAuditMetadataCreatedBy(masterId)
     }
 
+    override fun findRecentlyAdded(limit: Int): List<Playlist> {
+        return playlistJpaRepository.findByOrderByAuditMetadataCreatedDateDesc(Pageable.ofSize(limit))
+    }
+
     override fun countByMasterId(masterId: Long): Long {
         return playlistJpaRepository.countByAuditMetadataCreatedBy(masterId)
     }
@@ -48,6 +52,7 @@ private class PlaylistRepositoryImpl(
 
 private interface PlaylistJpaRepository : CrudRepository<Playlist, Long> {
     fun findByAuditMetadataCreatedBy(masterId: Long): List<Playlist>
+    fun findByOrderByAuditMetadataCreatedDateDesc(pageable: Pageable): List<Playlist>
     fun countByAuditMetadataCreatedBy(masterId: Long): Long
 }
 

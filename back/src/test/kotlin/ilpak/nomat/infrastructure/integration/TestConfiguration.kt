@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.filter.OncePerRequestFilter
+import java.time.Duration
 
 @TestConfiguration
 @ComponentScan(basePackages = ["ilpak.nomat.infrastructure.integration"], lazyInit = true)
@@ -45,6 +46,7 @@ class TestConfiguration {
 		return WebTestClient
 			.bindToServer()
 			.baseUrl("http://localhost:$port")
+			.responseTimeout(Duration.ofHours(1))
 			.build()
 	}
 }

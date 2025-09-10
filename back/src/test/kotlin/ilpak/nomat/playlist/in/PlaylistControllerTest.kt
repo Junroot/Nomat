@@ -166,6 +166,25 @@ class PlaylistControllerTest(
     }
 
     @Test
+    fun getRecentlyAddedPlaylists() {
+        repeat(5) {
+            playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을달리다$it"))
+        }
+
+        client.get().uri("/playlists?sort=createdAt,desc&limit=3")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<List<PlaylistMetaDataResponse>>()
+            .value {
+                assertThat(it.size).isEqualTo(3)
+                assertThat(it[0].title).isEqualTo("밤을달리다4")
+                assertThat(it[1].title).isEqualTo("밤을달리다3")
+                assertThat(it[2].title).isEqualTo("밤을달리다2")
+            }
+    }
+
+    @Test
     fun searchByTitle() {
         val playlistResponse = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을달리다"))
 
