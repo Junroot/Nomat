@@ -7,21 +7,21 @@ import ilpak.nomat.player.application.dto.PlayerResponse
 import org.springframework.boot.test.context.TestComponent
 
 fun dummyPlayerRequest(
-	nickname: String = "testUser",
-	registrationType: RegistrationType = RegistrationType.DISCORD,
-	registrationId: String = "testRegistrationId"
+    nickname: String = "testUser",
+    registrationType: RegistrationType = RegistrationType.DISCORD,
+    registrationId: String = "testRegistrationId"
 ): PlayerRequest = PlayerRequest(
-	nickname = nickname,
-	registrationType = registrationType,
-	registrationId = registrationId
+    nickname = nickname,
+    registrationType = registrationType,
+    registrationId = registrationId
 )
 
 @TestComponent
 class PlayerStep(
-	private val playerService: PlayerService
+    private val playerService: PlayerService
 ) {
 
-	fun save(request: PlayerRequest): PlayerResponse {
-		return playerService.save(request)
-	}
+    fun save(request: PlayerRequest): PlayerResponse {
+        return playerService.save(request)
+    }
 }

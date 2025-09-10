@@ -22,31 +22,31 @@ import java.time.Duration
 @Lazy
 class TestConfiguration {
 
-	@Bean
-	fun authenticationFilter(): OncePerRequestFilter {
-		return TestAuthenticationFilter()
-	}
+    @Bean
+    fun authenticationFilter(): OncePerRequestFilter {
+        return TestAuthenticationFilter()
+    }
 
-	@Bean
-	fun filterChain(http: HttpSecurity): SecurityFilterChain {
-		return http.authorizeHttpRequests {
-			it.requestMatchers(*SecurityConfiguration.permittedUrls.toTypedArray()).permitAll()
-				.anyRequest().authenticated()
-		}.formLogin { it.disable() }
-			.httpBasic { it.disable() }
-			.csrf { it.disable() }
-			.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-			.exceptionHandling { it.authenticationEntryPoint(Http403ForbiddenEntryPoint()) }
-			.addFilterBefore(authenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
-			.build()
-	}
+    @Bean
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        return http.authorizeHttpRequests {
+            it.requestMatchers(*SecurityConfiguration.permittedUrls.toTypedArray()).permitAll()
+                .anyRequest().authenticated()
+        }.formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .csrf { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .exceptionHandling { it.authenticationEntryPoint(Http403ForbiddenEntryPoint()) }
+            .addFilterBefore(authenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+            .build()
+    }
 
-	@Bean
-	fun webTestClient(@LocalServerPort port: Int): WebTestClient {
-		return WebTestClient
-			.bindToServer()
-			.baseUrl("http://localhost:$port")
-			.responseTimeout(Duration.ofHours(1))
-			.build()
-	}
+    @Bean
+    fun webTestClient(@LocalServerPort port: Int): WebTestClient {
+        return WebTestClient
+            .bindToServer()
+            .baseUrl("http://localhost:$port")
+            .responseTimeout(Duration.ofHours(1))
+            .build()
+    }
 }

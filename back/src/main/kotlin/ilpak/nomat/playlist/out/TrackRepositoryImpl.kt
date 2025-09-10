@@ -33,11 +33,14 @@ private class TrackRepositoryImpl(
 private interface TrackJpaRepository : CrudRepository<Track, Long> {
     fun findByPlaylist(playlist: Playlist): List<Track>
     fun countByPlaylist(playlist: Playlist): Long
-    @Query("""
+
+    @Query(
+        """
         SELECT t.playlist.id, COUNT(t.id) 
         FROM Track t 
         WHERE t.playlist IN :playlists 
         GROUP BY t.playlist.id
-    """)
-    fun countByPlaylists(@Param("playlists")playlists: Collection<Playlist>): Map<Long, Long>
+    """
+    )
+    fun countByPlaylists(@Param("playlists") playlists: Collection<Playlist>): Map<Long, Long>
 }
