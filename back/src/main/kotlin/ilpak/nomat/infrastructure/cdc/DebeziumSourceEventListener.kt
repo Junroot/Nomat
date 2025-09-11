@@ -43,7 +43,7 @@ class DebeziumSourceEventListener(
     @PreDestroy
     fun stop() {
         debeziumEngine.close()
-        executor.close()
+        executor.shutdown()
     }
 
     fun handleChangeEvent(changeEvent: ChangeEvent<String, String>) {
