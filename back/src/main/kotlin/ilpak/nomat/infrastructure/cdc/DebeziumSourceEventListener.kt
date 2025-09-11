@@ -51,7 +51,8 @@ class DebeziumSourceEventListener(
             val value = objectMapper.readTree(changeEvent.value())
             val payload = checkNotNull(value.get("payload")) { "No payload found" }
             val op = checkNotNull(payload.get(Envelope.FieldName.OPERATION)) { "No operation found" }
-            val operation = checkNotNull(Envelope.Operation.forCode(op.asText())) { "Unknown operation: ${op.asText()}" }
+            val operation =
+                checkNotNull(Envelope.Operation.forCode(op.asText())) { "Unknown operation: ${op.asText()}" }
 
             when (operation) {
                 Envelope.Operation.CREATE, Envelope.Operation.UPDATE -> upsert(payload)
@@ -65,7 +66,7 @@ class DebeziumSourceEventListener(
     }
 
     private fun upsert(payload: JsonNode) {
-        val after = checkNotNull(payload.get(Envelope.FieldName.AFTER)){ "No after found" }
+        val after = checkNotNull(payload.get(Envelope.FieldName.AFTER)) { "No after found" }
         val document = objectMapper.treeToValue<PlaylistDocument>(after)
 
         operations.save(document)
