@@ -49,17 +49,14 @@ class DebeziumSourceEventListener(
     fun handleChangeEvent(changeEvent: ChangeEvent<String, String>) {
         try {
             val value = objectMapper.readTree(changeEvent.value())
-            val payload = value.get("payload")
-                ?: throw IllegalStateException("No payload found")
-            val op = payload.get(Envelope.FieldName.OPERATION)
-                ?: throw IllegalStateException("No operation found")
-            val operation = Envelope.Operation.forCode(op.asText())
-                ?: throw IllegalStateException("Unknown operation: ${op.asText()}")
+            val payload = checkNotNull(value.get("payload")) { "No payload found" }
+            val op = checkNotNull(payload.get(Envelope.FieldName.OPERATION)) { "No operation found" }
+            val operation = checkNotNull(Envelope.Operation.forCode(op.asText())) { "Unknown operation: ${op.asText()}" }
 
             when (operation) {
                 Envelope.Operation.CREATE, Envelope.Operation.UPDATE -> upsert(payload)
                 Envelope.Operation.DELETE -> delete(payload)
-                Envelope.Operation.TRUNCATE -> truncate(payload)
+                Envelope.Operation.TRUNCATE -> truncate()
                 Envelope.Operation.READ, Envelope.Operation.MESSAGE -> {}
             }
         } catch (e: Exception) {
@@ -68,22 +65,20 @@ class DebeziumSourceEventListener(
     }
 
     private fun upsert(payload: JsonNode) {
-        val after = payload.get(Envelope.FieldName.AFTER)
-            ?: throw IllegalStateException("No after found")
+        val after = checkNotNull(payload.get(Envelope.FieldName.AFTER)){ "No after found" }
         val document = objectMapper.treeToValue<PlaylistDocument>(after)
 
         operations.save(document)
     }
 
     private fun delete(payload: JsonNode) {
-        val before = payload.get(Envelope.FieldName.BEFORE)
-            ?: throw IllegalStateException("No before found")
+        val before = checkNotNull(payload.get(Envelope.FieldName.BEFORE)) { "No before found" }
         val document = objectMapper.treeToValue<PlaylistDocument>(before)
 
         operations.delete(document.id.toString(), PlaylistDocument::class.java)
     }
 
-    private fun truncate(payload: JsonNode) {
+    private fun truncate() {
         val indexOps = operations.indexOps(PlaylistDocument::class.java)
         indexOps.delete()
         indexOps.create()

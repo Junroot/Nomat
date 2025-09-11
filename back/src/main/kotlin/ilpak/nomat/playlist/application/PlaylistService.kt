@@ -57,7 +57,7 @@ class PlaylistService(
     }
 
     fun searchByTitle(title: String): List<PlaylistMetaDataResponse> {
-        val playlists = playlistRepository.searchByTitle(title, 1000)
+        val playlists = playlistRepository.searchByTitle(title, MAX_SEARCH_RESULT_SIZE)
         return getPlaylistMetaDataResponses(playlists)
     }
 
@@ -74,5 +74,9 @@ class PlaylistService(
             val master = masters[it.masterId] ?: return@mapNotNull null
             PlaylistMetaDataResponse.of(it, master)
         }
+    }
+
+    companion object {
+        const val MAX_SEARCH_RESULT_SIZE = 1000
     }
 }
