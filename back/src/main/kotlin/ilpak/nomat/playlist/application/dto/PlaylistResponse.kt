@@ -56,7 +56,7 @@ data class PlaylistTrackResponse(
                 track.endTimeSec,
                 track.repeatCount,
                 track.additionalTitles,
-                track.isRepresentative,
+                track.representative,
             )
         }
     }

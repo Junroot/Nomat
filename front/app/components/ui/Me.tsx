@@ -3,7 +3,7 @@ import UserIcon from "~/assets/user.svg?react";
 import "./Me.css"
 import MeStore from "~/stores/MeStore";
 import { fetchMe, updateNickname } from "~/utils/api";
-import { getRegistrationCode } from "~/utils/MeResponse";
+import { getRegistrationCode } from "~/utils/registrationCode";
 import Modal from "../ui/Modal";
 import type { AxiosError } from "axios";
 
@@ -48,7 +48,7 @@ export default function Me() {
         if (!isNicknameChanged()) {
             return;
         }
-        
+
         try {
             setError(null);
             await updateNickname(newNickname);
@@ -63,7 +63,7 @@ export default function Me() {
 
     return <>
         <div className="me size-[96px] p-[8px]">
-            <div 
+            <div
                 className={`h-[80px] flex flex-row cursor-pointer items-center align-middle profile transition-all transform rounded-full ${isHover ? "drop-shadow-lg" : ""}`}
                 onMouseEnter={ () => setHover(true) }
                 onMouseLeave={ () => setHover(false) }

@@ -11,6 +11,7 @@ import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequestTrack
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponse
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponseMaster
+import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponseTrack
 import ilpak.nomat.playlist.application.dto.PlaylistResponse
 import ilpak.nomat.playlist.application.dto.PlaylistResponseMaster
 import ilpak.nomat.playlist.application.dto.PlaylistTrackResponse
@@ -154,10 +155,15 @@ class PlaylistControllerTest(
                             PlaylistMetaDataResponse(
                                 id = playlistResponse.id,
                                 title = playlistResponse.title,
+                                representativeTrack = PlaylistMetaDataResponseTrack(
+                                    embedId = playlistResponse.tracks.first().embedId,
+                                    title = playlistResponse.tracks.first().title,
+                                ),
                                 description = playlistResponse.description,
                                 master = PlaylistMetaDataResponseMaster(
                                     id = playerResponse.id,
                                     nickname = playerResponse.nickname,
+                                    registrationType = playerResponse.registrationType,
                                 ),
                             )
                         )
@@ -207,10 +213,15 @@ class PlaylistControllerTest(
                                     PlaylistMetaDataResponse(
                                         id = playlistResponse.id,
                                         title = playlistResponse.title,
+                                        representativeTrack = PlaylistMetaDataResponseTrack(
+                                            embedId = playlistResponse.tracks.first().embedId,
+                                            title = playlistResponse.tracks.first().title,
+                                        ),
                                         description = playlistResponse.description,
                                         master = PlaylistMetaDataResponseMaster(
                                             id = playerResponse.id,
                                             nickname = playerResponse.nickname,
+                                            registrationType = playerResponse.registrationType,
                                         ),
                                     )
                                 )

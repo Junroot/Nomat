@@ -2,6 +2,7 @@ import axios, { AxiosError, type AxiosResponse } from "axios";
 import type MeResponse from "./MeResponse";
 import type PlaylistResponse from "./PlaylistResponse";
 import type PlaylistRequest from "./PlaylistRequest";
+import type PlaylistMetaDataResponse from "./PlaylistMetaDataResponse";
 
 const client = axios.create({
     baseURL: import.meta.env.VITE_SERVER_BASE_URL,
@@ -30,6 +31,11 @@ export async function updateNickname(nickname: string): Promise<void> {
     await client.put("/players/me/nickname", { nickname });
 }
 
+export async function fetchRecentlyAddedPlaylists(): Promise<PlaylistMetaDataResponse[]> {
+    const response = await client.get<PlaylistMetaDataResponse[]>("/playlists", { params: { sort: "createdAt,desc", limit: 1000 } });
+    return response.data;
+}
+
 export async function fetchPlaylist(playlistId: number): Promise<PlaylistResponse> {
     return {
         id: playlistId,
@@ -43,7 +49,7 @@ export async function fetchPlaylist(playlistId: number): Promise<PlaylistRespons
                 startTimeSec: 0,
                 endTimeSec: 100,
                 repeatCount: 1,
-                addtionalTitles: [],
+                additionalTitles: [],
                 isRepresentative: true,
             }
         ]

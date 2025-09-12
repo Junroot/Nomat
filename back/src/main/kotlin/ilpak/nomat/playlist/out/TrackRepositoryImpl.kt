@@ -21,6 +21,10 @@ private class TrackRepositoryImpl(
         return trackJpaRepository.findByPlaylist(playlist)
     }
 
+    override fun findByRepresentativeIsTrueAndPlaylist(playlists: Collection<Playlist>): List<Track> {
+        return trackJpaRepository.findByRepresentativeAndPlaylistIdIn(true, playlists.map { it.id })
+    }
+
     override fun countByPlaylist(playlist: Playlist): Long {
         return trackJpaRepository.countByPlaylist(playlist)
     }
@@ -32,6 +36,7 @@ private class TrackRepositoryImpl(
 
 private interface TrackJpaRepository : CrudRepository<Track, Long> {
     fun findByPlaylist(playlist: Playlist): List<Track>
+    fun findByRepresentativeAndPlaylistIdIn(representative: Boolean, playlistIds: Collection<Long>): List<Track>
     fun countByPlaylist(playlist: Playlist): Long
 
     @Query(

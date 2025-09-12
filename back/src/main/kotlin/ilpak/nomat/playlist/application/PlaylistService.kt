@@ -53,7 +53,13 @@ class PlaylistService(
     fun getByMasterId(masterId: Long): List<PlaylistMetaDataResponse> {
         val master = playerService.findById(masterId)
         val playlists = playlistRepository.findByMasterId(masterId)
-        return playlists.map { PlaylistMetaDataResponse.of(it, master) }
+        val representativeTracks = trackRepository.findByRepresentativeIsTrueAndPlaylist(playlists)
+            .associateBy { it.playlist.id }
+
+        return playlists.mapNotNull {
+            val representativeTrack = representativeTracks[it.id] ?: return@mapNotNull null
+            PlaylistMetaDataResponse.of(it, representativeTrack, master)
+        }
     }
 
     fun searchByTitle(title: String): List<PlaylistMetaDataResponse> {
@@ -69,10 +75,13 @@ class PlaylistService(
     private fun getPlaylistMetaDataResponses(playlists: List<Playlist>): List<PlaylistMetaDataResponse> {
         val masterIds = playlists.map { it.masterId }.toSet()
         val masters = playerService.findByIdIn(masterIds).associateBy { it.id }
+        val representativeTracks = trackRepository.findByRepresentativeIsTrueAndPlaylist(playlists)
+            .associateBy { it.playlist.id }
 
         return playlists.mapNotNull {
             val master = masters[it.masterId] ?: return@mapNotNull null
-            PlaylistMetaDataResponse.of(it, master)
+            val representativeTrack = representativeTracks[it.id] ?: return@mapNotNull null
+            PlaylistMetaDataResponse.of(it, representativeTrack, master)
         }
     }
 

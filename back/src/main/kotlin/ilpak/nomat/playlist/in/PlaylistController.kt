@@ -5,6 +5,7 @@ import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponse
 import ilpak.nomat.playlist.application.dto.PlaylistResponse
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -40,7 +41,9 @@ private class PlaylistController(
         @RequestParam(
             required = false,
             defaultValue = "1000"
-        ) limit: Int
+        )
+        @Max(1000, message = "최대 요청 가능한 값은 {value} 입니다.")
+        limit: Int
     ): List<PlaylistMetaDataResponse> {
         return playlistService.getRecentlyAddedPlaylists(limit)
     }
