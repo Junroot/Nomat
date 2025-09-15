@@ -15,4 +15,5 @@ export interface PlaylistMetaDataResponseMaster {
     id: number,
     nickname: string,
     registrationType: string,
+    displayName: string,
 }

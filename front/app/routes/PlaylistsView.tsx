@@ -11,7 +11,7 @@ import Column2 from "~/components/layout/Column2";
 import React, { useEffect, useState } from "react";
 import type PlaylistResponse from "~/utils/PlaylistResponse";
 import {
-    fetchByMasterNickname,
+    fetchByMasterDisplayName,
     fetchMyPlaylists,
     fetchPlaylist,
     fetchRecentlyAddedPlaylists,
@@ -48,7 +48,7 @@ export default function PlaylistsView() {
         if (selectedTab === "all") {
             if (debouncedQuery.length > 0) {
                 if (selectedSearchType === "제작자") {
-                    fetchByMasterNickname(debouncedQuery)
+                    fetchByMasterDisplayName(debouncedQuery)
                         .then(playlists => setPlaylists(playlists));
                     return;
                 } else if (selectedSearchType === "제목") {
@@ -76,10 +76,6 @@ export default function PlaylistsView() {
     function clickPlaylist(event: React.MouseEvent<HTMLDivElement>) {
         const id = event.currentTarget.id;
         setSelectedPlaylistId(parseInt(id));
-    }
-
-    function expectedTimeSec(playlist: PlaylistResponse): number {
-        return playlist.tracks.reduce((acc, track) => acc + track.endTimeSec - track.startTimeSec, 0);
     }
 
     return (
@@ -133,7 +129,7 @@ export default function PlaylistsView() {
                     <div className="flex flex-col grow py-2 bg-zinc-800 rounded-2xl overflow-y-auto">
                         {
                             playlists.map((playlist, i) =>
-                                <div key={i} id={i.toString()} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
+                                <div key={i} id={playlist.id} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
                                     <img
                                         src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
                                         className="size-16 object-cover"
@@ -142,7 +138,7 @@ export default function PlaylistsView() {
                                     </img>
                                     <div className="flex flex-col justify-center">
                                         <p className="text-xl font-bold">{playlist.title}</p>
-                                        <p className="text-zinc-400">{playlist.master.nickname}#{getRegistrationCode(playlist.master.registrationType)}</p>
+                                        <p className="text-zinc-400">{playlist.master.displayName}</p>
                                     </div>
                                 </div>
                             )
@@ -161,8 +157,8 @@ export default function PlaylistsView() {
                                 <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
                                     <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
                                     <div className="flex flex-col">
-                                        <p><UserIcon className="inline-block"/>{selectedPlaylist.masterNickname}</p>
-                                        <p><SongIcon className="inline-block"/>{selectedPlaylist.tracks.length}곡 (약 {Math.round(expectedTimeSec(selectedPlaylist) / 60)}분)</p>
+                                        <p><UserIcon className="inline-block"/>{selectedPlaylist.master.displayName}</p>
+                                        <p><SongIcon className="inline-block"/>{selectedPlaylist.trackCount}곡 (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>
                                     </div>
                                     <div className="flex flex-col">
                                         <p className="text-3xl font-bold">소개</p>
@@ -170,7 +166,15 @@ export default function PlaylistsView() {
                                     </div>
                                     <div className="flex flex-col">
                                         <p className="text-3xl font-bold">대표곡 미리 듣기</p>
-                                        <MusicPlayer embedId={"lWl5viCqGSc"} startTimeSec={30} endTimeSec={60}></MusicPlayer>
+                                        <MusicPlayer embedId={selectedPlaylist.representativeTrack.embedId} startTimeSec={selectedPlaylist.representativeTrack.startTimeSec} endTimeSec={selectedPlaylist.representativeTrack.endTimeSec}></MusicPlayer>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                        <img
+                                            src={`https://img.youtube.com/vi/${selectedPlaylist.representativeTrack.embedId}/hq720.jpg`}
+                                            className="size-64 object-cover"
+                                            alt="tumbnail"
+                                        >
+                                        </img>
                                     </div>
                                 </div>
                             </div>

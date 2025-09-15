@@ -43,6 +43,7 @@ data class PlaylistMetaDataResponseMaster(
     val id: Long,
     val nickname: String,
     val registrationType: RegistrationType,
+    val displayName: String,
 ) {
     companion object {
         fun of(master: PlayerResponse): PlaylistMetaDataResponseMaster {
@@ -50,6 +51,7 @@ data class PlaylistMetaDataResponseMaster(
                 master.id,
                 master.nickname,
                 master.registrationType,
+                master.displayName,
             )
         }
     }

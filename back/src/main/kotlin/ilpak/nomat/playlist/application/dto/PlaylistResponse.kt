@@ -9,7 +9,9 @@ data class PlaylistResponse(
     val title: String,
     val description: String,
     val master: PlaylistResponseMaster,
-    val tracks: List<PlaylistTrackResponse>
+    val trackCount: Int,
+    val expectedPlayTimeSec: Long,
+    val representativeTrack: PlaylistTrackResponse,
 ) {
     companion object {
         fun of(playlist: Playlist, tracks: List<Track>, master: PlayerResponse): PlaylistResponse {
@@ -18,7 +20,10 @@ data class PlaylistResponse(
                 playlist.title,
                 playlist.description,
                 PlaylistResponseMaster.of(master),
-                tracks.map { PlaylistTrackResponse.of(it) }
+                tracks.size,
+                tracks.sumOf { (it.endTimeSec - it.startTimeSec).toLong() * it.repeatCount },
+                tracks.firstOrNull { it.representative }?.let { PlaylistTrackResponse.of(it) }
+                    ?: PlaylistTrackResponse.of(tracks.first()),
             )
         }
     }
@@ -27,12 +32,14 @@ data class PlaylistResponse(
 data class PlaylistResponseMaster(
     val id: Long,
     val nickname: String,
+    val displayName: String,
 ) {
     companion object {
         fun of(master: PlayerResponse): PlaylistResponseMaster {
             return PlaylistResponseMaster(
                 master.id,
-                master.nickname
+                master.nickname,
+                master.displayName,
             )
         }
     }
@@ -40,23 +47,15 @@ data class PlaylistResponseMaster(
 
 data class PlaylistTrackResponse(
     val embedId: String,
-    val title: String,
     val startTimeSec: Int,
     val endTimeSec: Int,
-    val repeatCount: Int,
-    val additionalTitles: Set<String>,
-    val isRepresentative: Boolean,
 ) {
     companion object {
         fun of(track: Track): PlaylistTrackResponse {
             return PlaylistTrackResponse(
                 track.embedId,
-                track.title,
                 track.startTimeSec,
                 track.endTimeSec,
-                track.repeatCount,
-                track.additionalTitles,
-                track.representative,
             )
         }
     }

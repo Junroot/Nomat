@@ -13,8 +13,9 @@ import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponse
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponseMaster
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponseTrack
 import ilpak.nomat.playlist.application.dto.PlaylistResponse
-import ilpak.nomat.playlist.application.dto.PlaylistResponseMaster
-import ilpak.nomat.playlist.application.dto.PlaylistTrackResponse
+import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
+import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponseMaster
+import ilpak.nomat.playlist.application.dto.PlaylistWithTrackTrackResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
@@ -69,22 +70,22 @@ class PlaylistControllerTest(
             )
             .exchange()
             .expectStatus().isCreated
-            .expectBody<PlaylistResponse>()
+            .expectBody<PlaylistWithTrackResponse>()
             .value {
                 assertThat(it).usingRecursiveComparison()
                     .ignoringCollectionOrder()
                     .ignoringFields("id")
                     .isEqualTo(
-                        PlaylistResponse(
+                        PlaylistWithTrackResponse(
                             id = 0,
                             title = "요아소비 플리",
                             description = "저의 최애 아티스트인 요아소비의 플레이리스트 입니다.",
-                            master = PlaylistResponseMaster(
+                            master = PlaylistWithTrackResponseMaster(
                                 id = playerResponse.id,
                                 nickname = playerResponse.nickname,
                             ),
                             tracks = listOf(
-                                PlaylistTrackResponse(
+                                PlaylistWithTrackTrackResponse(
                                     embedId = "dy90tA3TT1c",
                                     title = "괴물",
                                     startTimeSec = 0,
@@ -93,7 +94,7 @@ class PlaylistControllerTest(
                                     additionalTitles = setOf("Monster", "Kaibutsu"),
                                     isRepresentative = true,
                                 ),
-                                PlaylistTrackResponse(
+                                PlaylistWithTrackTrackResponse(
                                     embedId = "07SWfNXgKGo",
                                     title = "삼원색",
                                     startTimeSec = 0,
@@ -105,6 +106,29 @@ class PlaylistControllerTest(
                             ),
                         )
                     )
+            }
+    }
+
+    @Test
+    fun getById() {
+        val response = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을 달리다"))
+
+        client.get().uri("/playlists/${response.id}")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<PlaylistResponse>()
+            .value {
+                assertThat(it.id).isEqualTo(response.id)
+                assertThat(it.title).isEqualTo(response.title)
+                assertThat(it.description).isEqualTo(response.description)
+                assertThat(it.master.id).isEqualTo(playerResponse.id)
+                assertThat(it.master.nickname).isEqualTo(playerResponse.nickname)
+                assertThat(it.representativeTrack.embedId).isEqualTo(response.tracks.first().embedId)
+                assertThat(it.representativeTrack.startTimeSec).isEqualTo(response.tracks.first().startTimeSec)
+                assertThat(it.representativeTrack.endTimeSec).isEqualTo(response.tracks.first().endTimeSec)
+                assertThat(it.trackCount).isEqualTo(response.tracks.size)
+                assertThat(it.expectedPlayTimeSec).isGreaterThan(0)
             }
     }
 
@@ -164,6 +188,7 @@ class PlaylistControllerTest(
                                     id = playerResponse.id,
                                     nickname = playerResponse.nickname,
                                     registrationType = playerResponse.registrationType,
+                                    displayName = playerResponse.displayName
                                 ),
                             )
                         )
@@ -222,11 +247,44 @@ class PlaylistControllerTest(
                                             id = playerResponse.id,
                                             nickname = playerResponse.nickname,
                                             registrationType = playerResponse.registrationType,
+                                            displayName = playerResponse.displayName,
                                         ),
                                     )
                                 )
                             )
                     }
+            }
+    }
+
+    @Test
+    fun getByMasterDisplayName() {
+        val playlistResponse = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을달리다"))
+
+        client.get().uri{ it.path("/playlists").queryParam("masterDisplayName", playerResponse.displayName).build() }
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<List<PlaylistMetaDataResponse>>()
+            .value {
+                assertThat(it).isEqualTo(
+                    listOf(
+                        PlaylistMetaDataResponse(
+                            id = playlistResponse.id,
+                            title = playlistResponse.title,
+                            representativeTrack = PlaylistMetaDataResponseTrack(
+                                embedId = playlistResponse.tracks.first().embedId,
+                                title = playlistResponse.tracks.first().title,
+                            ),
+                            description = playlistResponse.description,
+                            master = PlaylistMetaDataResponseMaster(
+                                id = playerResponse.id,
+                                nickname = playerResponse.nickname,
+                                registrationType = playerResponse.registrationType,
+                                displayName = playerResponse.displayName,
+                            ),
+                        )
+                    )
+                )
             }
     }
 }

@@ -14,6 +14,6 @@
     @apply bg-zinc-700;
 }
 
-.nickname {
+.displayName {
   display: inline-block;
 }

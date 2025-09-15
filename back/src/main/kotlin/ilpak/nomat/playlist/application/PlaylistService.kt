@@ -11,6 +11,7 @@ import ilpak.nomat.playlist.application.domain.TrackRepository
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponse
 import ilpak.nomat.playlist.application.dto.PlaylistResponse
+import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -23,7 +24,7 @@ class PlaylistService(
 ) {
 
     @Transactional
-    fun save(masterId: Long, request: PlaylistCreationRequest): PlaylistResponse {
+    fun save(masterId: Long, request: PlaylistCreationRequest): PlaylistWithTrackResponse {
         validateToSave(masterId)
 
         val playlist = request.toDomain()
@@ -34,7 +35,7 @@ class PlaylistService(
 
         val master = playerService.findById(masterId)
 
-        return PlaylistResponse.of(savedPlaylist, savedTracks, master)
+        return PlaylistWithTrackResponse.of(savedPlaylist, savedTracks, master)
     }
 
     private fun validateToSave(masterId: Long) {
@@ -44,7 +45,14 @@ class PlaylistService(
         }
     }
 
-    fun get(id: Long): PlaylistResponse {
+    fun getWithTrack(id: Long): PlaylistWithTrackResponse {
+        val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
+        val tracks = trackRepository.findByPlaylist(playlist)
+        val master = playerService.findById(playlist.masterId)
+        return PlaylistWithTrackResponse.of(playlist, tracks, master)
+    }
+
+    fun getById(id: Long): PlaylistResponse {
         val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
         val tracks = trackRepository.findByPlaylist(playlist)
         val master = playerService.findById(playlist.masterId)
@@ -61,9 +69,9 @@ class PlaylistService(
         return getPlaylistMetaDataResponses(playlists)
     }
 
-    fun getByMasterNickname(nickname: String): List<PlaylistMetaDataResponse> {
+    fun getByMasterDisplayName(displayName: String): List<PlaylistMetaDataResponse> {
         val master = try {
-            playerService.findByNickname(nickname)
+            playerService.findByDisplayName(displayName)
         } catch (e: NotFoundException) {
             return emptyList()
         }
@@ -76,7 +84,7 @@ class PlaylistService(
         val representativeTracks = trackRepository.findByRepresentativeIsTrueAndPlaylist(playlists)
             .associateBy { it.playlist.id }
 
-        return playlists.mapNotNull {
+        return playlists.sortedByDescending { it.auditMetadata.createdDate }.mapNotNull {
             val representativeTrack = representativeTracks[it.id] ?: return@mapNotNull null
             PlaylistMetaDataResponse.of(it, representativeTrack, master)
         }
