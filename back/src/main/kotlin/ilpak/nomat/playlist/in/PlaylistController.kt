@@ -48,8 +48,13 @@ private class PlaylistController(
         return playlistService.getRecentlyAddedPlaylists(limit)
     }
 
-    @GetMapping
+    @GetMapping(params = ["title"])
     fun searchByTitle(@RequestParam title: String): List<PlaylistMetaDataResponse> {
         return playlistService.searchByTitle(title)
+    }
+
+    @GetMapping(params = ["masterNickname"])
+    fun getByMasterNickname(@RequestParam masterNickname: String): List<PlaylistMetaDataResponse> {
+        return playlistService.getByMasterNickname(masterNickname)
     }
 }

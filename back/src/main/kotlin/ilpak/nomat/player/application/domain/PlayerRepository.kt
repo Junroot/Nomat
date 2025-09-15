@@ -7,5 +7,6 @@ interface PlayerRepository {
     fun findByRegistrationTypeAndRegistrationId(registrationType: RegistrationType, registrationId: String): Player?
     fun findById(id: Long): Player?
     fun findByIdIn(ids: Set<Long>): List<Player>
+    fun findByNickname(nickname: String): Player?
     fun save(player: Player): Player
 }

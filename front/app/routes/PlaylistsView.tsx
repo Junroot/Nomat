@@ -10,7 +10,13 @@ import SelectMenu from "~/components/ui/SelectMenu";
 import Column2 from "~/components/layout/Column2";
 import React, { useEffect, useState } from "react";
 import type PlaylistResponse from "~/utils/PlaylistResponse";
-import {fetchMyPlaylists, fetchPlaylist, fetchRecentlyAddedPlaylists} from "~/utils/api";
+import {
+    fetchByMasterNickname,
+    fetchMyPlaylists,
+    fetchPlaylist,
+    fetchRecentlyAddedPlaylists,
+    searchPlaylistsByTitle
+} from "~/utils/api";
 import UserIcon from "~/assets/user.svg?react";
 import SongIcon from "~/assets/song.svg?react";
 import MusicPlayer from "~/components/ui/MusicPlayer";
@@ -21,6 +27,7 @@ export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
     const [selectedSearchType, setSelectedSearchType] = useState(searchTypes[0]);
     const [query, setQuery] = useState("");
+    const [debouncedQuery, setDebouncedQuery] = useState("");
     const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(null);
     const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistResponse | null>(null);
     const tabTypes = ["favorite", "mine", "all"];
@@ -39,13 +46,32 @@ export default function PlaylistsView() {
 
     useEffect(() => {
         if (selectedTab === "all") {
-            fetchRecentlyAddedPlaylists()
-                .then(playlists => setPlaylists(playlists));
+            if (debouncedQuery.length > 0) {
+                if (selectedSearchType === "제작자") {
+                    fetchByMasterNickname(debouncedQuery)
+                        .then(playlists => setPlaylists(playlists));
+                    return;
+                } else if (selectedSearchType === "제목") {
+                    searchPlaylistsByTitle(debouncedQuery)
+                        .then(playlists => setPlaylists(playlists));
+                }
+            } else {
+                fetchRecentlyAddedPlaylists()
+                    .then(playlists => setPlaylists(playlists));
+            }
         } else if (selectedTab === "mine") {
             fetchMyPlaylists()
                 .then(playlists => setPlaylists(playlists));
         }
-    }, [selectedTab]);
+    }, [selectedTab, selectedSearchType, debouncedQuery]);
+
+    // 검색어 디바운스
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedQuery(query.trim());
+        }, 400); // 400ms 디바운스
+        return () => clearTimeout(handler);
+    }, [query]);
 
     function clickPlaylist(event: React.MouseEvent<HTMLDivElement>) {
         const id = event.currentTarget.id;
@@ -80,28 +106,30 @@ export default function PlaylistsView() {
                             </p>
                         ))}
                     </div>
-                    <div className="flex flex-row gap-2">
-                        <div className="w-32">
-                            <SelectMenu
-                                options={searchTypes}
-                                selectedOption={selectedSearchType}
-                                selectedHandler={(selectedOption: string) => {
-                                        setSelectedSearchType(selectedOption);
+                    {selectedTab === "all" && (
+                        <div className="flex flex-row gap-2">
+                            <div className="w-32">
+                                <SelectMenu
+                                    options={searchTypes}
+                                    selectedOption={selectedSearchType}
+                                    selectedHandler={(selectedOption: string) => {
+                                            setSelectedSearchType(selectedOption);
+                                        }
                                     }
-                                }
-                            >
-                            </SelectMenu>
+                                >
+                                </SelectMenu>
+                            </div>
+                            <div className="w-full h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
+                                <input
+                                    type="text"
+                                    placeholder="검색어"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    className="w-full pl-[8px] focus:outline-none"
+                                />
+                            </div>
                         </div>
-                        <div className="w-full h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
-                            <input
-                                type="text"
-                                placeholder="검색어"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                className="w-full pl-[8px] focus:outline-none"
-                            />
-                        </div>
-                    </div>
+                    )}
                     <div className="flex flex-col grow py-2 bg-zinc-800 rounded-2xl overflow-y-auto">
                         {
                             playlists.map((playlist, i) =>

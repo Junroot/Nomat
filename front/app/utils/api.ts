@@ -36,8 +36,18 @@ export async function fetchRecentlyAddedPlaylists(): Promise<PlaylistMetaDataRes
     return response.data;
 }
 
+export async function fetchByMasterNickname(masterNickname: string): Promise<PlaylistMetaDataResponse[]> {
+    const response = await client.get<PlaylistMetaDataResponse[]>("/playlists", { params: { masterNickname: masterNickname } });
+    return response.data;
+}
+
 export async function fetchMyPlaylists(): Promise<PlaylistMetaDataResponse[]> {
     const response = await client.get<PlaylistMetaDataResponse[]>("/playlists", { params: { masterId: "me" } });
+    return response.data;
+}
+
+export async function searchPlaylistsByTitle(query: string): Promise<PlaylistMetaDataResponse[]> {
+    const response = await client.get<PlaylistMetaDataResponse[]>("/playlists", { params: { title: query } });
     return response.data;
 }
 

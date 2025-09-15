@@ -4,6 +4,7 @@ import ilpak.nomat.infrastructure.exception.ForbiddenException
 import ilpak.nomat.infrastructure.exception.NotFoundException
 import ilpak.nomat.infrastructure.exception.NotFoundResource
 import ilpak.nomat.player.application.PlayerService
+import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.domain.Playlist
 import ilpak.nomat.playlist.application.domain.PlaylistRepository
 import ilpak.nomat.playlist.application.domain.TrackRepository
@@ -52,7 +53,26 @@ class PlaylistService(
 
     fun getByMasterId(masterId: Long): List<PlaylistMetaDataResponse> {
         val master = playerService.findById(masterId)
-        val playlists = playlistRepository.findByMasterId(masterId)
+        return getPlaylistsByMaster(master)
+    }
+
+    fun searchByTitle(title: String): List<PlaylistMetaDataResponse> {
+        val playlists = playlistRepository.searchByTitle(title, MAX_SEARCH_RESULT_SIZE)
+        return getPlaylistMetaDataResponses(playlists)
+    }
+
+    fun getByMasterNickname(nickname: String): List<PlaylistMetaDataResponse> {
+        val master = try {
+            playerService.findByNickname(nickname)
+        } catch (e: NotFoundException) {
+            return emptyList()
+        }
+
+        return getPlaylistsByMaster(master)
+    }
+
+    private fun getPlaylistsByMaster(master: PlayerResponse): List<PlaylistMetaDataResponse> {
+        val playlists = playlistRepository.findByMasterId(master.id)
         val representativeTracks = trackRepository.findByRepresentativeIsTrueAndPlaylist(playlists)
             .associateBy { it.playlist.id }
 
@@ -60,11 +80,6 @@ class PlaylistService(
             val representativeTrack = representativeTracks[it.id] ?: return@mapNotNull null
             PlaylistMetaDataResponse.of(it, representativeTrack, master)
         }
-    }
-
-    fun searchByTitle(title: String): List<PlaylistMetaDataResponse> {
-        val playlists = playlistRepository.searchByTitle(title, MAX_SEARCH_RESULT_SIZE)
-        return getPlaylistMetaDataResponses(playlists)
     }
 
     fun getRecentlyAddedPlaylists(size: Int): List<PlaylistMetaDataResponse> {

@@ -42,6 +42,12 @@ class PlayerService(
         return playerRepository.findByIdIn(ids).map { PlayerResponse(it) }
     }
 
+    fun findByNickname(nickname: String): PlayerResponse {
+        return playerRepository.findByNickname(nickname)
+            ?.let { PlayerResponse(it) }
+            ?: throw NotFoundException(NotFoundResource.PLAYER)
+    }
+
     @Transactional
     fun save(request: PlayerRequest): PlayerResponse {
         return PlayerResponse(playerRepository.save(request.toDomain()))
