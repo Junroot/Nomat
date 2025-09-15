@@ -34,7 +34,7 @@ data class PlaylistCreationRequest(
 }
 
 data class PlaylistCreationRequestTrack(
-    @field:Length(min = 1, max = Track.MAX_EMBED_ID, message = "embedId는 {min}자 이상 {max}자 이하이어야 합니다.")
+    @field:Length(min = 1, max = Track.MAX_EMBED_ID_LENGTH, message = "embedId는 {min}자 이상 {max}자 이하이어야 합니다.")
     val embedId: String,
     @field:Length(min = 1, max = Track.MAX_TITLE_LENGTH, message = "곡 제목은 {min}자 이상 {max}자 이하이어야 합니다.")
     val title: String,
@@ -43,22 +43,21 @@ data class PlaylistCreationRequestTrack(
     @field:Min(0, message = "곡 종료 시각은 0초 이상이어야 합니다.")
     val endTimeSec: Int,
     @field:Min(1, message = "반복 횟수는 최소 {value}회 이상이어야 합니다.")
-    @field:Max(Track.MAX_REPEAT_COUNT.toLong())
+    @field:Max(Track.MAX_REPEAT_COUNT.toLong(), message = "반복 횟수는 최대 {value}회 이하이어야 합니다.")
     val repeatCount: Int,
     @field:Size(min = 0, max = Track.MAX_ADDITIONAL_TITLE_COUNT, message = "추가 정답은 최대 {max}개까지 입력할 수 있습니다.")
-    val additionalTitles: Set<
-        @Length(
-            min = 1,
-            max = Track.MAX_TITLE_LENGTH,
-            message = "추가 정답은 {min}자 이상 {max}자 이하이어야 합니다."
-        )
-        String
-        >,
+    val additionalTitles: Set<String>,
     val isRepresentative: Boolean,
 ) {
     init {
         if (startTimeSec > endTimeSec) {
             throw BadRequestException("곡 시작 시각은 곡 종료 시각보다 클 수 없습니다.")
+        }
+
+        additionalTitles.forEach {
+            if (it.isEmpty() || it.length > Track.MAX_TITLE_LENGTH) {
+                throw BadRequestException("추가 정답은 1자 이상 ${Track.MAX_TITLE_LENGTH}자 이하이어야 합니다.")
+            }
         }
     }
 

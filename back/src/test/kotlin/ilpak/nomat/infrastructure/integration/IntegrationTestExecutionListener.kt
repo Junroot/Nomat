@@ -1,4 +1,4 @@
-package ilpak.nomat.integration
+package ilpak.nomat.infrastructure.integration
 
 import org.flywaydb.core.Flyway
 import org.springframework.test.context.TestContext

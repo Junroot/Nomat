@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	val kotlinVersion = "1.9.10"
-	id("org.springframework.boot") version "3.2.2"
+	id("org.springframework.boot") version "3.4.8"
 	id("io.spring.dependency-management") version "1.1.4"
 	id("io.gitlab.arturbosch.detekt") version "1.23.3"
 	kotlin("jvm") version kotlinVersion
@@ -30,16 +30,24 @@ dependencies {
 	implementation("mysql:mysql-connector-java:8.0.33")
 	implementation("org.springframework.boot:spring-boot-testcontainers")
 	implementation("org.testcontainers:mysql")
+	implementation("org.testcontainers:elasticsearch")
+	implementation("org.testcontainers:kafka:1.21.3")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.flywaydb:flyway-mysql")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+	implementation("org.springframework.data:spring-data-elasticsearch")
+	implementation("org.springframework.retry:spring-retry")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
 	implementation("net.logstash.logback:logstash-logback-encoder:7.4")
-	implementation("ch.qos.logback:logback-access:1.4.14")
+	implementation("ch.qos.logback.access:logback-access-common:2.0.6")
+	implementation("ch.qos.logback.access:logback-access-tomcat:2.0.6")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
+	implementation("io.debezium:debezium-api:3.2.0.Final")
+	implementation("io.debezium:debezium-embedded:3.2.0.Final")
+	implementation("io.debezium:debezium-connector-mysql:3.2.0.Final")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

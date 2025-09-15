@@ -1,4 +1,4 @@
-package ilpak.nomat.integration
+package ilpak.nomat.infrastructure.integration
 
 import ilpak.nomat.NomatApplication
 import org.junit.jupiter.api.extension.ExtendWith

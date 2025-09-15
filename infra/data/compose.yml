@@ -1,6 +1,7 @@
 services:
   db:
     image: mysql:8.0.39
+    container_name: db
     ports:
       - "3306:3306"
     environment:
@@ -10,5 +11,79 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db-data:/var/lib/mysql
+  elasticsearch:
+    image: junroot0909/elasticsearch-nori:9.0.4
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      node.name: elasticsearch
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      discovery.type: single-node
+      xpack.license.self_generated.type: basic
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data:Z
+      - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
+    networks:
+      - elk
+    restart: unless-stopped
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.0.4
+    container_name: logstash
+    ports:
+      - "5044:5044"
+      - "50000:50000/tcp"
+      - "50000:50000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: -Xms256m -Xmx256m
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+    volumes:
+      - ./logstash-config.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ./logstash-pipeline.conf:/usr/share/logstash/pipeline/logstash.conf:ro,Z
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+  kafka-broker:
+    image: apache/kafka:3.7.2
+    hostname: kafka-broker
+    container_name: kafka-broker
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka-broker:29092,CONTROLLER://kafka-broker:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # 싱글 브로커 설정
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka-data:/var/lib/kafka/data
 volumes:
   db-data:
+  elasticsearch-data:
+  kafka-data:
+networks:
+  elk:
+    driver: bridge
+

@@ -40,6 +40,7 @@ class SecurityConfiguration(
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .csrf { it.disable() }
+            .cors {  }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .exceptionHandling { it.authenticationEntryPoint(Http403ForbiddenEntryPoint()) }
             .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)

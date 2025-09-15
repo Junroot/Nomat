@@ -15,6 +15,10 @@ services:
         order: start-first
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_DATASOURCE_URL: jdbc:mysql://${DB_URL}/nomat
@@ -37,12 +41,52 @@ services:
     configs:
       - source: nginx_conf-3
         target: /etc/nginx/nginx.conf
+  prometheus:
+    image: junroot0909/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    environment:
+      - DATA_NODE_IP=${DATA_NODE_IP:-}
+    networks:
+      - local-prometheus
+    restart: unless-stopped
+  node-exporter:
+    image: prom/node-exporter:latest
+    networks:
+      - local-prometheus
+  grafana:
+    image: grafana/grafana-oss:12.1.0
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - local-prometheus
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.0.4
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-http://elasticsearch:9200}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-}
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    restart: unless-stopped
 networks:
   backend:
     name: backend
     driver: overlay
     attachable: true
+  local-prometheus:
+    driver: overlay
 configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
   nginx_conf-3:
     file: ./nginx.conf
+volumes:
+  prometheus-data:
+  grafana-data:
