@@ -36,6 +36,11 @@ export async function fetchRecentlyAddedPlaylists(): Promise<PlaylistMetaDataRes
     return response.data;
 }
 
+export async function fetchMyPlaylists(): Promise<PlaylistMetaDataResponse[]> {
+    const response = await client.get<PlaylistMetaDataResponse[]>("/playlists", { params: { masterId: "me" } });
+    return response.data;
+}
+
 export async function fetchPlaylist(playlistId: number): Promise<PlaylistResponse> {
     return {
         id: playlistId,

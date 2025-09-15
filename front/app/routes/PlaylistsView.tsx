@@ -10,7 +10,7 @@ import SelectMenu from "~/components/ui/SelectMenu";
 import Column2 from "~/components/layout/Column2";
 import React, { useEffect, useState } from "react";
 import type PlaylistResponse from "~/utils/PlaylistResponse";
-import { fetchPlaylist, fetchRecentlyAddedPlaylists } from "~/utils/api";
+import {fetchMyPlaylists, fetchPlaylist, fetchRecentlyAddedPlaylists} from "~/utils/api";
 import UserIcon from "~/assets/user.svg?react";
 import SongIcon from "~/assets/song.svg?react";
 import MusicPlayer from "~/components/ui/MusicPlayer";
@@ -40,6 +40,9 @@ export default function PlaylistsView() {
     useEffect(() => {
         if (selectedTab === "all") {
             fetchRecentlyAddedPlaylists()
+                .then(playlists => setPlaylists(playlists));
+        } else if (selectedTab === "mine") {
+            fetchMyPlaylists()
                 .then(playlists => setPlaylists(playlists));
         }
     }, [selectedTab]);
@@ -104,7 +107,7 @@ export default function PlaylistsView() {
                             playlists.map((playlist, i) =>
                                 <div key={i} id={i.toString()} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
                                     <img
-                                        src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/0.jpg`}
+                                        src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
                                         className="size-16 object-cover"
                                         alt="tumbnail"
                                     >

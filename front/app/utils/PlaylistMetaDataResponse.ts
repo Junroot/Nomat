@@ -3,7 +3,7 @@ export default interface PlaylistMetaDataResponse {
     title: string,
     representativeTrack: PlaylistMetaDataResponseTrack,
     master: PlaylistMetaDataResponseMaster,
-    description: String,
+    description: string,
 }
 
 export interface PlaylistMetaDataResponseTrack {
@@ -14,5 +14,5 @@ export interface PlaylistMetaDataResponseTrack {
 export interface PlaylistMetaDataResponseMaster {
     id: number,
     nickname: string,
-    registrationType: String,
+    registrationType: string,
 }
