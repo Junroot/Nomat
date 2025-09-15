@@ -30,6 +30,28 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
           ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
+          echo "Current directory: $(pwd)"
           
-          sudo docker service update --image junroot0909/nomat:${{ github.sha }} nomat-back_spring-app
+          REPO_URL="https://github.com/Junroot/Nomat.git"
+          REPO_DIR="$HOME/Nomat"
+          BRANCH=${GITHUB_REF##*/}
+          
+          if [ ! -d "$REPO_DIR/.git" ]; then
+          git clone "$REPO_URL" "$REPO_DIR"
+          fi
+          
+          cd "$REPO_DIR"
+          git reset --hard
+          git pull origin "$BRANCH"
+          
+          cd ~
+          if [ ! -d infra ]; then
+          mkdir infra
+          fi
+          cp -r ./Nomat/infra/app/* infra
+          cp .env ./infra/.env
+          cd infra
+          
+          export $(xargs < .env)
+          NOMAT_TAG=${{ github.sha }} docker stack config -c compose.yml | sudo docker stack deploy -c - nomat-back
           '
