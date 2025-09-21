@@ -34,6 +34,9 @@ class Player(
     )
     val id: Long = 0,
 ) {
+    val displayName: String
+        get() = "$nickname#${registrationType.code}"
+
     companion object {
         const val MAX_NICKNAME_LENGTH = 40
     }

@@ -30,7 +30,8 @@ class Track(
     @ManyToOne
     @JoinColumn(name = "playlist_id")
     val playlist: Playlist,
-    var isRepresentative: Boolean,
+    @Column(name = "is_representative")
+    var representative: Boolean,
     @Embedded
     val auditMetadata: AuditMetadata = AuditMetadata(),
     @Id

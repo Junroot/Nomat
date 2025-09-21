@@ -43,7 +43,7 @@ class RoomService(
 
     @Transactional
     fun createRoom(roomRequest: RoomRequest): RoomDetailResponse {
-        val playlist = playlistService.get(roomRequest.playlistId)
+        val playlist = playlistService.getWithTrack(roomRequest.playlistId)
 
         val room = Room(
             roomRequest.title,

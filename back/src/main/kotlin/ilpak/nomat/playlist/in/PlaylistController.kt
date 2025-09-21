@@ -4,10 +4,13 @@ import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
 import ilpak.nomat.playlist.application.dto.PlaylistMetaDataResponse
 import ilpak.nomat.playlist.application.dto.PlaylistResponse
+import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -26,8 +29,13 @@ private class PlaylistController(
     fun save(
         @AuthenticationPrincipal playerId: Long,
         @Valid @RequestBody request: PlaylistCreationRequest
-    ): PlaylistResponse {
+    ): PlaylistWithTrackResponse {
         return playlistService.save(playerId, request)
+    }
+
+    @GetMapping("/{id}")
+    fun getById(@PathVariable id: Long): PlaylistResponse {
+        return playlistService.getById(id)
     }
 
     @GetMapping(params = ["masterId=me"])
@@ -40,13 +48,20 @@ private class PlaylistController(
         @RequestParam(
             required = false,
             defaultValue = "1000"
-        ) limit: Int
+        )
+        @Max(1000, message = "최대 요청 가능한 값은 {value} 입니다.")
+        limit: Int
     ): List<PlaylistMetaDataResponse> {
         return playlistService.getRecentlyAddedPlaylists(limit)
     }
 
-    @GetMapping
+    @GetMapping(params = ["title"])
     fun searchByTitle(@RequestParam title: String): List<PlaylistMetaDataResponse> {
         return playlistService.searchByTitle(title)
+    }
+
+    @GetMapping(params = ["masterDisplayName"])
+    fun getByMasterDisplayName(@RequestParam masterDisplayName: String): List<PlaylistMetaDataResponse> {
+        return playlistService.getByMasterDisplayName(masterDisplayName)
     }
 }

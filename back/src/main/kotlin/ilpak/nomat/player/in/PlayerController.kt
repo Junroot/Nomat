@@ -21,12 +21,4 @@ class PlayerController(
     fun getMe(@AuthenticationPrincipal playerId: Long): PlayerResponse {
         return playerService.findById(playerId)
     }
-
-    @PutMapping("/me/nickname")
-    fun updateNickname(
-        @AuthenticationPrincipal playerId: Long,
-        @RequestBody @Valid request: PlayerNicknameRequest,
-    ) {
-        playerService.updateNickname(playerId, request)
-    }
 }

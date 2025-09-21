@@ -70,7 +70,7 @@ data class PlaylistCreationRequestTrack(
             repeatCount = repeatCount,
             additionalTitles = additionalTitles,
             playlist = playlist,
-            isRepresentative = isRepresentative,
+            representative = isRepresentative,
         )
     }
 }

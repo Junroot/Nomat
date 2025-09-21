@@ -4,7 +4,7 @@ import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequest
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequestTrack
-import ilpak.nomat.playlist.application.dto.PlaylistResponse
+import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import org.springframework.boot.test.context.TestComponent
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -36,13 +36,13 @@ class PlaylistStep(
     private val client: WebTestClient,
 ) {
 
-    fun save(playerResponse: PlayerResponse, request: PlaylistCreationRequest): PlaylistResponse {
+    fun save(playerResponse: PlayerResponse, request: PlaylistCreationRequest): PlaylistWithTrackResponse {
         return client.post().uri("/playlists")
             .auth(playerResponse)
             .bodyValue(request)
             .exchange()
             .expectStatus().isCreated
-            .expectBody<PlaylistResponse>()
+            .expectBody<PlaylistWithTrackResponse>()
             .returnResult()
             .responseBody ?: throw IllegalStateException("Failed to create playlist")
     }

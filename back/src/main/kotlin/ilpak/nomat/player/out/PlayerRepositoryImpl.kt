@@ -35,6 +35,10 @@ private class PlayerRepositoryImpl(
         return playerJpaRepository.findByIdIn(ids)
     }
 
+    override fun findByNicknameAndRegistrationType(nickname: String, registrationType: RegistrationType): Player? {
+        return playerJpaRepository.findByNicknameAndRegistrationType(nickname, registrationType)
+    }
+
     override fun save(player: Player): Player {
         return playerJpaRepository.save(player)
     }
@@ -48,4 +52,5 @@ private interface PlayerJpaRepository : CrudRepository<Player, Long> {
     ): Player?
 
     fun findByIdIn(ids: Set<Long>): List<Player>
+    fun findByNicknameAndRegistrationType(nickname: String, registrationType: RegistrationType): Player?
 }
