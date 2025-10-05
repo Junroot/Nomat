@@ -5,6 +5,7 @@ export default interface PlaylistResponse {
     master: PlaylistResponseMaster
     trackCount: number,
     expectedPlayTimeSec: number,
+    favorite: boolean,
     representativeTrack: PlaylistResponseTrack,
 }
 

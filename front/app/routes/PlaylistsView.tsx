@@ -12,6 +12,7 @@ import React, { useEffect, useState } from "react";
 import type PlaylistResponse from "~/utils/PlaylistResponse";
 import {
     fetchByMasterDisplayName,
+    fetchFavoritePlaylists,
     fetchMyPlaylists,
     fetchPlaylist,
     fetchRecentlyAddedPlaylists,
@@ -21,7 +22,9 @@ import UserIcon from "~/assets/user.svg?react";
 import SongIcon from "~/assets/song.svg?react";
 import MusicPlayer from "~/components/ui/MusicPlayer";
 import type PlaylistMetaDataResponse from "~/utils/PlaylistMetaDataResponse";
-import { getRegistrationCode } from "~/utils/registrationCode";
+import StarIcon from "~/assets/star.svg?react";
+import FilledStarIcon from "~/assets/filled-star.svg?react";
+import { favoritePlaylist, unfavoritePlaylist } from "~/utils/api";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -34,6 +37,7 @@ export default function PlaylistsView() {
     const tabLabels = ["즐겨찾기", "내가 만든", "전체"];
     const [selectedTab, setSelectedTab] = useState<string>(tabTypes[0]);
     const [playlists, setPlaylists] = useState<PlaylistMetaDataResponse[]>([]);
+    const [favoriteUpdating, setFavoriteUpdating] = useState(false);
 
     useEffect(() => {
         if (selectedPlaylistId === null) {
@@ -59,6 +63,9 @@ export default function PlaylistsView() {
                 fetchRecentlyAddedPlaylists()
                     .then(playlists => setPlaylists(playlists));
             }
+        } else if (selectedTab === "favorite") {
+            fetchFavoritePlaylists()
+                .then(playlists => setPlaylists(playlists));
         } else if (selectedTab === "mine") {
             fetchMyPlaylists()
                 .then(playlists => setPlaylists(playlists));
@@ -76,6 +83,29 @@ export default function PlaylistsView() {
     function clickPlaylist(event: React.MouseEvent<HTMLDivElement>) {
         const id = event.currentTarget.id;
         setSelectedPlaylistId(parseInt(id));
+    }
+
+    async function toggleFavorite() {
+        if (!selectedPlaylist || favoriteUpdating) return;
+        setFavoriteUpdating(true);
+        const playlistId = selectedPlaylist.id;
+        const optimistic = { ...selectedPlaylist, favorite: !selectedPlaylist.favorite } as PlaylistResponse;
+        setSelectedPlaylist(optimistic);
+        try {
+            if (optimistic.favorite) {
+                await favoritePlaylist(playlistId);
+            } else {
+                await unfavoritePlaylist(playlistId);
+            }
+            // 즐겨찾기 탭에서 해제한 경우 목록 새로고침
+            if (selectedTab === "favorite") {
+                fetchFavoritePlaylists().then(p => setPlaylists(p));
+            }
+        } catch (e) {
+            setSelectedPlaylist({ ...selectedPlaylist });
+        } finally {
+            setFavoriteUpdating(false);
+        }
     }
 
     return (
@@ -129,7 +159,7 @@ export default function PlaylistsView() {
                     <div className="flex flex-col grow py-2 bg-zinc-800 rounded-2xl overflow-y-auto">
                         {
                             playlists.map((playlist, i) =>
-                                <div key={i} id={playlist.id} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
+                                <div key={i} id={playlist.id.toString()} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
                                     <img
                                         src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
                                         className="size-16 object-cover"
@@ -155,7 +185,19 @@ export default function PlaylistsView() {
                         selectedPlaylist !== null &&
                             <div className="w-full h-full flex flex-col justify-center p-4">
                                 <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
-                                    <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
+                                    <div className="flex flex-row justify-between items-center">
+                                        <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <button
+                                                disabled={favoriteUpdating}
+                                                onClick={toggleFavorite}
+                                                className={`size-10 flex items-center justify-center rounded-full transition-colors ${selectedPlaylist.favorite ? "text-yellow-400" : "text-zinc-400 hover:text-yellow-300"} ${favoriteUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                                title={selectedPlaylist.favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                                            >
+                                                {selectedPlaylist.favorite ? <FilledStarIcon className="w-8 h-8"/> : <StarIcon className="w-8 h-8"/>}
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div className="flex flex-col">
                                         <p><UserIcon className="inline-block"/>{selectedPlaylist.master.displayName}</p>
                                         <p><SongIcon className="inline-block"/>{selectedPlaylist.trackCount}곡 (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>

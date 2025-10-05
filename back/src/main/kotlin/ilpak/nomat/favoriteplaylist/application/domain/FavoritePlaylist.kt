@@ -26,6 +26,10 @@ class FavoritePlaylist(
     val playlistId: Long
         get() = id.playlistId
 
+    fun restore() {
+        deletedDate = null
+    }
+
     companion object {
         const val MAX_FAVORITE_PLAYLISTS = 1000
     }

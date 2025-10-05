@@ -19,6 +19,10 @@ private class FavoritePlaylistImpl(
         return jpaRepository.findByIdPlayerIdAndDeletedDateNull(playerId)
     }
 
+    override fun findDeletedById(id: FavoritePlaylistId): FavoritePlaylist? {
+        return jpaRepository.findByIdAndDeletedDateIsNotNull(id)
+    }
+
     override fun save(favoritePlaylist: FavoritePlaylist): FavoritePlaylist {
         return jpaRepository.save(favoritePlaylist)
     }
@@ -30,4 +34,5 @@ private class FavoritePlaylistImpl(
 
 private interface FavoritePlaylistJpaRepository : CrudRepository<FavoritePlaylist, FavoritePlaylistId> {
     fun findByIdPlayerIdAndDeletedDateNull(playerId: Long): List<FavoritePlaylist>
+    fun findByIdAndDeletedDateIsNotNull(id: FavoritePlaylistId): FavoritePlaylist?
 }

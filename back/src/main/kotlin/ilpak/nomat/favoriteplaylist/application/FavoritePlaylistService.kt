@@ -20,17 +20,25 @@ class FavoritePlaylistService(
 
     @Transactional
     fun save(playerId: Long, request: FavoritePlaylistRequest): FavoritePlaylistResponse {
-        val favoriteCount = findByPlayerId(playerId).size
-        if (favoriteCount >= FavoritePlaylist.MAX_FAVORITE_PLAYLISTS) {
+        val playlists = findByPlayerId(playerId)
+        if (playlists.size >= FavoritePlaylist.MAX_FAVORITE_PLAYLISTS) {
             throw ForbiddenException("즐겨찾기 플레이리스트는 최대 ${FavoritePlaylist.MAX_FAVORITE_PLAYLISTS}개까지 등록할 수 있습니다.")
         }
+
+        val id = FavoritePlaylistId(
+            playerId = playerId,
+            playlistId = request.playlistId
+        )
+        val deletedFavorite = favoritePlaylistRepository.findDeletedById(id)
+        if (deletedFavorite != null) {
+            deletedFavorite.restore()
+            return FavoritePlaylistResponse.from(favoritePlaylistRepository.save(deletedFavorite))
+        }
+
         return FavoritePlaylistResponse.from(
             favoritePlaylistRepository.save(
                 FavoritePlaylist(
-                    id = FavoritePlaylistId(
-                        playerId = playerId,
-                        playlistId = request.playlistId
-                    )
+                    id = id
                 )
             )
         )
