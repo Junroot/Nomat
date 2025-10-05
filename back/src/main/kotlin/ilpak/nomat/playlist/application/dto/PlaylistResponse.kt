@@ -11,10 +11,11 @@ data class PlaylistResponse(
     val master: PlaylistResponseMaster,
     val trackCount: Int,
     val expectedPlayTimeSec: Long,
+    val favorite: Boolean,
     val representativeTrack: PlaylistTrackResponse,
 ) {
     companion object {
-        fun of(playlist: Playlist, tracks: List<Track>, master: PlayerResponse): PlaylistResponse {
+        fun of(playlist: Playlist, tracks: List<Track>, master: PlayerResponse, favorite: Boolean): PlaylistResponse {
             return PlaylistResponse(
                 playlist.id,
                 playlist.title,
@@ -22,6 +23,7 @@ data class PlaylistResponse(
                 PlaylistResponseMaster.of(master),
                 tracks.size,
                 tracks.sumOf { (it.endTimeSec - it.startTimeSec).toLong() * it.repeatCount },
+                favorite,
                 tracks.firstOrNull { it.representative }?.let { PlaylistTrackResponse.of(it) }
                     ?: PlaylistTrackResponse.of(tracks.first()),
             )

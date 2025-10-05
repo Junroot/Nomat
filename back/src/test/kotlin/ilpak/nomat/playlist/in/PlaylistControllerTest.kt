@@ -131,6 +131,7 @@ class PlaylistControllerTest(
                 assertThat(it.representativeTrack.endTimeSec).isEqualTo(response.tracks.first().endTimeSec)
                 assertThat(it.trackCount).isEqualTo(response.tracks.size)
                 assertThat(it.expectedPlayTimeSec).isGreaterThan(0)
+                assertThat(it.favorite).isFalse()
             }
     }
 

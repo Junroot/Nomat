@@ -11,6 +11,10 @@ private class FavoritePlaylistImpl(
     private val jpaRepository: FavoritePlaylistJpaRepository,
 ) : FavoritePlaylistRepository {
 
+    override fun existsById(id: FavoritePlaylistId): Boolean {
+        return jpaRepository.existsById(id)
+    }
+
     override fun findByPlayerId(playerId: Long): List<FavoritePlaylist> {
         return jpaRepository.findByIdPlayerIdAndDeletedDateNull(playerId)
     }

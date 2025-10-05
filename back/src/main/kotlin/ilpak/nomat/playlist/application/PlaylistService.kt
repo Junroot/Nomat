@@ -54,11 +54,12 @@ class PlaylistService(
         return PlaylistWithTrackResponse.of(playlist, tracks, master)
     }
 
-    fun getById(id: Long): PlaylistResponse {
+    fun getById(requestUserId: Long, id: Long): PlaylistResponse {
         val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
         val tracks = trackRepository.findByPlaylist(playlist)
         val master = playerService.findById(playlist.masterId)
-        return PlaylistResponse.of(playlist, tracks, master)
+        val favorite = favoritePlaylistService.isFavorite(requestUserId, playlist.id)
+        return PlaylistResponse.of(playlist, tracks, master, favorite)
     }
 
     fun getByMasterId(masterId: Long): List<PlaylistMetaDataResponse> {

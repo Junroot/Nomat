@@ -7,6 +7,7 @@ import ilpak.nomat.playlist.application.dto.PlaylistResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -34,8 +35,8 @@ private class PlaylistController(
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable id: Long): PlaylistResponse {
-        return playlistService.getById(id)
+    fun getById(@AuthenticationPrincipal playerId: Long, @PathVariable id: Long): PlaylistResponse {
+        return playlistService.getById(playerId, id)
     }
 
     @GetMapping(params = ["masterId=me"])

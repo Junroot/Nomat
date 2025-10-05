@@ -45,4 +45,13 @@ class FavoritePlaylistService(
             )
         )
     }
+
+    fun isFavorite(userId: Long, playlistId: Long): Boolean {
+        return favoritePlaylistRepository.existsById(
+            FavoritePlaylistId(
+                playerId = userId,
+                playlistId = playlistId
+            )
+        )
+    }
 }
