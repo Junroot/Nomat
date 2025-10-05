@@ -7,4 +7,5 @@ interface TrackRepository {
     fun findByRepresentativeIsTrueAndPlaylist(playlists: Collection<Playlist>): List<Track>
     fun countByPlaylist(playlist: Playlist): Long
     fun countByPlaylists(playlists: Collection<Playlist>): Map<Long, Long>
+    fun deleteByPlaylist(playlist: Playlist)
 }

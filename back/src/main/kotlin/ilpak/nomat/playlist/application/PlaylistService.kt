@@ -40,6 +40,26 @@ class PlaylistService(
         return PlaylistWithTrackResponse.of(savedPlaylist, savedTracks, master)
     }
 
+    @Transactional
+    fun update(playerId: Long, playlistId: Long, request: PlaylistCreationRequest): PlaylistWithTrackResponse {
+        val playlist = playlistRepository.findById(playlistId) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
+
+        if (playlist.masterId != playerId) {
+            throw ForbiddenException("본인의 플레이리스트만 수정할 수 있습니다.")
+        }
+
+        playlist.title = request.title
+        playlist.description = request.description
+
+        trackRepository.deleteByPlaylist(playlist)
+        val tracks = request.tracks.map { it.toDomain(playlist) }
+        val savedTracks = trackRepository.saveAll(tracks)
+
+        val master = playerService.findById(playerId)
+
+        return PlaylistWithTrackResponse.of(playlist, savedTracks, master)
+    }
+
     private fun validateToSave(masterId: Long) {
         val countByMasterId = playlistRepository.countByMasterId(masterId)
         if (countByMasterId >= Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER) {
@@ -47,18 +67,23 @@ class PlaylistService(
         }
     }
 
-    fun getWithTrack(id: Long): PlaylistWithTrackResponse {
+    fun getWithTracks(requestPlayerId: Long, id: Long): PlaylistWithTrackResponse {
         val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
+
+        if (playlist.masterId != requestPlayerId) {
+            throw ForbiddenException("본인의 플레이리스트만 트랙과 함께 조회할 수 있습니다.")
+        }
+
         val tracks = trackRepository.findByPlaylist(playlist)
         val master = playerService.findById(playlist.masterId)
         return PlaylistWithTrackResponse.of(playlist, tracks, master)
     }
 
-    fun getById(requestUserId: Long, id: Long): PlaylistResponse {
+    fun getById(requestRequestId: Long, id: Long): PlaylistResponse {
         val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
         val tracks = trackRepository.findByPlaylist(playlist)
         val master = playerService.findById(playlist.masterId)
-        val favorite = favoritePlaylistService.isFavorite(requestUserId, playlist.id)
+        val favorite = favoritePlaylistService.isFavorite(requestRequestId, playlist.id)
         return PlaylistResponse.of(playlist, tracks, master, favorite)
     }
 

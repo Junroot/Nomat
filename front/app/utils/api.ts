@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosResponse } from "axios";
 import type MeResponse from "./MeResponse";
 import type PlaylistResponse from "./PlaylistResponse";
+import type { PlaylistWithTracksResponse } from "./PlaylistResponse";
 import type PlaylistRequest from "./PlaylistRequest";
 import type PlaylistMetaDataResponse from "./PlaylistMetaDataResponse";
 
@@ -60,8 +61,18 @@ export async function fetchPlaylist(playlistId: number): Promise<PlaylistRespons
     return response.data;
 }
 
+export async function fetchPlaylistWithTracks(playlistId: number): Promise<PlaylistWithTracksResponse> {
+    const response = await client.get<PlaylistWithTracksResponse>(`/playlists/${playlistId}`, { params: { includeTracks: true } });
+    return response.data;
+}
+
 export async function createPlaylist(request: PlaylistRequest): Promise<PlaylistResponse> {
     const response = await client.post<PlaylistResponse>("/playlists", request);
+    return response.data;
+}
+
+export async function modifyPlaylist(playlistId: number, request: PlaylistRequest): Promise<PlaylistResponse> {
+    const response = await client.put<PlaylistResponse>(`/playlists/${playlistId}`, request);
     return response.data;
 }
 

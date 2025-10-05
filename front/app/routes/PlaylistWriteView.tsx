@@ -1,3 +1,4 @@
+import { useParams } from "react-router";
 import NavigationBar from "~/components/layout/NavigationBar";
 import NavigationItem from "~/components/layout/NavigationItem";
 import Me from "~/components/ui/Me";
@@ -8,23 +9,24 @@ import DeleteIcon from "~/assets/delete.svg?react";
 import StarIcon from "~/assets/star.svg?react";
 import FilledStarIcon from "~/assets/filled-star.svg?react";
 import Modal from "~/components/ui/Modal";
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import Column1 from "~/components/layout/Column1";
 import Column2 from "~/components/layout/Column2";
 import TrackCreateLayer, {type Track} from "~/components/ui/TrackEditLayer";
-import { createPlaylist } from "~/utils/api";
+import {createPlaylist, fetchPlaylistWithTracks, modifyPlaylist} from "~/utils/api";
 import type { AxiosError } from "axios";
 
-export default function PlaylistCreateView() {
+export default function PlaylistWriteView() {
+	const { playlistId } = useParams();
 	const [isBackModalOpen, setIsBackModalOpen] = useState(false)
 	const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
 	const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null)
 	const [isOpenEditTrack, setIsOpenEditTrack] = useState(false)
 	const [title, setTitle] = useState("")
 	const [description, setDescription] = useState("")
-	const [playlist, setPlaylist] = useState<Track[]>([])
+	const [tracks, setTracks] = useState<Track[]>([])
 	const [representativeIndex, setRepresentativeIndex] = useState<number | null>(null)
 	const [isAlertModalOpen, setIsAlertModalOpen] = useState(false)
 	const [alertMessage, setAlertMessage] = useState("")
@@ -32,6 +34,38 @@ export default function PlaylistCreateView() {
 	const navigate = useNavigate()
 	const maxTitleLength = 100
 	const maxDescriptionLength = 500
+
+	useEffect(() => {
+		if (!playlistId) {
+			return
+		}
+		const playlistIdNumber = parseInt(playlistId);
+		if (!playlistIdNumber) {
+			return
+		}
+
+		fetchPlaylistWithTracks(playlistIdNumber).then(playlist => {
+			setTitle(playlist.title)
+			setDescription(playlist.description)
+			setTracks(playlist.tracks.map(track => ({
+				embedId: track.embedId,
+				title: track.title,
+				startTimeSec: track.startTimeSec,
+				endTimeSec: track.endTimeSec,
+				repeatCount: track.repeatCount,
+				additionalTitles: track.additionalTitles,
+			})))
+			const representativeTrackIndex = playlist.tracks.findIndex(track => track.isRepresentative);
+			if (representativeTrackIndex !== -1) {
+				setRepresentativeIndex(representativeTrackIndex)
+			} else if (playlist.tracks.length > 0) {
+				setRepresentativeIndex(0)
+			} else {
+				setRepresentativeIndex(null)
+			}
+		})
+
+	}, [playlistId]);
 
 	function goBack() {
 		navigate(-1)
@@ -45,7 +79,7 @@ export default function PlaylistCreateView() {
 	}
 
 	function expectedPlaytime() {
-		return playlist.reduce((acc, track) => acc + (track.endTimeSec - track.startTimeSec) * track.repeatCount, 0);
+		return tracks.reduce((acc, track) => acc + (track.endTimeSec - track.startTimeSec) * track.repeatCount, 0);
 	}
 
 	function deleteTrack(index: number) {
@@ -54,7 +88,7 @@ export default function PlaylistCreateView() {
 		}
 
 		if (index === representativeIndex) {
-			if (playlist.length > 1) {
+			if (tracks.length > 1) {
 				setRepresentativeIndex(0)
 			} else {
 				setRepresentativeIndex(null)
@@ -63,8 +97,8 @@ export default function PlaylistCreateView() {
 			setRepresentativeIndex(representativeIndex - 1)
 		}
 
-		const newPlaylist = playlist.filter((_, i) => i !== index);
-		setPlaylist(newPlaylist);
+		const newPlaylist = tracks.filter((_, i) => i !== index);
+		setTracks(newPlaylist);
 	}
 
 	async function onClickSave() {
@@ -88,7 +122,7 @@ export default function PlaylistCreateView() {
 			setIsAlertModalOpen(true)
 			return
 		}
-		if (playlist.length === 0) {
+		if (tracks.length === 0) {
 			setAlertMessage("플레이리스트에 곡을 추가해주세요.")
 			setIsAlertModalOpen(true)
 			return
@@ -103,7 +137,7 @@ export default function PlaylistCreateView() {
 			const request = {
 				title: title.trim(),
 				description: description.trim(),
-				tracks: playlist.map((track, index) => ({
+				tracks: tracks.map((track, index) => ({
 					embedId: track.embedId,
 					title: track.title.trim(),
 					startTimeSec: track.startTimeSec,
@@ -113,8 +147,12 @@ export default function PlaylistCreateView() {
 					isRepresentative: index === representativeIndex
 				}))
 			};
-			
-			await createPlaylist(request);
+
+			if (playlistId && parseInt(playlistId)) {
+				await modifyPlaylist(parseInt(playlistId), request);
+			} else {
+				await createPlaylist(request);
+			}
 			navigate("/playlists");
 		} catch (error) {
 			const axiosError = error as AxiosError<{message: string}>;
@@ -141,7 +179,7 @@ export default function PlaylistCreateView() {
 						<div className="mx-auto w-full max-w-96 aspect-square">
 							{
 								representativeIndex !== null ?
-									<img className="w-full h-full object-contain rounded-2xl" src={`https://img.youtube.com/vi/${playlist[representativeIndex].embedId}/maxresdefault.jpg`} alt={playlist[representativeIndex].title} draggable={false}/>
+									<img className="w-full h-full object-contain rounded-2xl" src={`https://img.youtube.com/vi/${tracks[representativeIndex].embedId}/maxresdefault.jpg`} alt={tracks[representativeIndex].title} draggable={false}/>
 									: <QuestionMarkSquareIcon className="w-full h-full"></QuestionMarkSquareIcon>
 							}
 						</div>
@@ -183,7 +221,7 @@ export default function PlaylistCreateView() {
 				<Column2>
 					<div className="flex flex-row gap-2 mt-22 items-end px-4">
 						<p className="text-2xl font-bold">곡 목록</p>
-						<p>{`${playlist.length}곡(최대 ${Math.ceil(expectedPlaytime() / 60)}분)`}</p>
+						<p>{`${tracks.length}곡(최대 ${Math.ceil(expectedPlaytime() / 60)}분)`}</p>
 					</div>
 					<div className="w-full flex-1 px-4 py-2">
 						<div className="w-full h-full p-8 bg-zinc-800 text-zinc-200 rounded-2xl flex flex-col gap-2">
@@ -197,7 +235,7 @@ export default function PlaylistCreateView() {
 							>+
 							</div>
 							{
-								playlist.map((track: Track, index: number) => (
+								tracks.map((track: Track, index: number) => (
 									<div className="flex flex-row items-center p-2 hover:bg-zinc-700 rounded-lg cursor-pointer gap-4"
 										 onClick={() => {
 											 setSelectedTrack(track)
@@ -262,8 +300,8 @@ export default function PlaylistCreateView() {
 					endTimeSec={selectedTrack?.endTimeSec ?? 0}
 					repeatCount={selectedTrack?.repeatCount ?? 1}
 					additionalTitles={selectedTrack?.additionalTitles ?? Array<string>()}
-					playlist={playlist}
-					setPlaylist={setPlaylist}
+					playlist={tracks}
+					setPlaylist={setTracks}
 					selectedIndex={selectedTrackIndex}
 					onClose={() => setIsOpenEditTrack(false)}
 					representativeIndex={representativeIndex}

@@ -25,6 +25,8 @@ import type PlaylistMetaDataResponse from "~/utils/PlaylistMetaDataResponse";
 import StarIcon from "~/assets/star.svg?react";
 import FilledStarIcon from "~/assets/filled-star.svg?react";
 import { favoritePlaylist, unfavoritePlaylist } from "~/utils/api";
+import useMeStore from "~/stores/MeStore";
+import PencilIcon from "~/assets/pencil.svg?react";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -38,6 +40,7 @@ export default function PlaylistsView() {
     const [selectedTab, setSelectedTab] = useState<string>(tabTypes[0]);
     const [playlists, setPlaylists] = useState<PlaylistMetaDataResponse[]>([]);
     const [favoriteUpdating, setFavoriteUpdating] = useState(false);
+    const me = useMeStore(state => state.me);
 
     useEffect(() => {
         if (selectedPlaylistId === null) {
@@ -188,13 +191,22 @@ export default function PlaylistsView() {
                                     <div className="flex flex-row justify-between items-center">
                                         <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
                                         <div className="flex flex-row items-center gap-2">
+                                            {me && me.id === selectedPlaylist.master.id && (
+                                                <button
+                                                    className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                                    onClick={() => { window.location.href = `/playlists/${selectedPlaylist.id}/modify`; }}
+                                                    title="플레이리스트 수정"
+                                                >
+                                                    <PencilIcon className="w-5 h-5" />
+                                                </button>
+                                            )}
                                             <button
                                                 disabled={favoriteUpdating}
                                                 onClick={toggleFavorite}
-                                                className={`size-10 flex items-center justify-center rounded-full transition-colors ${selectedPlaylist.favorite ? "text-yellow-400" : "text-zinc-400 hover:text-yellow-300"} ${favoriteUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                                className={`size-10 flex items-center justify-center rounded-full transition-colors bg-zinc-700 hover:bg-zinc-600 ${favoriteUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                                                 title={selectedPlaylist.favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                                             >
-                                                {selectedPlaylist.favorite ? <FilledStarIcon className="w-8 h-8"/> : <StarIcon className="w-8 h-8"/>}
+                                                {selectedPlaylist.favorite ? <FilledStarIcon className="w-6 h-6"/> : <StarIcon className="w-6 h-6"/>}
                                             </button>
                                         </div>
                                     </div>

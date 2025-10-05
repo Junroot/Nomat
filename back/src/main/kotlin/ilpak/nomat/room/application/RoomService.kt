@@ -42,8 +42,8 @@ class RoomService(
     }
 
     @Transactional
-    fun createRoom(roomRequest: RoomRequest): RoomDetailResponse {
-        val playlist = playlistService.getWithTrack(roomRequest.playlistId)
+    fun createRoom(requestPlayerId: Long, roomRequest: RoomRequest): RoomDetailResponse {
+        val playlist = playlistService.getWithTracks(requestPlayerId, roomRequest.playlistId)
 
         val room = Room(
             roomRequest.title,

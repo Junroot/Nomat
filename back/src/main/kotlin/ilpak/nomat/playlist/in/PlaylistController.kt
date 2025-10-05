@@ -7,12 +7,12 @@ import ilpak.nomat.playlist.application.dto.PlaylistResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -32,6 +32,20 @@ private class PlaylistController(
         @Valid @RequestBody request: PlaylistCreationRequest
     ): PlaylistWithTrackResponse {
         return playlistService.save(playerId, request)
+    }
+
+    @PutMapping("/{playlistId}")
+    fun update(
+        @AuthenticationPrincipal playerId: Long,
+        @PathVariable playlistId: Long,
+        @Valid @RequestBody request: PlaylistCreationRequest
+    ): PlaylistWithTrackResponse {
+        return playlistService.update(playerId, playlistId, request)
+    }
+
+    @GetMapping("/{id}", params = ["includeTracks=true"])
+    fun getWithTracks(@AuthenticationPrincipal playerId: Long, @PathVariable id: Long): PlaylistWithTrackResponse {
+        return playlistService.getWithTracks(playerId, id)
     }
 
     @GetMapping("/{id}")

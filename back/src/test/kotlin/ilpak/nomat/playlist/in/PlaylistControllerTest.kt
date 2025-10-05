@@ -112,6 +112,87 @@ class PlaylistControllerTest(
     }
 
     @Test
+    fun update() {
+        val playlist = playlistStep.save(
+            playerResponse,
+            PlaylistCreationRequest(
+                title = "요아소비 플리",
+                description = "저의 최애 아티스트인 요아소비의 플레이리스트 입니다.",
+                tracks = listOf(
+                    PlaylistCreationRequestTrack(
+                        embedId = "dy90tA3TT1c",
+                        title = "괴물",
+                        startTimeSec = 0,
+                        endTimeSec = 208,
+                        repeatCount = 2,
+                        additionalTitles = setOf("Monster", "Kaibutsu"),
+                        isRepresentative = true,
+                    ),
+                    PlaylistCreationRequestTrack(
+                        embedId = "07SWfNXgKGo",
+                        title = "삼원색",
+                        startTimeSec = 0,
+                        endTimeSec = 200,
+                        repeatCount = 1,
+                        additionalTitles = setOf(),
+                        isRepresentative = false,
+                    )
+                )
+            )
+        )
+
+        client.put().uri("/playlists/${playlist.id}")
+            .auth(playerResponse)
+            .bodyValue(
+                PlaylistCreationRequest(
+                    title = "요아소비 플리 수정본",
+                    description = "수정된 플레이리스트 입니다.",
+                    tracks = listOf(
+                        PlaylistCreationRequestTrack(
+                            embedId = "07SWfNXgKGo",
+                            title = "삼원색 수정본",
+                            startTimeSec = 0,
+                            endTimeSec = 20,
+                            repeatCount = 3,
+                            additionalTitles = setOf("RGB"),
+                            isRepresentative = true,
+                        )
+                    )
+                )
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<PlaylistWithTrackResponse>()
+            .value {
+                assertThat(it).usingRecursiveComparison()
+                    .ignoringCollectionOrder()
+                    .ignoringFields("id")
+                    .isEqualTo(
+                        PlaylistWithTrackResponse(
+                            id = playlist.id,
+                            title = "요아소비 플리 수정본",
+                            description = "수정된 플레이리스트 입니다.",
+                            master = PlaylistWithTrackResponseMaster(
+                                id = playerResponse.id,
+                                nickname = playerResponse.nickname,
+                            ),
+                            tracks = listOf(
+                                PlaylistWithTrackTrackResponse(
+                                    embedId = "07SWfNXgKGo",
+                                    title = "삼원색 수정본",
+                                    startTimeSec = 0,
+                                    endTimeSec = 20,
+                                    repeatCount = 3,
+                                    additionalTitles = setOf("RGB"),
+                                    isRepresentative = true,
+                                )
+                            ),
+                        )
+                    )
+            }
+    }
+
+    @Test
     fun getById() {
         val response = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을 달리다"))
 
@@ -132,6 +213,46 @@ class PlaylistControllerTest(
                 assertThat(it.trackCount).isEqualTo(response.tracks.size)
                 assertThat(it.expectedPlayTimeSec).isGreaterThan(0)
                 assertThat(it.favorite).isFalse()
+            }
+    }
+
+    @Test
+    fun getWithTracks() {
+        val response = playlistStep.save(playerResponse,
+            dummyPlaylistCreationRequest(
+                title = "밤을 달리다",
+                tracks = listOf(
+                    PlaylistCreationRequestTrack(
+                        embedId = "dy90tA3TT1c",
+                        title = "괴물",
+                        startTimeSec = 0,
+                        endTimeSec = 208,
+                        repeatCount = 2,
+                        additionalTitles = setOf("Monster", "Kaibutsu"),
+                        isRepresentative = true,
+                    ),
+                    PlaylistCreationRequestTrack(
+                        embedId = "07SWfNXgKGo",
+                        title = "삼원색",
+                        startTimeSec = 0,
+                        endTimeSec = 200,
+                        repeatCount = 1,
+                        additionalTitles = setOf(),
+                        isRepresentative = false,
+                    )
+                )
+            )
+        )
+
+        client.get().uri("/playlists/${response.id}?includeTracks=true")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<PlaylistWithTrackResponse>()
+            .value {
+                assertThat(it).usingRecursiveComparison()
+                    .ignoringCollectionOrder()
+                    .isEqualTo(response)
             }
     }
 
