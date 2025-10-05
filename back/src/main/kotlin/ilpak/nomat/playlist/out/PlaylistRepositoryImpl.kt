@@ -24,6 +24,10 @@ private class PlaylistRepositoryImpl(
         return playlistJpaRepository.findByIdOrNull(id)
     }
 
+    override fun findAllById(ids: Collection<Long>): List<Playlist> {
+        return playlistJpaRepository.findAllById(ids.toSet()).toList()
+    }
+
     override fun findByMasterId(masterId: Long): List<Playlist> {
         return playlistJpaRepository.findByAuditMetadataCreatedBy(masterId)
     }

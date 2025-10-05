@@ -1,6 +1,7 @@
 package ilpak.nomat.playlist.`in`
 
 import ilpak.nomat.infrastructure.integration.IntegrationTest
+import ilpak.nomat.infrastructure.integration.step.FavoritePlaylistStep
 import ilpak.nomat.infrastructure.integration.step.PlayerStep
 import ilpak.nomat.infrastructure.integration.step.PlaylistStep
 import ilpak.nomat.infrastructure.integration.step.dummyPlayerRequest
@@ -30,6 +31,7 @@ class PlaylistControllerTest(
     @Autowired private val client: WebTestClient,
     @Autowired private val playerStep: PlayerStep,
     @Autowired private val playlistStep: PlaylistStep,
+    @Autowired private val favoritePlaylistStep: FavoritePlaylistStep,
 ) {
     private lateinit var playerResponse: PlayerResponse
 
@@ -285,6 +287,54 @@ class PlaylistControllerTest(
                         )
                     )
                 )
+            }
+    }
+
+    @Test
+    fun getFavoritePlaylistsOfMe() {
+        val playlistResponse = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을달리다"))
+        playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "봄망초"))
+        favoritePlaylistStep.save(playerResponse, playlistResponse.id)
+
+        client.get().uri("/playlists?favoriteOf=me")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<List<PlaylistMetaDataResponse>>()
+            .value {
+                assertThat(it).usingRecursiveComparison()
+                    .ignoringCollectionOrder()
+                    .ignoringFields("id")
+                    .isEqualTo(
+                        listOf(
+                            PlaylistMetaDataResponse(
+                                id = playlistResponse.id,
+                                title = playlistResponse.title,
+                                representativeTrack = PlaylistMetaDataResponseTrack(
+                                    embedId = playlistResponse.tracks.first().embedId,
+                                    title = playlistResponse.tracks.first().title,
+                                ),
+                                description = playlistResponse.description,
+                                master = PlaylistMetaDataResponseMaster(
+                                    id = playerResponse.id,
+                                    nickname = playerResponse.nickname,
+                                    registrationType = playerResponse.registrationType,
+                                    displayName = playerResponse.displayName
+                                ),
+                            )
+                        )
+                    )
+            }
+
+        favoritePlaylistStep.delete(playerResponse, playlistResponse.id)
+
+        client.get().uri("/playlists?favoriteOf=me")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<List<PlaylistMetaDataResponse>>()
+            .value {
+                assertThat(it).isEmpty()
             }
     }
 }

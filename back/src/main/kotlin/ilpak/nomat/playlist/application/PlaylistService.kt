@@ -1,5 +1,6 @@
 package ilpak.nomat.playlist.application
 
+import ilpak.nomat.favoriteplaylist.application.FavoritePlaylistService
 import ilpak.nomat.infrastructure.exception.ForbiddenException
 import ilpak.nomat.infrastructure.exception.NotFoundException
 import ilpak.nomat.infrastructure.exception.NotFoundResource
@@ -21,6 +22,7 @@ class PlaylistService(
     private val playlistRepository: PlaylistRepository,
     private val trackRepository: TrackRepository,
     private val playerService: PlayerService,
+    private val favoritePlaylistService: FavoritePlaylistService,
 ) {
 
     @Transactional
@@ -106,6 +108,13 @@ class PlaylistService(
             val representativeTrack = representativeTracks[it.id] ?: return@mapNotNull null
             PlaylistMetaDataResponse.of(it, representativeTrack, master)
         }
+    }
+
+    fun getFavoritePlaylists(playerId: Long): List<PlaylistMetaDataResponse> {
+        val favoritePlaylists = favoritePlaylistService.findByPlayerId(playerId)
+        val playlistIds = favoritePlaylists.map { it.playlistId }.toSet()
+        val playlists = playlistRepository.findAllById(playlistIds)
+        return getPlaylistMetaDataResponses(playlists)
     }
 
     companion object {

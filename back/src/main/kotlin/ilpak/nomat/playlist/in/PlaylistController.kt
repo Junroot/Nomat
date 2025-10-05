@@ -64,4 +64,9 @@ private class PlaylistController(
     fun getByMasterDisplayName(@RequestParam masterDisplayName: String): List<PlaylistMetaDataResponse> {
         return playlistService.getByMasterDisplayName(masterDisplayName)
     }
+
+    @GetMapping(params = ["favoriteOf=me"])
+    fun getFavoritePlaylistsOfMe(@AuthenticationPrincipal playerId: Long): List<PlaylistMetaDataResponse> {
+        return playlistService.getFavoritePlaylists(playerId)
+    }
 }
