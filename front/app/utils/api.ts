@@ -83,3 +83,7 @@ export async function favoritePlaylist(playlistId: number): Promise<void> {
 export async function unfavoritePlaylist(playlistId: number): Promise<void> {
     await client.delete(`/favorite-playlists/${playlistId}`);
 }
+
+export async function deletePlaylist(playlistId: number): Promise<void> {
+    await client.delete(`/playlists/${playlistId}`);
+}

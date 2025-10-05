@@ -60,6 +60,18 @@ class PlaylistService(
         return PlaylistWithTrackResponse.of(playlist, savedTracks, master)
     }
 
+    @Transactional
+    fun delete(playerId: Long, playlistId: Long) {
+        val playlist = playlistRepository.findById(playlistId) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
+
+        if (playlist.masterId != playerId) {
+            throw ForbiddenException("본인의 플레이리스트만 삭제할 수 있습니다.")
+        }
+
+        trackRepository.deleteByPlaylist(playlist)
+        playlistRepository.delete(playlist)
+    }
+
     private fun validateToSave(masterId: Long) {
         val countByMasterId = playlistRepository.countByMasterId(masterId)
         if (countByMasterId >= Playlist.MAX_PLAYLIST_COUNT_PER_PLAYER) {

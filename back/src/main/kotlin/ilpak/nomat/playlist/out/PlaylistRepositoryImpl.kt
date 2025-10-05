@@ -20,6 +20,10 @@ private class PlaylistRepositoryImpl(
         return playlistJpaRepository.save(playlist)
     }
 
+    override fun delete(playlist: Playlist) {
+        return playlistJpaRepository.delete(playlist)
+    }
+
     override fun findById(id: Long): Playlist? {
         return playlistJpaRepository.findByIdOrNull(id)
     }

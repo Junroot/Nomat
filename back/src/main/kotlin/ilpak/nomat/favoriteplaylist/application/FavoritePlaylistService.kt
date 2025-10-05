@@ -54,6 +54,11 @@ class FavoritePlaylistService(
         )
     }
 
+    @Transactional
+    fun deleteByPlaylistId(playlistId: Long) {
+        favoritePlaylistRepository.deleteByPlaylistId(playlistId)
+    }
+
     fun isFavorite(userId: Long, playlistId: Long): Boolean {
         return favoritePlaylistRepository.existsById(
             FavoritePlaylistId(

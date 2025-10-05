@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS favorite_playlist
     PRIMARY KEY (player_id, playlist_id)
 ) DEFAULT CHARACTER SET 'utf8mb4'
   COLLATE 'utf8mb4_unicode_ci';
+
+CREATE INDEX i_player_id ON favorite_playlist (player_id);

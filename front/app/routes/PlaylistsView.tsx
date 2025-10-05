@@ -24,9 +24,11 @@ import MusicPlayer from "~/components/ui/MusicPlayer";
 import type PlaylistMetaDataResponse from "~/utils/PlaylistMetaDataResponse";
 import StarIcon from "~/assets/star.svg?react";
 import FilledStarIcon from "~/assets/filled-star.svg?react";
-import { favoritePlaylist, unfavoritePlaylist } from "~/utils/api";
-import useMeStore from "~/stores/MeStore";
 import PencilIcon from "~/assets/pencil.svg?react";
+import DeleteIcon from "~/assets/delete.svg?react";
+import { favoritePlaylist, unfavoritePlaylist } from "~/utils/api";
+import { deletePlaylist } from "~/utils/api";
+import useMeStore from "~/stores/MeStore";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -41,6 +43,8 @@ export default function PlaylistsView() {
     const [playlists, setPlaylists] = useState<PlaylistMetaDataResponse[]>([]);
     const [favoriteUpdating, setFavoriteUpdating] = useState(false);
     const me = useMeStore(state => state.me);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (selectedPlaylistId === null) {
@@ -108,6 +112,23 @@ export default function PlaylistsView() {
             setSelectedPlaylist({ ...selectedPlaylist });
         } finally {
             setFavoriteUpdating(false);
+        }
+    }
+
+    async function handleConfirmDelete() {
+        if (!selectedPlaylist) return;
+        setDeleting(true);
+        try {
+            await deletePlaylist(selectedPlaylist.id);
+            setPlaylists(prev => prev.filter(p => p.id !== selectedPlaylist.id));
+            setSelectedPlaylist(null);
+            setSelectedPlaylistId(null);
+        } catch (e) {
+            // 단순 경고 (필요시 향후 토스트로 대체 가능)
+            alert("삭제 중 문제가 발생했습니다.");
+        } finally {
+            setDeleting(false);
+            setShowDeleteConfirm(false);
         }
     }
 
@@ -194,6 +215,15 @@ export default function PlaylistsView() {
                                             {me && me.id === selectedPlaylist.master.id && (
                                                 <button
                                                     className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                                    onClick={() => setShowDeleteConfirm(true)}
+                                                    title="플레이리스트 삭제"
+                                                >
+                                                    <DeleteIcon className="w-6 h-6" />
+                                                </button>
+                                            )}
+                                            {me && me.id === selectedPlaylist.master.id && (
+                                                <button
+                                                    className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
                                                     onClick={() => { window.location.href = `/playlists/${selectedPlaylist.id}/modify`; }}
                                                     title="플레이리스트 수정"
                                                 >
@@ -235,6 +265,31 @@ export default function PlaylistsView() {
                     }
                 </Column2>
             </ColumnsContainer>
+            {/* 삭제 확인 모달 */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+                    <div className="bg-zinc-800 text-zinc-200 rounded-2xl p-8 z-10 w-96">
+                        <p className="text-xl font-bold mb-4">플레이리스트 삭제</p>
+                        <p className="mb-4">선택한 플레이리스트를 정말로 삭제하시겠습니까?</p>
+                        <div className="flex flex-row justify-end gap-2">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 bg-zinc-700 hover:bg-zinc-600 rounded-full py-2 text-center font-bold transition-colors cursor-pointer"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className={`flex-1 bg-red-600 hover:bg-red-500 rounded-full py-2 text-center font-bold transition-colors ${deleting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                disabled={deleting}
+                            >
+                                {deleting ? "삭제 중..." : "삭제"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
       );
 }

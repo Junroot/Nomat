@@ -7,4 +7,5 @@ interface FavoritePlaylistRepository {
     fun findDeletedById(id: FavoritePlaylistId): FavoritePlaylist?
     fun save(favoritePlaylist: FavoritePlaylist): FavoritePlaylist
     fun deleteById(id: FavoritePlaylistId)
+    fun deleteByPlaylistId(playlistId: Long)
 }

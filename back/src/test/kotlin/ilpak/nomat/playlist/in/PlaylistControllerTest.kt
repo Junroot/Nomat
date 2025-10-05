@@ -193,6 +193,16 @@ class PlaylistControllerTest(
     }
 
     @Test
+    fun delete() {
+        val playlistResponse = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을달리다"))
+
+        client.delete().uri("/playlists/${playlistResponse.id}")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk()
+    }
+
+    @Test
     fun getById() {
         val response = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을 달리다"))
 

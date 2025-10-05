@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import ilpak.nomat.favoriteplaylist.application.FavoritePlaylistService
 import ilpak.nomat.playlist.out.document.PlaylistDocument
 import io.debezium.config.Configuration
 import io.debezium.data.Envelope
@@ -23,7 +24,8 @@ private val logger = KotlinLogging.logger {}
 @Component
 class DebeziumSourceEventListener(
     configuration: Configuration,
-    private val operations: ElasticsearchOperations
+    private val operations: ElasticsearchOperations,
+    private val favoritePlaylistService: FavoritePlaylistService,
 ) {
     private val objectMapper = ObjectMapper()
         .findAndRegisterModules()
@@ -48,6 +50,16 @@ class DebeziumSourceEventListener(
 
     fun handleChangeEvent(changeEvent: ChangeEvent<String, String>) {
         try {
+            if (changeEvent.value() == null) {
+                val key = objectMapper.readTree(changeEvent.key())
+                val id = key.get("payload")?.get("id")?.asLong()
+
+                if (id != null) {
+                    delete(id)
+                }
+                return
+            }
+
             val value = objectMapper.readTree(changeEvent.value())
             val payload = checkNotNull(value.get("payload")) { "No payload found" }
             val op = checkNotNull(payload.get(Envelope.FieldName.OPERATION)) { "No operation found" }
@@ -76,7 +88,12 @@ class DebeziumSourceEventListener(
         val before = checkNotNull(payload.get(Envelope.FieldName.BEFORE)) { "No before found" }
         val document = objectMapper.treeToValue<PlaylistDocument>(before)
 
-        operations.delete(document.id.toString(), PlaylistDocument::class.java)
+        delete(document.id)
+    }
+
+    private fun delete(id: Long) {
+        favoritePlaylistService.deleteByPlaylistId(id)
+        operations.delete(id.toString(), PlaylistDocument::class.java)
     }
 
     private fun truncate() {
