@@ -158,7 +158,7 @@ export default function PlaylistsView() {
                     </div>
                     {selectedTab === "all" && (
                         <div className="flex flex-row gap-2">
-                            <div className="w-32">
+                            <div className="w-36">
                                 <SelectMenu
                                     options={searchTypes}
                                     selectedOption={selectedSearchType}

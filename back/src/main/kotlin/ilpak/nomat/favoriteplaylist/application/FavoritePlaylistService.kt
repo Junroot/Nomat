@@ -29,19 +29,8 @@ class FavoritePlaylistService(
             playerId = playerId,
             playlistId = request.playlistId
         )
-        val deletedFavorite = favoritePlaylistRepository.findDeletedById(id)
-        if (deletedFavorite != null) {
-            deletedFavorite.restore()
-            return FavoritePlaylistResponse.from(favoritePlaylistRepository.save(deletedFavorite))
-        }
 
-        return FavoritePlaylistResponse.from(
-            favoritePlaylistRepository.save(
-                FavoritePlaylist(
-                    id = id
-                )
-            )
-        )
+        return FavoritePlaylistResponse.from(favoritePlaylistRepository.save(FavoritePlaylist(id)))
     }
 
     @Transactional
