@@ -21,7 +21,10 @@ private class FavoritePlaylistController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun save(@AuthenticationPrincipal playerId: Long, @RequestBody request: FavoritePlaylistRequest): FavoritePlaylistResponse {
+    fun save(
+        @AuthenticationPrincipal playerId: Long,
+        @RequestBody request: FavoritePlaylistRequest
+    ): FavoritePlaylistResponse {
         return favoritePlaylistService.save(playerId, request)
     }
 
