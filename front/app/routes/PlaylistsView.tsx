@@ -200,7 +200,7 @@ export default function PlaylistsView() {
                             )
                         }
                     </div>
-                    <Link className="w-full" to="/playlists/create">
+                    <Link className="w-full pb-4" to="/playlists/create">
                         <button
                             className="w-full bg-cyan-400 py-2 text-zinc-900 rounded-full cursor-pointer text-2xl font-bold">
                             새 플레이리스트

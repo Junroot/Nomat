@@ -8,10 +8,12 @@ import React, {useEffect, useState} from "react";
 import { Link } from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import type RoomResponse from "~/utils/RoomResponse";
+import RoomCreate from "~/components/ui/RoomCreate";
 
 export default function RoomsView() {
     const [query, setQuery] = useState("");
     const [rooms, setRooms] = useState<Array<RoomResponse>>([]);
+    const [showCreate, setShowCreate] = useState(false);
 
     useEffect(() => {
         setRooms(
@@ -82,7 +84,7 @@ export default function RoomsView() {
                     </div>
                     <div className="w-full">
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                            <div className="m-2 p-4 cursor-pointer bg-zinc-800 rounded-lg flex items-center justify-center hover:bg-zinc-700 transition-colors min-h-[88px] min-w-[88px]">
+                            <div className="m-2 p-4 cursor-pointer bg-zinc-800 rounded-lg flex items-center justify-center hover:bg-zinc-700 transition-colors min-h-[88px] min-w-[88px]" onClick={() => setShowCreate(true)}>
                                 <span className="text-4xl font-bold text-zinc-200">+</span>
                             </div>
                             {
@@ -116,6 +118,7 @@ export default function RoomsView() {
                     </div>
                 </div>
             </ColumnsContainer>
+            {showCreate && <RoomCreate onClose={() => setShowCreate(false)} />}
         </div>
       );
 }
