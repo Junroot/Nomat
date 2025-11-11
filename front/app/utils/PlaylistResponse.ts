@@ -5,7 +5,15 @@ export default interface PlaylistResponse {
     master: PlaylistResponseMaster
     trackCount: number,
     expectedPlayTimeSec: number,
-    representativeTrack: PlaylistResponseTrack,
+    favorite: boolean,
+    representativeTrack: PlaylistResponseRepresentativeTrack,
+}
+
+export interface PlaylistWithTracksResponse {
+    id: number,
+    title: string,
+    description: string,
+    tracks: PlaylistWithTracksResponseTrack[],
 }
 
 export interface PlaylistResponseMaster {
@@ -14,7 +22,17 @@ export interface PlaylistResponseMaster {
     displayName: string,
 }
 
-export interface PlaylistResponseTrack {
+export interface PlaylistWithTracksResponseTrack {
+    embedId: string,
+    title: string,
+    startTimeSec: number,
+    endTimeSec: number,
+    repeatCount: number,
+    additionalTitles: string[],
+    isRepresentative: boolean,
+}
+
+export interface PlaylistResponseRepresentativeTrack {
     embedId: string,
     startTimeSec: number,
     endTimeSec: number,

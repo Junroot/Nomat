@@ -18,6 +18,7 @@ export default function MusicPlayer({ embedId, startTimeSec, endTimeSec }: Music
     // 유튜브 플레이어가 로드될 때 실행
     const onReady = (event: any) => {
         playerRef.current = event.target;
+        playerRef.current.setVolume(50);
     };
 
     const youTubeOptions = {

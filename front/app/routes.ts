@@ -5,5 +5,6 @@ export default [
     route("rooms/:roomId", "routes/RoomView.tsx"),
     route("playlists", "routes/PlaylistsView.tsx"),
     route("login", "routes/LoginView.tsx"),
-    route("playlists/create", "routes/PlaylistCreateView.tsx"),
+    route("playlists/create", "routes/PlaylistWriteView.tsx"),
+    route("playlists/:playlistId/modify", "routes/PlaylistWriteView.tsx",  { id: "playlist-modify" }),
 ] satisfies RouteConfig;

@@ -5,6 +5,7 @@ import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomRequest
 import ilpak.nomat.room.application.dto.RoomResponse
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,7 +32,7 @@ private class RoomController(
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun createRoom(@RequestBody roomRequest: RoomRequest): RoomDetailResponse {
-        return roomService.createRoom(roomRequest)
+    fun createRoom(@AuthenticationPrincipal playerId: Long, @RequestBody roomRequest: RoomRequest): RoomDetailResponse {
+        return roomService.createRoom(playerId, roomRequest)
     }
 }

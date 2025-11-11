@@ -7,12 +7,14 @@ import jakarta.persistence.ElementCollection
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.TableGenerator
+import org.hibernate.annotations.BatchSize
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
@@ -23,7 +25,8 @@ class Track(
     var startTimeSec: Int,
     var endTimeSec: Int,
     var repeatCount: Int,
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
+    @BatchSize(size = 10)
     @CollectionTable(name = "track_additional_title", joinColumns = [JoinColumn(name = "track_id")])
     @Column(name = "additional_title")
     var additionalTitles: Set<String>,

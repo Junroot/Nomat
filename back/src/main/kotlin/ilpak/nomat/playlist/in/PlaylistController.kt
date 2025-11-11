@@ -9,9 +9,11 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -33,9 +35,31 @@ private class PlaylistController(
         return playlistService.save(playerId, request)
     }
 
+    @PutMapping("/{playlistId}")
+    fun update(
+        @AuthenticationPrincipal playerId: Long,
+        @PathVariable playlistId: Long,
+        @Valid @RequestBody request: PlaylistCreationRequest
+    ): PlaylistWithTrackResponse {
+        return playlistService.update(playerId, playlistId, request)
+    }
+
+    @DeleteMapping("/{playlistId}")
+    fun delete(
+        @AuthenticationPrincipal playerId: Long,
+        @PathVariable playlistId: Long
+    ) {
+        playlistService.delete(playerId, playlistId)
+    }
+
+    @GetMapping("/{id}", params = ["includeTracks=true"])
+    fun getWithTracks(@AuthenticationPrincipal playerId: Long, @PathVariable id: Long): PlaylistWithTrackResponse {
+        return playlistService.getWithTracks(playerId, id)
+    }
+
     @GetMapping("/{id}")
-    fun getById(@PathVariable id: Long): PlaylistResponse {
-        return playlistService.getById(id)
+    fun getById(@AuthenticationPrincipal playerId: Long, @PathVariable id: Long): PlaylistResponse {
+        return playlistService.getById(playerId, id)
     }
 
     @GetMapping(params = ["masterId=me"])
@@ -63,5 +87,10 @@ private class PlaylistController(
     @GetMapping(params = ["masterDisplayName"])
     fun getByMasterDisplayName(@RequestParam masterDisplayName: String): List<PlaylistMetaDataResponse> {
         return playlistService.getByMasterDisplayName(masterDisplayName)
+    }
+
+    @GetMapping(params = ["favoriteOf=me"])
+    fun getFavoritePlaylistsOfMe(@AuthenticationPrincipal playerId: Long): List<PlaylistMetaDataResponse> {
+        return playlistService.getFavoritePlaylists(playerId)
     }
 }

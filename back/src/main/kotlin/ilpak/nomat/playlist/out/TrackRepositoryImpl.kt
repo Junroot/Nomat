@@ -32,6 +32,10 @@ private class TrackRepositoryImpl(
     override fun countByPlaylists(playlists: Collection<Playlist>): Map<Long, Long> {
         return trackJpaRepository.countByPlaylists(playlists)
     }
+
+    override fun deleteByPlaylist(playlist: Playlist) {
+        return trackJpaRepository.deleteByPlaylist(playlist)
+    }
 }
 
 private interface TrackJpaRepository : CrudRepository<Track, Long> {
@@ -48,4 +52,5 @@ private interface TrackJpaRepository : CrudRepository<Track, Long> {
     """
     )
     fun countByPlaylists(@Param("playlists") playlists: Collection<Playlist>): Map<Long, Long>
+    fun deleteByPlaylist(playlist: Playlist)
 }

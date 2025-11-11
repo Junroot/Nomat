@@ -12,6 +12,7 @@ import React, { useEffect, useState } from "react";
 import type PlaylistResponse from "~/utils/PlaylistResponse";
 import {
     fetchByMasterDisplayName,
+    fetchFavoritePlaylists,
     fetchMyPlaylists,
     fetchPlaylist,
     fetchRecentlyAddedPlaylists,
@@ -21,7 +22,13 @@ import UserIcon from "~/assets/user.svg?react";
 import SongIcon from "~/assets/song.svg?react";
 import MusicPlayer from "~/components/ui/MusicPlayer";
 import type PlaylistMetaDataResponse from "~/utils/PlaylistMetaDataResponse";
-import { getRegistrationCode } from "~/utils/registrationCode";
+import StarIcon from "~/assets/star.svg?react";
+import FilledStarIcon from "~/assets/filled-star.svg?react";
+import PencilIcon from "~/assets/pencil.svg?react";
+import DeleteIcon from "~/assets/delete.svg?react";
+import { favoritePlaylist, unfavoritePlaylist } from "~/utils/api";
+import { deletePlaylist } from "~/utils/api";
+import useMeStore from "~/stores/MeStore";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -34,6 +41,10 @@ export default function PlaylistsView() {
     const tabLabels = ["즐겨찾기", "내가 만든", "전체"];
     const [selectedTab, setSelectedTab] = useState<string>(tabTypes[0]);
     const [playlists, setPlaylists] = useState<PlaylistMetaDataResponse[]>([]);
+    const [favoriteUpdating, setFavoriteUpdating] = useState(false);
+    const me = useMeStore(state => state.me);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (selectedPlaylistId === null) {
@@ -59,6 +70,9 @@ export default function PlaylistsView() {
                 fetchRecentlyAddedPlaylists()
                     .then(playlists => setPlaylists(playlists));
             }
+        } else if (selectedTab === "favorite") {
+            fetchFavoritePlaylists()
+                .then(playlists => setPlaylists(playlists));
         } else if (selectedTab === "mine") {
             fetchMyPlaylists()
                 .then(playlists => setPlaylists(playlists));
@@ -76,6 +90,46 @@ export default function PlaylistsView() {
     function clickPlaylist(event: React.MouseEvent<HTMLDivElement>) {
         const id = event.currentTarget.id;
         setSelectedPlaylistId(parseInt(id));
+    }
+
+    async function toggleFavorite() {
+        if (!selectedPlaylist || favoriteUpdating) return;
+        setFavoriteUpdating(true);
+        const playlistId = selectedPlaylist.id;
+        const optimistic = { ...selectedPlaylist, favorite: !selectedPlaylist.favorite } as PlaylistResponse;
+        setSelectedPlaylist(optimistic);
+        try {
+            if (optimistic.favorite) {
+                await favoritePlaylist(playlistId);
+            } else {
+                await unfavoritePlaylist(playlistId);
+            }
+            // 즐겨찾기 탭에서 해제한 경우 목록 새로고침
+            if (selectedTab === "favorite") {
+                fetchFavoritePlaylists().then(p => setPlaylists(p));
+            }
+        } catch (e) {
+            setSelectedPlaylist({ ...selectedPlaylist });
+        } finally {
+            setFavoriteUpdating(false);
+        }
+    }
+
+    async function handleConfirmDelete() {
+        if (!selectedPlaylist) return;
+        setDeleting(true);
+        try {
+            await deletePlaylist(selectedPlaylist.id);
+            setPlaylists(prev => prev.filter(p => p.id !== selectedPlaylist.id));
+            setSelectedPlaylist(null);
+            setSelectedPlaylistId(null);
+        } catch (e) {
+            // 단순 경고 (필요시 향후 토스트로 대체 가능)
+            alert("삭제 중 문제가 발생했습니다.");
+        } finally {
+            setDeleting(false);
+            setShowDeleteConfirm(false);
+        }
     }
 
     return (
@@ -104,7 +158,7 @@ export default function PlaylistsView() {
                     </div>
                     {selectedTab === "all" && (
                         <div className="flex flex-row gap-2">
-                            <div className="w-32">
+                            <div className="w-36">
                                 <SelectMenu
                                     options={searchTypes}
                                     selectedOption={selectedSearchType}
@@ -129,7 +183,7 @@ export default function PlaylistsView() {
                     <div className="flex flex-col grow py-2 bg-zinc-800 rounded-2xl overflow-y-auto">
                         {
                             playlists.map((playlist, i) =>
-                                <div key={i} id={playlist.id} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
+                                <div key={i} id={playlist.id.toString()} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
                                     <img
                                         src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
                                         className="size-16 object-cover"
@@ -155,7 +209,37 @@ export default function PlaylistsView() {
                         selectedPlaylist !== null &&
                             <div className="w-full h-full flex flex-col justify-center p-4">
                                 <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
-                                    <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
+                                    <div className="flex flex-row justify-between items-center">
+                                        <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
+                                        <div className="flex flex-row items-center gap-2">
+                                            {me && me.id === selectedPlaylist.master.id && (
+                                                <button
+                                                    className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                                    onClick={() => setShowDeleteConfirm(true)}
+                                                    title="플레이리스트 삭제"
+                                                >
+                                                    <DeleteIcon className="w-6 h-6" />
+                                                </button>
+                                            )}
+                                            {me && me.id === selectedPlaylist.master.id && (
+                                                <button
+                                                    className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                                    onClick={() => { window.location.href = `/playlists/${selectedPlaylist.id}/modify`; }}
+                                                    title="플레이리스트 수정"
+                                                >
+                                                    <PencilIcon className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                            <button
+                                                disabled={favoriteUpdating}
+                                                onClick={toggleFavorite}
+                                                className={`size-10 flex items-center justify-center rounded-full transition-colors bg-zinc-700 hover:bg-zinc-600 ${favoriteUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                                title={selectedPlaylist.favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                                            >
+                                                {selectedPlaylist.favorite ? <FilledStarIcon className="w-6 h-6"/> : <StarIcon className="w-6 h-6"/>}
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div className="flex flex-col">
                                         <p><UserIcon className="inline-block"/>{selectedPlaylist.master.displayName}</p>
                                         <p><SongIcon className="inline-block"/>{selectedPlaylist.trackCount}곡 (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>
@@ -181,6 +265,31 @@ export default function PlaylistsView() {
                     }
                 </Column2>
             </ColumnsContainer>
+            {/* 삭제 확인 모달 */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+                    <div className="bg-zinc-800 text-zinc-200 rounded-2xl p-8 z-10 w-96">
+                        <p className="text-xl font-bold mb-4">플레이리스트 삭제</p>
+                        <p className="mb-4">선택한 플레이리스트를 정말로 삭제하시겠습니까?</p>
+                        <div className="flex flex-row justify-end gap-2">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 bg-zinc-700 hover:bg-zinc-600 rounded-full py-2 text-center font-bold transition-colors cursor-pointer"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className={`flex-1 bg-red-600 hover:bg-red-500 rounded-full py-2 text-center font-bold transition-colors ${deleting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                disabled={deleting}
+                            >
+                                {deleting ? "삭제 중..." : "삭제"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
       );
 }

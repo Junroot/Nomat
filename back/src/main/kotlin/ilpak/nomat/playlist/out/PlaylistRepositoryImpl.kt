@@ -20,8 +20,16 @@ private class PlaylistRepositoryImpl(
         return playlistJpaRepository.save(playlist)
     }
 
+    override fun delete(playlist: Playlist) {
+        return playlistJpaRepository.delete(playlist)
+    }
+
     override fun findById(id: Long): Playlist? {
         return playlistJpaRepository.findByIdOrNull(id)
+    }
+
+    override fun findAllById(ids: Collection<Long>): List<Playlist> {
+        return playlistJpaRepository.findAllById(ids.toSet()).toList()
     }
 
     override fun findByMasterId(masterId: Long): List<Playlist> {

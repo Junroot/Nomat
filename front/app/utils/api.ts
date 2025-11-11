@@ -1,8 +1,12 @@
 import axios, { AxiosError, type AxiosResponse } from "axios";
 import type MeResponse from "./MeResponse";
 import type PlaylistResponse from "./PlaylistResponse";
+import type { PlaylistWithTracksResponse } from "./PlaylistResponse";
 import type PlaylistRequest from "./PlaylistRequest";
 import type PlaylistMetaDataResponse from "./PlaylistMetaDataResponse";
+
+// 즐겨찾기 요청용 내부 타입
+interface FavoritePlaylistRequest { playlistId: number }
 
 const client = axios.create({
     baseURL: import.meta.env.VITE_SERVER_BASE_URL,
@@ -37,6 +41,11 @@ export async function fetchByMasterDisplayName(masterDisplayName: string): Promi
     return response.data;
 }
 
+export async function fetchFavoritePlaylists(): Promise<PlaylistMetaDataResponse[]> {
+    const response = await client.get<PlaylistMetaDataResponse[]>("/playlists", { params: { favoriteOf: "me" } });
+    return response.data;
+}
+
 export async function fetchMyPlaylists(): Promise<PlaylistMetaDataResponse[]> {
     const response = await client.get<PlaylistMetaDataResponse[]>("/playlists", { params: { masterId: "me" } });
     return response.data;
@@ -52,7 +61,29 @@ export async function fetchPlaylist(playlistId: number): Promise<PlaylistRespons
     return response.data;
 }
 
+export async function fetchPlaylistWithTracks(playlistId: number): Promise<PlaylistWithTracksResponse> {
+    const response = await client.get<PlaylistWithTracksResponse>(`/playlists/${playlistId}`, { params: { includeTracks: true } });
+    return response.data;
+}
+
 export async function createPlaylist(request: PlaylistRequest): Promise<PlaylistResponse> {
     const response = await client.post<PlaylistResponse>("/playlists", request);
     return response.data;
+}
+
+export async function modifyPlaylist(playlistId: number, request: PlaylistRequest): Promise<PlaylistResponse> {
+    const response = await client.put<PlaylistResponse>(`/playlists/${playlistId}`, request);
+    return response.data;
+}
+
+export async function favoritePlaylist(playlistId: number): Promise<void> {
+    await client.post("/favorite-playlists", { playlistId } as FavoritePlaylistRequest);
+}
+
+export async function unfavoritePlaylist(playlistId: number): Promise<void> {
+    await client.delete(`/favorite-playlists/${playlistId}`);
+}
+
+export async function deletePlaylist(playlistId: number): Promise<void> {
+    await client.delete(`/playlists/${playlistId}`);
 }
