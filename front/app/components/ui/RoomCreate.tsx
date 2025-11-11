@@ -47,8 +47,11 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
     }, [usePassword]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-            <div className="bg-zinc-900 rounded-xl p-6 w-full max-w-md shadow-2xl border border-zinc-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* 배경 오버레이 */}
+            <div className="absolute inset-0 bg-black opacity-60" />
+            {/* 모달 내용 */}
+            <div className="relative bg-zinc-900 rounded-xl p-6 w-full max-w-md shadow-2xl border border-zinc-800">
                 <div className="text-xl font-bold mb-6 text-center text-zinc-100">방 만들기</div>
                 <form className="flex flex-col gap-5">
                     {/* 플레이리스트 선택 */}
@@ -168,7 +171,7 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                         </button>
                         <button
                             type="button"
-                            className="flex-1 rounded-lg py-2 bg-zinc-700 text-zinc-200 font-bold hover:bg-zinc-600 transition"
+                            className="flex-1 rounded-lg py-2 bg-zinc-700 text-zinc-200 font-bold hover:bg-zinc-600 transition cursor-pointer"
                             onClick={onClose}
                         >
                             취소
