@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import {fetchFavoritePlaylists, fetchMyPlaylists, searchPlaylistsByTitle} from "~/utils/api";
 
 interface PlaylistOption {
     value: number;
@@ -19,22 +20,115 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
     const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistOption | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [inputFocused, setInputFocused] = useState(false);
-
-    // 단일 mock 데이터
-    const allPlaylists: PlaylistOption[] = [
-        {value: 301, title: "전체1"},
-        {value: 302, title: "전체2"},
-        {value: 303, title: "전체3"},
-        {value: 304, title: "테스트 플레이리스트"},
-        {value: 305, title: "노래방"},
-    ];
+    const [filteredPlaylists, setFilteredPlaylists] = useState<PlaylistOption[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
+    const [playlistTab, setPlaylistTab] = useState<'favorite' | 'mine' | 'all'>('favorite');
+    const [favoritePlaylists, setFavoritePlaylists] = useState<PlaylistOption[]>([]);
+    const [myPlaylists, setMyPlaylists] = useState<PlaylistOption[]>([]);
+    const [favoriteLoaded, setFavoriteLoaded] = useState(false);
+    const [myLoaded, setMyLoaded] = useState(false);
+    const [favoriteLoading, setFavoriteLoading] = useState(false);
+    const [myLoading, setMyLoading] = useState(false);
+    const [favoriteError, setFavoriteError] = useState<string | null>(null);
+    const [myError, setMyError] = useState<string | null>(null);
 
     // 자동완성: 1글자 이상 입력 시에만 노출
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    const showAutocomplete = inputFocused && !selectedPlaylist && normalizedSearch.length >= 1;
-    const filteredPlaylists = normalizedSearch.length >= 1
-        ? allPlaylists.filter(p => p.title.toLowerCase().includes(normalizedSearch))
-        : [];
+    const normalizedSearch = searchTerm.trim();
+
+    // 탭 변경 시 lazy load
+    useEffect(() => {
+        if (playlistTab === 'favorite' && !favoriteLoaded && !favoriteLoading) {
+            setFavoriteLoading(true);
+            setFavoriteError(null);
+            // TODO: 실제 즐겨찾기 API로 교체
+            // 예시: fetchFavoritePlaylists().then(...)
+            setTimeout(() => {
+                fetchFavoritePlaylists().then(data => {
+                    setFavoritePlaylists(
+                        data.map((p) => ({
+                            value: p.id,
+                            title: p.title,
+                        }))
+                    );
+                    setFavoriteLoaded(true);
+                    setFavoriteLoading(false);
+                });
+            }, 500);
+        }
+        if (playlistTab === 'mine' && !myLoaded && !myLoading) {
+            setMyLoading(true);
+            setMyError(null);
+            // TODO: 실제 내 플레이리스트 API로 교체
+            setTimeout(() => {
+                fetchMyPlaylists().then(data => {
+                    setMyPlaylists(
+                        data.map((p) => ({
+                            value: p.id,
+                            title: p.title,
+                        }))
+                    );
+                    setMyLoaded(true);
+                    setMyLoading(false);
+                });
+            }, 500);
+        }
+    }, [playlistTab, favoriteLoaded, myLoaded, favoriteLoading, myLoading]);
+
+    useEffect(() => {
+        if (playlistTab === 'favorite') {
+            setFilteredPlaylists(
+                favoritePlaylists.filter(p => p.title.toLowerCase().includes(normalizedSearch.toLowerCase()))
+            );
+            setIsLoading(favoriteLoading);
+            setSearchError(favoriteError);
+            return;
+        }
+        if (playlistTab === 'mine') {
+            setFilteredPlaylists(
+                myPlaylists.filter(p => p.title.toLowerCase().includes(normalizedSearch.toLowerCase()))
+            );
+            setIsLoading(myLoading);
+            setSearchError(myError);
+            return;
+        }
+        if (normalizedSearch.length < 1) {
+            setFilteredPlaylists([]);
+            setIsLoading(false);
+            setSearchError(null);
+            return;
+        }
+        let cancelled = false;
+        setIsLoading(true);
+        setSearchError(null);
+        const debounceTimer = setTimeout(() => {
+            searchPlaylistsByTitle(normalizedSearch)
+                .then((data) => {
+                    if (cancelled) return;
+                    setFilteredPlaylists(
+                        data.map((p) => ({
+                            value: p.id,
+                            title: p.title,
+                        }))
+                    );
+                    setIsLoading(false);
+                })
+                .catch((e) => {
+                    if (cancelled) return;
+                    setFilteredPlaylists([]);
+                    setIsLoading(false);
+                    setSearchError("검색 실패");
+                });
+        }, 400);
+        return () => {
+            cancelled = true;
+            clearTimeout(debounceTimer);
+        };
+    }, [favoritePlaylists, myPlaylists, normalizedSearch, playlistTab, favoriteLoading, myLoading, favoriteError, myError]);
+
+    useEffect(() => {
+        setInputFocused(false);
+    }, [playlistTab]);
 
     // Validation
     const isValidRoomName = !!roomName && roomName.trim().length > 0;
@@ -49,7 +143,7 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* 배경 오버레이 */}
-            <div className="absolute inset-0 bg-black opacity-60" />
+            <div className="absolute inset-0 bg-black opacity-60"/>
             {/* 모달 내용 */}
             <div className="relative bg-zinc-900 rounded-xl p-6 w-full max-w-md shadow-2xl border border-zinc-800">
                 <div className="text-xl font-bold mb-6 text-center text-zinc-100">방 만들기</div>
@@ -58,7 +152,40 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                     <div>
                         <label className="block mb-2 text-sm font-semibold text-zinc-300">플레이리스트</label>
                         <div className="relative">
-                            {!selectedPlaylist &&
+                            {/* 탭 UI: 입력창 위에 항상 노출 */}
+                            <div className="flex mb-1 gap-1">
+                                <button
+                                    type="button"
+                                    className={`flex-1 py-1 rounded-t-lg font-semibold text-sm transition border-b-2 ${playlistTab === 'favorite' ? 'border-cyan-400 bg-zinc-800 text-cyan-300' : 'border-transparent bg-zinc-900 text-zinc-400 hover:bg-zinc-800'}`}
+                                    onClick={() => {
+                                        setPlaylistTab('favorite');
+                                        setFilteredPlaylists([]);
+                                        setSearchError(null);
+                                    }}
+                                >즐겨찾기
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`flex-1 py-1 rounded-t-lg font-semibold text-sm transition border-b-2 ${playlistTab === 'mine' ? 'border-cyan-400 bg-zinc-800 text-cyan-300' : 'border-transparent bg-zinc-900 text-zinc-400 hover:bg-zinc-800'}`}
+                                    onClick={() => {
+                                        setPlaylistTab('mine');
+                                        setFilteredPlaylists([]);
+                                        setSearchError(null);
+                                    }}
+                                >내가 만든
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`flex-1 py-1 rounded-t-lg font-semibold text-sm transition border-b-2 ${playlistTab === 'all' ? 'border-cyan-400 bg-zinc-800 text-cyan-300' : 'border-transparent bg-zinc-900 text-zinc-400 hover:bg-zinc-800'}`}
+                                    onClick={() => {
+                                        setPlaylistTab('all');
+                                        setFilteredPlaylists([]);
+                                        setSearchError(null);
+                                    }}
+                                >전체
+                                </button>
+                            </div>
+                            {!selectedPlaylist && (
                                 <input
                                     type="text"
                                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-secondary transition"
@@ -71,30 +198,44 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                                     onFocus={() => setInputFocused(true)}
                                     onBlur={() => setTimeout(() => setInputFocused(false), 150)}
                                 />
-                            }
-                            {showAutocomplete && (
+                            )}
+                            {/* 자동완성 드롭다운: 탭 없이 목록만 노출 */}
+                            {inputFocused && !selectedPlaylist && (
                                 <div
-                                    className="absolute z-10 w-full bg-zinc-900 rounded-b-lg border border-zinc-700 shadow-lg py-2 max-h-56 overflow-y-auto">
-                                    {filteredPlaylists.map(p => (
-                                        <div
-                                            key={p.value}
-                                            className="px-3 py-2 text-zinc-100 cursor-pointer hover:bg-zinc-700 transition"
-                                            onMouseDown={() => {
-                                                setSelectedPlaylist(p);
-                                                setSearchTerm("");
-                                                setInputFocused(false);
-                                            }}
-                                        >
-                                            {p.title}
-                                        </div>
-                                    ))}
+                                    className="absolute z-10 w-full bg-zinc-900 rounded-b-lg border border-zinc-700 shadow-lg max-h-56 overflow-y-auto pt-0">
+                                    {/* 전체 탭: 검색 결과 */}
+                                    <div>
+                                        {isLoading && (
+                                            <div className="px-3 py-2 text-zinc-400 text-center">검색 중...</div>
+                                        )}
+                                        {searchError && (
+                                            <div className="px-3 py-2 text-red-400 text-center">{searchError}</div>
+                                        )}
+                                        {!isLoading && !searchError && filteredPlaylists.length === 0 && normalizedSearch.length > 0 && (
+                                            <div className="px-3 py-2 text-zinc-400 text-center">검색 결과 없음</div>
+                                        )}
+                                        {!isLoading && !searchError && filteredPlaylists.map(p => (
+                                            <div
+                                                key={p.value}
+                                                className="px-3 py-2 text-zinc-100 cursor-pointer hover:bg-zinc-700 transition flex items-center justify-between gap-2"
+                                                onMouseDown={() => {
+                                                    setSelectedPlaylist(p);
+                                                    setSearchTerm("");
+                                                    setInputFocused(false);
+                                                }}
+                                            >
+                                                <span>{p.title}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
+                            {/* 선택된 플레이리스트 */}
                             {selectedPlaylist && (
-                                <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center gap-2 mt-2 justify-between">
                                     <span className="text-zinc-100 font-semibold">{selectedPlaylist.title}</span>
                                     <button type="button"
-                                            className="text-xs text-zinc-400 px-2 py-1 bg-zinc-800 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition cursor-pointer"
+                                            className="text-xs text-zinc-400 px-2 py-1 bg-zinc-800 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition cursor-pointer ml-2"
                                             onClick={() => setSelectedPlaylist(null)}>
                                         선택 해제
                                     </button>
