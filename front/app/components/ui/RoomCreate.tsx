@@ -41,8 +41,6 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
         if (playlistTab === 'favorite' && !favoriteLoaded && !favoriteLoading) {
             setFavoriteLoading(true);
             setFavoriteError(null);
-            // TODO: 실제 즐겨찾기 API로 교체
-            // 예시: fetchFavoritePlaylists().then(...)
             setTimeout(() => {
                 fetchFavoritePlaylists().then(data => {
                     setFavoritePlaylists(
@@ -59,7 +57,6 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
         if (playlistTab === 'mine' && !myLoaded && !myLoading) {
             setMyLoading(true);
             setMyError(null);
-            // TODO: 실제 내 플레이리스트 API로 교체
             setTimeout(() => {
                 fetchMyPlaylists().then(data => {
                     setMyPlaylists(

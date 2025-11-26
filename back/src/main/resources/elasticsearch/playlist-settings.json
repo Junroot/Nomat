@@ -17,13 +17,18 @@
           "SP", "SSC", "SSO", "SC", "SE", "XPN",
           "XSA", "XSN", "XSV", "UNA", "NA", "VSV"
         ]
+      },
+      "edge_ngram_filter": {
+        "type": "edge_ngram",
+        "min_gram": 1,
+        "max_gram": 20
       }
     },
     "analyzer": {
       "korean_analyzer": {
         "type": "custom",
         "tokenizer": "nori_tokenizer",
-        "filter": ["nori_pos_filter", "lowercase"]
+        "filter": ["nori_pos_filter", "lowercase", "edge_ngram_filter"]
       }
     }
   }

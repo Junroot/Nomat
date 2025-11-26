@@ -7,7 +7,7 @@ import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.Setting
 
-@Document(indexName = "playlist-v1")
+@Document(indexName = "playlist-v2")
 @TypeAlias("playlist")
 @Setting(settingPath = "/elasticsearch/playlist-settings.json")
 data class PlaylistDocument(
