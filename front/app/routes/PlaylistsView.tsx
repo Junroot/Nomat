@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import {Link} from "react-router";
 import NavigationBar from "~/components/layout/NavigationBar";
 import NavigationItem from "~/components/layout/NavigationItem";
 import Me from "~/components/ui/Me";
@@ -8,15 +8,18 @@ import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import Column1 from "~/components/layout/Column1";
 import SelectMenu from "~/components/ui/SelectMenu";
 import Column2 from "~/components/layout/Column2";
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import type PlaylistResponse from "~/utils/PlaylistResponse";
 import {
+    deletePlaylist,
+    favoritePlaylist,
     fetchByMasterDisplayName,
     fetchFavoritePlaylists,
     fetchMyPlaylists,
     fetchPlaylist,
     fetchRecentlyAddedPlaylists,
-    searchPlaylistsByTitle
+    searchPlaylistsByTitle,
+    unfavoritePlaylist
 } from "~/utils/api";
 import UserIcon from "~/assets/user.svg?react";
 import SongIcon from "~/assets/song.svg?react";
@@ -26,8 +29,6 @@ import StarIcon from "~/assets/star.svg?react";
 import FilledStarIcon from "~/assets/filled-star.svg?react";
 import PencilIcon from "~/assets/pencil.svg?react";
 import DeleteIcon from "~/assets/delete.svg?react";
-import { favoritePlaylist, unfavoritePlaylist } from "~/utils/api";
-import { deletePlaylist } from "~/utils/api";
 import useMeStore from "~/stores/MeStore";
 
 export default function PlaylistsView() {
@@ -96,7 +97,7 @@ export default function PlaylistsView() {
         if (!selectedPlaylist || favoriteUpdating) return;
         setFavoriteUpdating(true);
         const playlistId = selectedPlaylist.id;
-        const optimistic = { ...selectedPlaylist, favorite: !selectedPlaylist.favorite } as PlaylistResponse;
+        const optimistic = {...selectedPlaylist, favorite: !selectedPlaylist.favorite} as PlaylistResponse;
         setSelectedPlaylist(optimistic);
         try {
             if (optimistic.favorite) {
@@ -109,7 +110,7 @@ export default function PlaylistsView() {
                 fetchFavoritePlaylists().then(p => setPlaylists(p));
             }
         } catch (e) {
-            setSelectedPlaylist({ ...selectedPlaylist });
+            setSelectedPlaylist({...selectedPlaylist});
         } finally {
             setFavoriteUpdating(false);
         }
@@ -134,7 +135,7 @@ export default function PlaylistsView() {
 
     return (
         <div className="flex flex-row w-full h-full">
-            <NavigationBar >
+            <NavigationBar>
                 <div className="grow shrink flex flex-col gap-4">
                     <Link to="/" replace>
                         <NavigationItem icon={<RoomIcon></RoomIcon>} title={"플레이 룸"}></NavigationItem>
@@ -145,7 +146,7 @@ export default function PlaylistsView() {
             </NavigationBar>
             <ColumnsContainer>
                 <Column1>
-                    <div className="flex flex-row p-4 gap-4">
+                    <div className="flex flex-row px-4 pt-4 gap-4">
                         {tabLabels.map((label, idx) => (
                             <p
                                 key={tabTypes[idx]}
@@ -163,8 +164,8 @@ export default function PlaylistsView() {
                                     options={searchTypes}
                                     selectedOption={selectedSearchType}
                                     selectedHandler={(selectedOption: string) => {
-                                            setSelectedSearchType(selectedOption);
-                                        }
+                                        setSelectedSearchType(selectedOption);
+                                    }
                                     }
                                 >
                                 </SelectMenu>
@@ -183,7 +184,8 @@ export default function PlaylistsView() {
                     <div className="flex flex-col grow py-2 bg-zinc-800 rounded-2xl overflow-y-auto">
                         {
                             playlists.map((playlist, i) =>
-                                <div key={i} id={playlist.id.toString()} className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
+                                <div key={i} id={playlist.id.toString()}
+                                     className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
                                     <img
                                         src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
                                         className="size-16 object-cover"
@@ -198,70 +200,77 @@ export default function PlaylistsView() {
                             )
                         }
                     </div>
-                        <Link className="w-full" to="/playlists/create">
-                            <button className="w-full bg-cyan-400 py-2 text-zinc-900 rounded-full cursor-pointer text-2xl font-bold">
-                                새 플레이리스트
-                            </button>
-                        </Link>
+                    <Link className="w-full pb-4" to="/playlists/create">
+                        <button
+                            className="w-full bg-cyan-400 py-2 text-zinc-900 rounded-full cursor-pointer text-2xl font-bold">
+                            새 플레이리스트
+                        </button>
+                    </Link>
                 </Column1>
                 <Column2>
                     {
                         selectedPlaylist !== null &&
-                            <div className="w-full h-full flex flex-col justify-center p-4">
-                                <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
-                                    <div className="flex flex-row justify-between items-center">
-                                        <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
-                                        <div className="flex flex-row items-center gap-2">
-                                            {me && me.id === selectedPlaylist.master.id && (
-                                                <button
-                                                    className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
-                                                    onClick={() => setShowDeleteConfirm(true)}
-                                                    title="플레이리스트 삭제"
-                                                >
-                                                    <DeleteIcon className="w-6 h-6" />
-                                                </button>
-                                            )}
-                                            {me && me.id === selectedPlaylist.master.id && (
-                                                <button
-                                                    className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
-                                                    onClick={() => { window.location.href = `/playlists/${selectedPlaylist.id}/modify`; }}
-                                                    title="플레이리스트 수정"
-                                                >
-                                                    <PencilIcon className="w-5 h-5" />
-                                                </button>
-                                            )}
+                        <div className="w-full h-full flex flex-col justify-center p-4">
+                            <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
+                                <div className="flex flex-row justify-between items-center">
+                                    <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
+                                    <div className="flex flex-row items-center gap-2">
+                                        {me && me.id === selectedPlaylist.master.id && (
                                             <button
-                                                disabled={favoriteUpdating}
-                                                onClick={toggleFavorite}
-                                                className={`size-10 flex items-center justify-center rounded-full transition-colors bg-zinc-700 hover:bg-zinc-600 ${favoriteUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                                                title={selectedPlaylist.favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                                                className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                                onClick={() => setShowDeleteConfirm(true)}
+                                                title="플레이리스트 삭제"
                                             >
-                                                {selectedPlaylist.favorite ? <FilledStarIcon className="w-6 h-6"/> : <StarIcon className="w-6 h-6"/>}
+                                                <DeleteIcon className="w-6 h-6"/>
                                             </button>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p><UserIcon className="inline-block"/>{selectedPlaylist.master.displayName}</p>
-                                        <p><SongIcon className="inline-block"/>{selectedPlaylist.trackCount}곡 (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="text-3xl font-bold">소개</p>
-                                        <p>{selectedPlaylist.description}</p>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="text-3xl font-bold">대표곡 미리 듣기</p>
-                                        <MusicPlayer embedId={selectedPlaylist.representativeTrack.embedId} startTimeSec={selectedPlaylist.representativeTrack.startTimeSec} endTimeSec={selectedPlaylist.representativeTrack.endTimeSec}></MusicPlayer>
-                                    </div>
-                                    <div className="flex flex-col items-center">
-                                        <img
-                                            src={`https://img.youtube.com/vi/${selectedPlaylist.representativeTrack.embedId}/hq720.jpg`}
-                                            className="size-64 object-cover"
-                                            alt="tumbnail"
+                                        )}
+                                        {me && me.id === selectedPlaylist.master.id && (
+                                            <button
+                                                className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                                onClick={() => {
+                                                    window.location.href = `/playlists/${selectedPlaylist.id}/modify`;
+                                                }}
+                                                title="플레이리스트 수정"
+                                            >
+                                                <PencilIcon className="w-5 h-5"/>
+                                            </button>
+                                        )}
+                                        <button
+                                            disabled={favoriteUpdating}
+                                            onClick={toggleFavorite}
+                                            className={`size-10 flex items-center justify-center rounded-full transition-colors bg-zinc-700 hover:bg-zinc-600 ${favoriteUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                            title={selectedPlaylist.favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                                         >
-                                        </img>
+                                            {selectedPlaylist.favorite ? <FilledStarIcon className="w-6 h-6"/> :
+                                                <StarIcon className="w-6 h-6"/>}
+                                        </button>
                                     </div>
                                 </div>
+                                <div className="flex flex-col">
+                                    <p><UserIcon className="inline-block"/>{selectedPlaylist.master.displayName}</p>
+                                    <p><SongIcon className="inline-block"/>{selectedPlaylist.trackCount}곡
+                                        (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>
+                                </div>
+                                <div className="flex flex-col">
+                                    <p className="text-3xl font-bold">소개</p>
+                                    <p>{selectedPlaylist.description}</p>
+                                </div>
+                                <div className="flex flex-col">
+                                    <p className="text-3xl font-bold">대표곡 미리 듣기</p>
+                                    <MusicPlayer embedId={selectedPlaylist.representativeTrack.embedId}
+                                                 startTimeSec={selectedPlaylist.representativeTrack.startTimeSec}
+                                                 endTimeSec={selectedPlaylist.representativeTrack.endTimeSec}></MusicPlayer>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <img
+                                        src={`https://img.youtube.com/vi/${selectedPlaylist.representativeTrack.embedId}/hq720.jpg`}
+                                        className="size-64 object-cover"
+                                        alt="tumbnail"
+                                    >
+                                    </img>
+                                </div>
                             </div>
+                        </div>
                     }
                 </Column2>
             </ColumnsContainer>
@@ -291,5 +300,5 @@ export default function PlaylistsView() {
                 </div>
             )}
         </div>
-      );
+    );
 }

@@ -23,7 +23,7 @@ export default function RoomView() {
             <NavigationBar>
                 <div className="grow shrink flex flex-col gap-4">
                     <Link to="/" replace>
-                        <NavigationItem icon={<BackIcon></BackIcon>} title={"뒤로가기"}>   
+                        <NavigationItem icon={<BackIcon></BackIcon>} title={"뒤로가기"}>
                         </NavigationItem>
                     </Link>
                     <NavigationItem icon={<PlayIcon></PlayIcon>} title={"시작하기"}></NavigationItem>
@@ -34,7 +34,7 @@ export default function RoomView() {
             </NavigationBar>
             <ColumnsContainer>
                 <Column1>
-                    <p className="text-4xl font-bold">{title}</p>
+                    <p className="text-4xl pt-4 font-bold">{title}</p>
                     <div className="w-full p-4 flex flex-col gap-1 bg-zinc-800 rounded-2xl">
                         <div className="inline-flex items-end gap-1 text-2xl font-bold">
                             <PlaylistIcon className="size-8"></PlaylistIcon>
@@ -58,7 +58,7 @@ export default function RoomView() {
                     </div>
                 </Column1>
                 <Column2>
-                    <div className="px-4 w-full h-full shrink-1 flex flex-col gap-1 overflow-auto">
+                    <div className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-1 overflow-auto">
                         <div className="flex flex-row gap-2">
                             <UsersIcon className="size-10 rounded-full border border-solid"></UsersIcon>
                             <div className="flex flex-col">
