@@ -40,4 +40,8 @@ class RoomPlaylistTrack(
 data class RoomPlaylistTrackId(
     val room: Long = 0,
     val trackId: Long = 0,
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+}

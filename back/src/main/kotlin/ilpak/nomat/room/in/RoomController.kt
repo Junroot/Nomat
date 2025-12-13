@@ -39,7 +39,7 @@ private class RoomController(
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun save(@AuthenticationPrincipal playerId: Long, @RequestBody roomRequest: RoomRequest): RoomDetailResponse {
-        return roomService.save(playerId, roomRequest)
+    fun save(@RequestBody roomRequest: RoomRequest): RoomDetailResponse {
+        return roomService.save(roomRequest)
     }
 }

@@ -1,2 +1,8 @@
 config:
   validation: true
+style:
+  UnusedPrivateClass:
+    active: true
+    ignoreAnnotated:
+      - 'RestController'
+      - 'Repository'

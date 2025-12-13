@@ -51,7 +51,7 @@ class RoomService(
     }
 
     @Transactional
-    fun save(requestPlayerId: Long, roomRequest: RoomRequest): RoomDetailResponse {
+    fun save(roomRequest: RoomRequest): RoomDetailResponse {
         val playlist = try {
             playlistService.getWithTracksForInternal(roomRequest.playlistId)
         } catch (notfoundException: NotFoundException) {
