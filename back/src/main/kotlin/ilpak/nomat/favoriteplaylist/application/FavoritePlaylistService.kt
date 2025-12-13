@@ -5,7 +5,7 @@ import ilpak.nomat.favoriteplaylist.application.domain.FavoritePlaylistId
 import ilpak.nomat.favoriteplaylist.application.domain.FavoritePlaylistRepository
 import ilpak.nomat.favoriteplaylist.application.dto.FavoritePlaylistRequest
 import ilpak.nomat.favoriteplaylist.application.dto.FavoritePlaylistResponse
-import ilpak.nomat.infrastructure.exception.ForbiddenException
+import ilpak.nomat.common.exception.ForbiddenException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

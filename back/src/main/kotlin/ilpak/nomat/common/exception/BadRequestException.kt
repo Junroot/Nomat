@@ -1,4 +1,4 @@
-package ilpak.nomat.infrastructure.exception
+package ilpak.nomat.common.exception
 
 import org.springframework.http.HttpStatus
 

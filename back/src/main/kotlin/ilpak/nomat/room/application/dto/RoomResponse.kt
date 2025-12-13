@@ -11,11 +11,11 @@ data class RoomResponse(
 
     companion object {
 
-        fun of(room: Room, nickname: String): RoomResponse {
+        fun of(room: Room, trackCount: Int, nickname: String): RoomResponse {
             return RoomResponse(
                 room.id,
                 room.title,
-                PlaylistResponse.of(room.playlist),
+                PlaylistResponse.of(room.playlist, trackCount),
                 nickname,
             )
         }
