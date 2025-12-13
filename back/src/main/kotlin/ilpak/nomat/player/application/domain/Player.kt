@@ -1,6 +1,6 @@
 package ilpak.nomat.player.application.domain
 
-import ilpak.nomat.common.AuditDateMetadata
+import ilpak.nomat.common.metadata.AuditDateMetadata
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity

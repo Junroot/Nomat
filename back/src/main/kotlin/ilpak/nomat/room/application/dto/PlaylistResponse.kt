@@ -3,15 +3,15 @@ package ilpak.nomat.room.application.dto
 import ilpak.nomat.room.application.domain.RoomPlaylist
 
 data class PlaylistResponse(
-    val name: String,
-    val count: Long,
+    val title: String,
+    val count: Int,
     val id: Long,
 ) {
     companion object {
-        fun of(playlist: RoomPlaylist): PlaylistResponse {
+        fun of(playlist: RoomPlaylist, trackCount: Int): PlaylistResponse {
             return PlaylistResponse(
-                playlist.name,
-                playlist.trackCount,
+                playlist.title,
+                trackCount,
                 playlist.id,
             )
         }

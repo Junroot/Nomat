@@ -95,6 +95,7 @@ class PlaylistControllerTest(
                                     repeatCount = 2,
                                     additionalTitles = setOf("Monster", "Kaibutsu"),
                                     isRepresentative = true,
+                                    id = 0,
                                 ),
                                 PlaylistWithTrackTrackResponse(
                                     embedId = "07SWfNXgKGo",
@@ -104,6 +105,7 @@ class PlaylistControllerTest(
                                     repeatCount = 1,
                                     additionalTitles = setOf(),
                                     isRepresentative = false,
+                                    id = 0,
                                 )
                             ),
                         )
@@ -185,6 +187,7 @@ class PlaylistControllerTest(
                                     repeatCount = 3,
                                     additionalTitles = setOf("RGB"),
                                     isRepresentative = true,
+                                    id = 0,
                                 )
                             ),
                         )
@@ -228,7 +231,8 @@ class PlaylistControllerTest(
 
     @Test
     fun getWithTracks() {
-        val response = playlistStep.save(playerResponse,
+        val response = playlistStep.save(
+            playerResponse,
             dummyPlaylistCreationRequest(
                 title = "밤을 달리다",
                 tracks = listOf(
@@ -394,7 +398,7 @@ class PlaylistControllerTest(
     fun getByMasterDisplayName() {
         val playlistResponse = playlistStep.save(playerResponse, dummyPlaylistCreationRequest(title = "밤을달리다"))
 
-        client.get().uri{ it.path("/playlists").queryParam("masterDisplayName", playerResponse.displayName).build() }
+        client.get().uri { it.path("/playlists").queryParam("masterDisplayName", playerResponse.displayName).build() }
             .auth(playerResponse)
             .exchange()
             .expectStatus().isOk

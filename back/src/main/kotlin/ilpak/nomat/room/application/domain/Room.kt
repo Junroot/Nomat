@@ -1,16 +1,21 @@
 package ilpak.nomat.room.application.domain
 
-import ilpak.nomat.common.AuditMetadata
+import ilpak.nomat.common.exception.ConflictException
+import ilpak.nomat.common.metadata.AuditMetadata
 import jakarta.persistence.CollectionTable
+import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.TableGenerator
+import jakarta.persistence.Transient
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
@@ -18,10 +23,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 class Room(
     val title: String,
     val password: String?,
+    val maxEntriesCount: Int,
+    @Embedded
     val playlist: RoomPlaylist,
     @ElementCollection
     @CollectionTable(name = "room_entry", joinColumns = [JoinColumn(name = "room_id")])
-    val entries: MutableList<RoomEntry> = mutableListOf(),
+    private val entries: MutableList<RoomEntry> = mutableListOf(),
     @Embedded
     val auditMetadata: AuditMetadata = AuditMetadata(),
     @Id
@@ -36,8 +43,13 @@ class Room(
     val id: Long = 0,
 ) {
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, columnDefinition = "CHAR(20) NOT NULL")
+    var status: RoomStatus = RoomStatus.PENDING
+        private set
+
     val master: RoomEntry?
-        get() = entries.firstOrNull()
+        get() = sortedEntries.firstOrNull()
 
     val playerIds: Set<Long>
         get() = entries.map { it.playerId }.toSet()
@@ -45,7 +57,31 @@ class Room(
     val playlistMasterId: Long
         get() = playlist.masterId
 
-    fun isMaster(roomMember: RoomEntry): Boolean {
-        return roomMember == master
+    @Transient
+    private var _sortedEntries: List<RoomEntry>? = null
+    val sortedEntries: List<RoomEntry>
+        get() {
+            if (_sortedEntries == null) {
+                _sortedEntries = entries.sortedBy { it.joinDate }
+            }
+            return requireNotNull(_sortedEntries)
+        }
+
+    fun join(playerId: Long) {
+        if (entries.size >= maxEntriesCount) {
+            throw ConflictException("방의 정원이 초과되었습니다.")
+        }
+        if (playerIds.contains(playerId)) {
+            throw ConflictException("이미 방에 입장한 플레이어입니다.")
+        }
+        entries.add(RoomEntry(playerId))
+        _sortedEntries = null
+        status = RoomStatus.ACTIVE
+    }
+
+    companion object {
+        const val MAX_TITLE_LENGTH = 30
+        const val MAX_PASSWORD_LENGTH = 30
+        const val MAX_MAX_ENTRIES_COUNT = 20
     }
 }

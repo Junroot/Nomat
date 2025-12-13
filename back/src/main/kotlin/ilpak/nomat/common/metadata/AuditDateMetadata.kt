@@ -1,4 +1,4 @@
-package ilpak.nomat.common
+package ilpak.nomat.common.metadata
 
 import jakarta.persistence.Embeddable
 import org.springframework.data.annotation.CreatedDate

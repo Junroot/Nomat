@@ -2,6 +2,8 @@ package ilpak.nomat.room.out
 
 import ilpak.nomat.room.application.domain.Room
 import ilpak.nomat.room.application.domain.RoomRepository
+import ilpak.nomat.room.application.domain.RoomStatus
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
@@ -19,10 +21,14 @@ private class RoomRepositoryImpl(
         return roomJpaRepository.findByIdOrNull(id)
     }
 
-    override fun findAll(): List<Room> {
-        return roomJpaRepository.findAll().toList()
+    override fun findByIdLessThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, size: Int): List<Room> {
+        return roomJpaRepository.findByIdLessThanAndStatusOrderByIdDesc(id, status, Pageable.ofSize(size))
     }
+
 }
 
-private interface RoomJpaRepository : CrudRepository<Room, Long>
+private interface RoomJpaRepository : CrudRepository<Room, Long> {
+
+    fun findByIdLessThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, pageable: Pageable): List<Room>
+}
 

@@ -46,6 +46,7 @@ data class PlaylistWithTrackTrackResponse(
     val repeatCount: Int,
     val additionalTitles: Set<String>,
     val isRepresentative: Boolean,
+    val id: Long,
 ) {
     companion object {
         fun of(track: Track): PlaylistWithTrackTrackResponse {
@@ -57,6 +58,7 @@ data class PlaylistWithTrackTrackResponse(
                 track.repeatCount,
                 track.additionalTitles,
                 track.representative,
+                track.id,
             )
         }
     }

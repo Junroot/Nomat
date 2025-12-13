@@ -1,7 +1,7 @@
 package ilpak.nomat.player.application
 
-import ilpak.nomat.infrastructure.exception.NotFoundException
-import ilpak.nomat.infrastructure.exception.NotFoundResource
+import ilpak.nomat.common.exception.NotFoundException
+import ilpak.nomat.common.exception.NotFoundResource
 import ilpak.nomat.player.application.domain.PlayerRepository
 import ilpak.nomat.player.application.domain.RegistrationType
 import ilpak.nomat.player.application.dto.PlayerRequest

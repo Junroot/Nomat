@@ -1,9 +1,9 @@
 package ilpak.nomat.playlist.application
 
 import ilpak.nomat.favoriteplaylist.application.FavoritePlaylistService
-import ilpak.nomat.infrastructure.exception.ForbiddenException
-import ilpak.nomat.infrastructure.exception.NotFoundException
-import ilpak.nomat.infrastructure.exception.NotFoundResource
+import ilpak.nomat.common.exception.ForbiddenException
+import ilpak.nomat.common.exception.NotFoundException
+import ilpak.nomat.common.exception.NotFoundResource
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.domain.Playlist
@@ -86,6 +86,13 @@ class PlaylistService(
             throw ForbiddenException("본인의 플레이리스트만 트랙과 함께 조회할 수 있습니다.")
         }
 
+        val tracks = trackRepository.findByPlaylist(playlist)
+        val master = playerService.findById(playlist.masterId)
+        return PlaylistWithTrackResponse.of(playlist, tracks, master)
+    }
+
+    fun getWithTracksForInternal(id: Long): PlaylistWithTrackResponse {
+        val playlist = playlistRepository.findById(id) ?: throw NotFoundException(NotFoundResource.PLAYLIST)
         val tracks = trackRepository.findByPlaylist(playlist)
         val master = playerService.findById(playlist.masterId)
         return PlaylistWithTrackResponse.of(playlist, tracks, master)

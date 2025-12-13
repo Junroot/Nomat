@@ -1,6 +1,6 @@
 package ilpak.nomat.playlist.application.domain
 
-import ilpak.nomat.common.AuditMetadata
+import ilpak.nomat.common.metadata.AuditMetadata
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners

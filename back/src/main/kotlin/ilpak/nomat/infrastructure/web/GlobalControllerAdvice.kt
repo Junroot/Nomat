@@ -1,7 +1,7 @@
 package ilpak.nomat.infrastructure.web
 
-import ilpak.nomat.infrastructure.exception.AbstractNomatException
-import ilpak.nomat.infrastructure.exception.InternalServerErrorException
+import ilpak.nomat.common.exception.AbstractNomatException
+import ilpak.nomat.common.exception.InternalServerErrorException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus

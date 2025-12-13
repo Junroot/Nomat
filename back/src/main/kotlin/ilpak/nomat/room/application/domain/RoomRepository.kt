@@ -4,5 +4,5 @@ interface RoomRepository {
 
     fun save(room: Room): Room
     fun findById(id: Long): Room?
-    fun findAll(): List<Room>
+    fun findByIdLessThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, size: Int): List<Room>
 }

@@ -1,6 +1,6 @@
 package ilpak.nomat.playlist.application.dto
 
-import ilpak.nomat.infrastructure.exception.BadRequestException
+import ilpak.nomat.common.exception.BadRequestException
 import ilpak.nomat.playlist.application.domain.Playlist
 import ilpak.nomat.playlist.application.domain.Track
 import jakarta.validation.Valid
