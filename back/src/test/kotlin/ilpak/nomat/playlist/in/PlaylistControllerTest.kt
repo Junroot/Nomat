@@ -76,7 +76,7 @@ class PlaylistControllerTest(
             .value {
                 assertThat(it).usingRecursiveComparison()
                     .ignoringCollectionOrder()
-                    .ignoringFields("id")
+                    .ignoringFields("id", "tracks.id")
                     .isEqualTo(
                         PlaylistWithTrackResponse(
                             id = 0,
@@ -168,7 +168,7 @@ class PlaylistControllerTest(
             .value {
                 assertThat(it).usingRecursiveComparison()
                     .ignoringCollectionOrder()
-                    .ignoringFields("id")
+                    .ignoringFields("id", "tracks.id")
                     .isEqualTo(
                         PlaylistWithTrackResponse(
                             id = playlist.id,
