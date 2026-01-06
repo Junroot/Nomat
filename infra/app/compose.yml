@@ -32,6 +32,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       JWT_KEY: ${JWT_KEY}
       LOGSTASH_URL: ${LOGSTASH_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     networks:
       - backend
   nginx:
