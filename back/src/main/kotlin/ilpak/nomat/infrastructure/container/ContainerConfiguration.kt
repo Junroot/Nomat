@@ -1,5 +1,6 @@
 package ilpak.nomat.infrastructure.container
 
+import com.redis.testcontainers.RedisContainer
 import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchConnectionDetails
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
@@ -62,6 +63,12 @@ class ContainerConfiguration {
     @ServiceConnection
     fun kafkaContainer(): KafkaContainer {
         return KafkaContainer("apache/kafka:3.7.2")
+    }
+
+    @Bean
+    @ServiceConnection
+    fun redisContainer(): RedisContainer {
+        return RedisContainer(DockerImageName.parse("redis:7.4.7"))
     }
 
     companion object {

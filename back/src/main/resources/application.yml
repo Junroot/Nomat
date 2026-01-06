@@ -65,6 +65,10 @@ spring:
   config:
     activate:
       on-profile: dev
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   datasource:
     hikari:
       connection-timeout: 30000

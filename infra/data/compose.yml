@@ -79,6 +79,11 @@ services:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     volumes:
       - kafka-data:/var/lib/kafka/data
+  redis:
+    image: redis:7.4.7
+    container_name: redis
+    ports:
+      - "6379:6379"
 volumes:
   db-data:
   elasticsearch-data:
