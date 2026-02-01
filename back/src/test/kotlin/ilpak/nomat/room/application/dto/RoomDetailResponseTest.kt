@@ -1,9 +1,10 @@
 package ilpak.nomat.room.application.dto
 
 import ilpak.nomat.room.application.domain.Room
+import ilpak.nomat.room.application.domain.RoomEntries
+import ilpak.nomat.room.application.domain.RoomEntry
 import ilpak.nomat.room.application.domain.RoomPlaylist
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -22,14 +23,20 @@ class RoomDetailResponseTest {
             password = null,
             maxEntriesCount = 10
         )
-        room.join(1L)
-        room.join(2L)
-        room.join(3L)
 
         val response = RoomDetailResponse.of(
             room = room,
             trackCount = 5,
-            playerIdToNicknameMap = mapOf(1L to "Master", 2L to "Player2", 3L to "Player3")
+            entries = RoomEntries(
+                listOf(
+                    RoomEntry(1L, LocalDateTime.now().minusHours(1)),
+                    RoomEntry(2L, LocalDateTime.now()),
+                    RoomEntry(3L, LocalDateTime.now()),
+                )
+            ),
+            playerIdToNicknameMap = mapOf(
+                1L to "Master", 2L to "Player2", 3L to "Player3"
+            )
         )
 
         assertThat(response.players).hasSize(3)
@@ -39,30 +46,6 @@ class RoomDetailResponseTest {
         assertThat(response.players[1].isMaster).isFalse()
         assertThat(response.players[2].nickname).isEqualTo("Player3")
         assertThat(response.players[2].isMaster).isFalse()
-    }
-
-    @Test
-    fun `of_플레이리스트 마스터 닉네임이 맵에 없을 때 예외가 발생한다`() {
-        val room = Room(
-            title = "Test Room",
-            playlist = RoomPlaylist(
-                id = 1L,
-                title = "Test Playlist",
-                masterId = 999L,
-                description = "Description"
-            ),
-            password = null,
-            maxEntriesCount = 5
-        )
-        room.join(100L)
-
-        assertThatThrownBy {
-            RoomDetailResponse.of(
-                room = room,
-                trackCount = 10,
-                playerIdToNicknameMap = mapOf(100L to "Player1")
-            )
-        }.isExactlyInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
@@ -78,13 +61,17 @@ class RoomDetailResponseTest {
             password = null,
             maxEntriesCount = 5
         )
-        room.join(1L)
-        room.join(2L)
-        room.join(3L)
 
         val response = RoomDetailResponse.of(
             room = room,
             trackCount = 10,
+            entries = RoomEntries(
+                listOf(
+                    RoomEntry(1L, LocalDateTime.now().minusHours(1)),
+                    RoomEntry(2L, LocalDateTime.now()),
+                    RoomEntry(3L, LocalDateTime.now()),
+                )
+            ),
             playerIdToNicknameMap = mapOf(1L to "Player1", 3L to "Player3")
         )
 

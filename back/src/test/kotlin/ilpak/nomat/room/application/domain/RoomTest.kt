@@ -1,8 +1,6 @@
 package ilpak.nomat.room.application.domain
 
-import ilpak.nomat.common.exception.ConflictException
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class RoomTest {
@@ -21,82 +19,5 @@ class RoomTest {
         )
 
         assertThat(room.status).isEqualTo(RoomStatus.PENDING)
-    }
-
-    @Test
-    fun getSortedEntries() {
-        val room = Room(
-            title = "room",
-            playlist = RoomPlaylist(
-                id = 1,
-                masterId = 1,
-                title = "playlist",
-                description = "description",
-            ),
-            password = null,
-            maxEntriesCount = 5,
-        )
-        room.join(2)
-        room.join(1)
-
-        assertThat(room.sortedEntries.map { it.playerId }).containsExactly(2, 1)
-    }
-
-    @Test
-    fun `join_방 생성 된 후 최초 입장이 있으면 방 상태가 ACTIVE로 변경 됨`() {
-        val room = Room(
-            title = "room",
-            playlist = RoomPlaylist(
-                id = 1,
-                masterId = 1,
-                title = "playlist",
-                description = "description",
-            ),
-            password = null,
-            maxEntriesCount = 5,
-        )
-
-        room.join(1)
-
-        assertThat(room.status).isEqualTo(RoomStatus.ACTIVE)
-    }
-
-    @Test
-    fun `join_방 정원 초과 시 예외 발생`(){
-        val room = Room(
-            title = "room",
-            playlist = RoomPlaylist(
-                id = 1,
-                masterId = 1,
-                title = "playlist",
-                description = "description",
-            ),
-            password = null,
-            maxEntriesCount = 2,
-        )
-        room.join(1)
-        room.join(2)
-
-        assertThatThrownBy { room.join(3) }
-            .isExactlyInstanceOf(ConflictException::class.java)
-    }
-
-    @Test
-    fun `join_이미 입장한 플레이어가 다시 입장 시도할 경우 예외 발생`() {
-        val room = Room(
-            title = "room",
-            playlist = RoomPlaylist(
-                id = 1,
-                masterId = 1,
-                title = "playlist",
-                description = "description",
-            ),
-            password = null,
-            maxEntriesCount = 3,
-        )
-        room.join(1)
-
-        assertThatThrownBy { room.join(1) }
-            .isExactlyInstanceOf(ConflictException::class.java)
     }
 }

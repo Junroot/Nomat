@@ -6,6 +6,7 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Lazy
+import org.springframework.messaging.converter.MappingJackson2MessageConverter
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -14,6 +15,8 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.filter.OncePerRequestFilter
+import org.springframework.web.socket.client.standard.StandardWebSocketClient
+import org.springframework.web.socket.messaging.WebSocketStompClient
 import java.time.Duration
 
 @TestConfiguration
@@ -48,5 +51,13 @@ class TestConfiguration {
             .baseUrl("http://localhost:$port")
             .responseTimeout(Duration.ofHours(1))
             .build()
+    }
+
+    @Bean
+    fun stompClient(): WebSocketStompClient {
+        val webSocketClient = StandardWebSocketClient()
+        val webSocketStompClient = WebSocketStompClient(webSocketClient)
+        webSocketStompClient.messageConverter = MappingJackson2MessageConverter()
+        return webSocketStompClient
     }
 }

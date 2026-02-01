@@ -1,6 +1,7 @@
 package ilpak.nomat.room.application.dto
 
 import ilpak.nomat.room.application.domain.Room
+import ilpak.nomat.room.application.domain.RoomEntries
 
 data class RoomDetailResponse(
     val id: Long,
@@ -12,6 +13,7 @@ data class RoomDetailResponse(
         fun of(
             room: Room,
             trackCount: Int,
+            entries: RoomEntries,
             playerIdToNicknameMap: Map<Long, String>,
         ): RoomDetailResponse {
             val playlistMasterNickname = playerIdToNicknameMap[room.playlistMasterId]
@@ -21,11 +23,11 @@ data class RoomDetailResponse(
                 room.id,
                 room.title,
                 PlaylistDetailResponse.of(room.playlist, trackCount, playlistMasterNickname),
-                room.sortedEntries.mapIndexedNotNull { index, roomEntry ->
+                entries.entries.mapNotNull { entry ->
                     RoomMemberResponse(
-                        playerIdToNicknameMap[roomEntry.playerId] ?: return@mapIndexedNotNull null,
-                        index == 0,
-                        roomEntry.playerId,
+                        playerIdToNicknameMap[entry.playerId] ?: return@mapNotNull null,
+                        entry.playerId == entries.masterEntry?.playerId,
+                        entry.playerId,
                     )
                 }
             )

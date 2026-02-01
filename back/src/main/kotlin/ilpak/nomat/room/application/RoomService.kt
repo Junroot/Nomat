@@ -6,12 +6,16 @@ import ilpak.nomat.common.exception.NotFoundResource
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.room.application.domain.Room
+import ilpak.nomat.room.application.domain.RoomEntries
+import ilpak.nomat.room.application.domain.RoomEntryRepository
+import ilpak.nomat.room.application.domain.RoomEntryResult
 import ilpak.nomat.room.application.domain.RoomPlaylist
 import ilpak.nomat.room.application.domain.RoomPlaylistTrack
 import ilpak.nomat.room.application.domain.RoomPlaylistTrackRepository
 import ilpak.nomat.room.application.domain.RoomRepository
 import ilpak.nomat.room.application.domain.RoomStatus
 import ilpak.nomat.room.application.dto.RoomDetailResponse
+import ilpak.nomat.room.application.dto.RoomJoinRequest
 import ilpak.nomat.room.application.dto.RoomRequest
 import ilpak.nomat.room.application.dto.RoomResponse
 import org.springframework.stereotype.Service
@@ -22,13 +26,15 @@ import org.springframework.transaction.annotation.Transactional
 class RoomService(
     private val playlistService: PlaylistService,
     private val roomRepository: RoomRepository,
+    private val roomEntryRepository: RoomEntryRepository,
     private val roomPlaylistTrackRepository: RoomPlaylistTrackRepository,
     private val playerService: PlayerService,
 ) {
 
     fun get(cursorRoomId: Long, size: Int): List<RoomResponse> {
         val rooms = roomRepository.findByIdLessThanAndStatusOrderByIdDesc(cursorRoomId, RoomStatus.ACTIVE, size)
-        val masterIds = rooms.mapNotNull { it.master?.playerId }.toSet()
+        val roomIdToEntries = roomEntryRepository.getEntries(rooms.map { it.id })
+        val masterIds = roomIdToEntries.mapNotNull { it.value.masterEntry?.playerId }.toSet()
         val masterIdToNicknameMap = playerService.findByIdIn(masterIds).associate { it.id to it.nickname }
         val trackCountsByRoomIdMap = roomPlaylistTrackRepository.countByRoomIds(rooms.map { it.id })
 
@@ -43,11 +49,12 @@ class RoomService(
 
     fun getDetail(roomId: Long): RoomDetailResponse {
         val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
-        val players = playerService.findByIdIn(room.playerIds + room.playlistMasterId)
+        val entries = roomEntryRepository.getEntries(roomId)
+        val players = playerService.findByIdIn(entries.playerIds.toSet() + room.playlistMasterId)
         val playerIdToNicknameMap = players.associate { it.id to it.nickname }
         val trackCount = roomPlaylistTrackRepository.countByRoomId(room).toInt()
 
-        return RoomDetailResponse.of(room, trackCount, playerIdToNicknameMap)
+        return RoomDetailResponse.of(room, trackCount, entries, playerIdToNicknameMap)
     }
 
     @Transactional
@@ -88,6 +95,31 @@ class RoomService(
         }
         val savedTracks = roomPlaylistTrackRepository.save(roomPlaylistTracks)
 
-        return RoomDetailResponse.of(savedRoom, savedTracks.size, mapOf(playlist.master.id to playlist.master.nickname))
+        return RoomDetailResponse.of(savedRoom,
+            savedTracks.size,
+            RoomEntries(),
+            mapOf(playlist.master.id to playlist.master.nickname)
+        )
+    }
+
+    @Transactional
+    fun join(playerId: Long, roomId: Long, request: RoomJoinRequest) {
+        val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
+
+        if (room.password != request.password) {
+            throw BadRequestException("비밀번호가 일치하지 않습니다.")
+        }
+
+        val entryResult = roomEntryRepository.tryEnter(roomId, playerId, room.maxEntriesCount)
+
+        when (entryResult) {
+            RoomEntryResult.SUCCESS -> {}
+            RoomEntryResult.ALREADY_JOINED -> throw BadRequestException("이미 방에 참여 중입니다.")
+            RoomEntryResult.ROOM_FULL -> throw BadRequestException("방이 가득 찼습니다.")
+        }
+
+        if (room.status == RoomStatus.PENDING) {
+            room.status = RoomStatus.ACTIVE
+        }
     }
 }

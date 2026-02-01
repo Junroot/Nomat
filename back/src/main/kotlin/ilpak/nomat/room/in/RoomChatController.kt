@@ -1,26 +1,33 @@
 package ilpak.nomat.room.`in`
 
-import ilpak.nomat.room.application.dto.RoomChatRequest
+import ilpak.nomat.room.application.RoomService
+import ilpak.nomat.room.application.dto.RoomJoinRequest
 import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
+import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 
 @Controller
-private class RoomChatController {
+private class RoomChatController(
+    private val roomService: RoomService
+) {
 
-    @MessageMapping("rooms.{roomId}")
-    fun commandRoom(
-        @Payload request: RoomChatRequest,
+    @MessageMapping("rooms.{roomId}.join")
+    @SendTo("/topic/rooms.{roomId}.joined")
+    fun joinRoom(
+        @Payload request: RoomJoinRequest,
         @DestinationVariable roomId: Long,
         @AuthenticationPrincipal playerId: Long,
-    ) {
-        /**
-         * TODO: Implement room chat logic
-         * 1. 방 조회
-         * 2. PENDING 상태이면 방장만 입장가능
-         * 3. ACTIVE 상태이면 정원 초과 여부, 비밀 번호 확인 후 입장 가능
-         */
+    ): Map<String, Any> {
+        //TODO
+        // subscribe으로 방 입장 구현 하도록 수정
+        // 방 입장 성공했을 때 해당 방에 broadcast
+        roomService.join(playerId, roomId, request)
+        return mapOf(
+            "playerId" to playerId,
+            "success" to true
+        )
     }
 }

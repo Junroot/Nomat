@@ -12,6 +12,8 @@ import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.dto.PlaylistDetailResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
+import ilpak.nomat.room.application.dto.RoomJoinRequest
+import ilpak.nomat.room.application.dto.RoomMemberResponse
 import ilpak.nomat.room.application.dto.RoomRequest
 import ilpak.nomat.room.application.dto.RoomResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -91,6 +93,7 @@ class RoomControllerTest(
     @Test
     fun getDetail() {
         val roomDetailResponse = roomStep.save(player, dummyRoomRequest(playlist.id))
+        roomStep.join(player, roomDetailResponse.id, RoomJoinRequest("password"))
 
         client.get().uri("/rooms/{roomId}", roomDetailResponse.id)
             .auth(player)
@@ -99,7 +102,12 @@ class RoomControllerTest(
             .expectBody<RoomDetailResponse>()
             .value {
                 assertThat(it).usingRecursiveComparison()
-                    .isEqualTo(roomDetailResponse)
+                    .isEqualTo(
+                        roomDetailResponse.copy(
+                            players =
+                                listOf(RoomMemberResponse(player.nickname, true, player.id))
+                        )
+                    )
             }
     }
 
