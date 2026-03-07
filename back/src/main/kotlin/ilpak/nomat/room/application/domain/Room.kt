@@ -1,6 +1,7 @@
 package ilpak.nomat.room.application.domain
 
 import ilpak.nomat.common.exception.ConflictException
+import ilpak.nomat.common.exception.ForbiddenException
 import ilpak.nomat.common.metadata.AuditMetadata
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
@@ -66,6 +67,12 @@ class Room(
             }
             return requireNotNull(_sortedEntries)
         }
+
+    fun verifyPassword(password: String?) {
+        if (this.password != null && this.password != password) {
+            throw ForbiddenException("비밀번호가 일치하지 않습니다.")
+        }
+    }
 
     fun join(playerId: Long) {
         if (entries.size >= maxEntriesCount) {

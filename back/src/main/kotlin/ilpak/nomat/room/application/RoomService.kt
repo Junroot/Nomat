@@ -3,6 +3,7 @@ package ilpak.nomat.room.application
 import ilpak.nomat.common.exception.BadRequestException
 import ilpak.nomat.common.exception.NotFoundException
 import ilpak.nomat.common.exception.NotFoundResource
+import ilpak.nomat.common.lock.DistributedLockExecutor
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.PlaylistService
 import ilpak.nomat.room.application.domain.Room
@@ -15,7 +16,10 @@ import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomRequest
 import ilpak.nomat.room.application.dto.RoomResponse
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 @Transactional(readOnly = true)
@@ -24,10 +28,16 @@ class RoomService(
     private val roomRepository: RoomRepository,
     private val roomPlaylistTrackRepository: RoomPlaylistTrackRepository,
     private val playerService: PlayerService,
+    private val distributedLockExecutor: DistributedLockExecutor,
+    transactionManager: PlatformTransactionManager,
 ) {
 
+    private val writeTransactionTemplate = TransactionTemplate(transactionManager).apply {
+        propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+    }
+
     fun get(cursorRoomId: Long, size: Int): List<RoomResponse> {
-        val rooms = roomRepository.findByIdLessThanAndStatusOrderByIdDesc(cursorRoomId, RoomStatus.ACTIVE, size)
+        val rooms = roomRepository.findByIdGreaterThanAndStatusOrderByIdDesc(cursorRoomId, RoomStatus.ACTIVE, size)
         val masterIds = rooms.mapNotNull { it.master?.playerId }.toSet()
         val masterIdToNicknameMap = playerService.findByIdIn(masterIds).associate { it.id to it.nickname }
         val trackCountsByRoomIdMap = roomPlaylistTrackRepository.countByRoomIds(rooms.map { it.id })
@@ -89,5 +99,15 @@ class RoomService(
         val savedTracks = roomPlaylistTrackRepository.save(roomPlaylistTracks)
 
         return RoomDetailResponse.of(savedRoom, savedTracks.size, mapOf(playlist.master.id to playlist.master.nickname))
+    }
+
+    fun join(roomId: Long, playerId: Long, password: String?) {
+        distributedLockExecutor.withLock("room:$roomId:lock") {
+            writeTransactionTemplate.executeWithoutResult {
+                val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
+                room.verifyPassword(password)
+                room.join(playerId)
+            }
+        }
     }
 }
