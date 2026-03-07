@@ -17,6 +17,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.TableGenerator
 import jakarta.persistence.Transient
+import org.springframework.data.domain.AbstractAggregateRoot
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
@@ -42,7 +43,7 @@ class Room(
         allocationSize = 1000,
     )
     val id: Long = 0,
-) {
+) : AbstractAggregateRoot<Room>() {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "CHAR(20) NOT NULL")
@@ -84,6 +85,7 @@ class Room(
         entries.add(RoomEntry(playerId))
         _sortedEntries = null
         status = RoomStatus.ACTIVE
+        registerEvent(RoomJoinedEvent(id, playerId))
     }
 
     companion object {
