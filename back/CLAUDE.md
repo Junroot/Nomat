@@ -32,10 +32,10 @@
 
 ```
 module/
-├── in/              # 인바운드 어댑터 (REST 컨트롤러) - `private` 클래스
+├── in/              # 인바운드 어댑터 (REST 컨트롤러, 이벤트 리스너, Redis 구독자 등) - `private` 클래스
 ├── out/             # 아웃바운드 어댑터 (저장소 구현체) - `private` 클래스
 └── application/
-    ├── domain/      # JPA 엔티티 + 저장소 인터페이스 (포트)
+    ├── domain/      # JPA 엔티티 + 저장소 인터페이스 (포트) + 도메인 이벤트
     ├── dto/         # Request/Response DTO
     └── *Service.kt  # 비즈니스 로직
 ```
@@ -48,10 +48,12 @@ module/
 - 도메인 엔티티는 JPA auditing을 통해 `createdBy`/`createdDate`를 위한 `@Embedded AuditMetadata` 사용
 - 커스텀 예외는 `AbstractNomatException(message, HttpStatus)`을 상속 — `GlobalControllerAdvice`에서 처리
 - `NotFoundException`은 `NotFoundResource` enum 값을 인자로 받음
+- **도메인 이벤트**: `AbstractAggregateRoot` 상속 + `registerEvent()`로 도메인 이벤트 등록, `repository.save()` 호출 시 발행. `in/`의 `@TransactionalEventListener(AFTER_COMMIT)` 리스너가 후처리 (예: Redis Pub/Sub 브로드캐스트)
 
 횡단 관심사는 `infrastructure/`에 위치:
 - `security/` — OAuth2 설정, JWT 토큰 필터 (`@Profile("!test")`)
-- `web/` — CORS 설정, 전역 예외 처리, MDC 로깅 필터
+- `web/` — CORS 설정, 전역 예외 처리, MDC 로깅 필터, WebSocket/STOMP 설정 (`/ws` 엔드포인트, `/topic` 브로커, STOMP CONNECT 시 JWT 인증 + 방 입장 인터셉터)
+- `redis/` — 분산 락 (`RedisDistributedLockExecutor`)
 - `cdc/` — MySQL → Elasticsearch 동기화를 위한 Debezium 임베디드 엔진
 - `container/` — local/test용 Testcontainers 빈 (MySQL, ES, Kafka, Redis)
 - `jpa/` — JPA auditing 설정 (`AuditorAwareImpl`이 SecurityContext에서 `createdBy` 설정)
