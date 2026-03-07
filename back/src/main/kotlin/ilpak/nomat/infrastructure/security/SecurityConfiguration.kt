@@ -49,6 +49,6 @@ class SecurityConfiguration(
     }
 
     companion object {
-        val permittedUrls = setOf("/login/**", "/html/**", "/health/**")
+        val permittedUrls = setOf("/login/**", "/html/**", "/health/**", "/ws/**")
     }
 }
