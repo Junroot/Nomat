@@ -45,7 +45,7 @@ services:
     networks:
       - backend
     configs:
-      - source: nginx_conf-3
+      - source: nginx_conf-4
         target: /etc/nginx/nginx.conf
   prometheus:
     image: junroot0909/prometheus:latest
@@ -91,7 +91,7 @@ networks:
     driver: overlay
 configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
-  nginx_conf-3:
+  nginx_conf-4:
     file: ./nginx.conf
 volumes:
   prometheus-data:
