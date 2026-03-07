@@ -12,14 +12,19 @@ import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
+import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
 import ilpak.nomat.room.application.dto.RoomRequest
 import ilpak.nomat.room.application.dto.RoomResponse
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.messaging.converter.MappingJackson2MessageConverter
+import org.springframework.messaging.simp.stomp.StompFrameHandler
 import org.springframework.messaging.simp.stomp.StompHeaders
 import org.springframework.messaging.simp.stomp.StompSession
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter
@@ -28,9 +33,12 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.socket.WebSocketHttpHeaders
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.messaging.WebSocketStompClient
+import java.lang.reflect.Type
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotNull
 
@@ -41,6 +49,7 @@ class RoomJoinIntegrationTest(
     @Autowired private val playlistStep: PlaylistStep,
     @Autowired private val roomStep: RoomStep,
     @Autowired private val tokenService: TokenService,
+    @Autowired private val objectMapper: ObjectMapper,
     @LocalServerPort private val port: Int,
 ) {
 
@@ -142,6 +151,37 @@ class RoomJoinIntegrationTest(
         assertThat(results.values.count { !it }).isEqualTo(1)
     }
 
+    @Test
+    fun `방에 입장하면 기존 유저에게 입장 이벤트가 전달된다`() {
+        val room = roomStep.save(player, dummyRoomRequest(playlist.id))
+        val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
+
+        val sessionA = connectStomp(player, room.id, "password")
+        val receivedEvents = LinkedBlockingQueue<RoomJoinedEventMessage>()
+        sessionA.subscribe("/topic/rooms/${room.id}", object : StompFrameHandler {
+            override fun getPayloadType(headers: StompHeaders): Type = RoomJoinedEventMessage::class.java
+            override fun handleFrame(headers: StompHeaders, payload: Any?) {
+                receivedEvents.add(payload as RoomJoinedEventMessage)
+            }
+        })
+
+        val sessionB = connectStomp(joiner, room.id, "password")
+
+        await()
+            .pollInterval(Duration.ofMillis(100))
+            .atMost(Duration.ofSeconds(5))
+            .untilAsserted {
+                val event = receivedEvents.peek()
+                assertThat(event).isNotNull()
+                assertThat(event.playerId).isEqualTo(joiner.id)
+                assertThat(event.nickname).isEqualTo("joiner")
+                assertThat(event.roomId).isEqualTo(room.id)
+            }
+
+        sessionA.disconnect()
+        sessionB.disconnect()
+    }
+
     private fun getRoomDetail(roomId: Long): RoomDetailResponse? {
         return client.get().uri("/rooms/{roomId}", roomId)
             .auth(player)
@@ -154,6 +194,7 @@ class RoomJoinIntegrationTest(
 
     private fun connectStomp(player: PlayerResponse, roomId: Long, password: String?): StompSession {
         val stompClient = WebSocketStompClient(StandardWebSocketClient())
+        stompClient.messageConverter = MappingJackson2MessageConverter(objectMapper)
 
         val stompHeaders = StompHeaders()
         stompHeaders.add("roomId", roomId.toString())

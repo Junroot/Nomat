@@ -59,15 +59,15 @@ npm run start      # 프로덕션 빌드 서빙
 
 ```
 module/
-├── in/              # 인바운드 어댑터 (REST 컨트롤러) — private class
+├── in/              # 인바운드 어댑터 (REST 컨트롤러, 이벤트 리스너, Redis 구독자 등) — private class
 ├── out/             # 아웃바운드 어댑터 (저장소 구현체) — private class
 └── application/
-    ├── domain/      # JPA 엔티티 + 저장소 인터페이스 (포트)
+    ├── domain/      # JPA 엔티티 + 저장소 인터페이스 (포트) + 도메인 이벤트
     ├── dto/         # Request/Response DTO
     └── *Service.kt  # 비즈니스 로직
 ```
 
-컨트롤러와 저장소 구현체는 **`private class`** — 패키지 외부에서 직접 참조 불가. 횡단 관심사는 `infrastructure/` 패키지에 위치 (security, web, cdc, container, jpa, elasticsearch).
+컨트롤러와 저장소 구현체는 **`private class`** — 패키지 외부에서 직접 참조 불가. 도메인 이벤트는 `AbstractAggregateRoot` + `@TransactionalEventListener(AFTER_COMMIT)` 패턴 사용. 횡단 관심사는 `infrastructure/` 패키지에 위치 (security, web, redis, cdc, container, jpa, elasticsearch).
 
 ### 프론트엔드 — React SPA
 

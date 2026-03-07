@@ -107,6 +107,7 @@ class RoomService(
                 val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
                 room.verifyPassword(password)
                 room.join(playerId)
+                roomRepository.save(room)
             }
         }
     }
