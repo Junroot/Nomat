@@ -1,6 +1,7 @@
 package ilpak.nomat.room.application.domain
 
 import ilpak.nomat.common.exception.ConflictException
+import ilpak.nomat.common.exception.ForbiddenException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -79,6 +80,77 @@ class RoomTest {
 
         assertThatThrownBy { room.join(3) }
             .isExactlyInstanceOf(ConflictException::class.java)
+    }
+
+    @Test
+    fun `verifyPassword_비밀번호가 없는 방은 검증을 통과한다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+
+        room.verifyPassword(null)
+        room.verifyPassword("anything")
+    }
+
+    @Test
+    fun `verifyPassword_비밀번호가 일치하면 검증을 통과한다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = "secret",
+            maxEntriesCount = 5,
+        )
+
+        room.verifyPassword("secret")
+    }
+
+    @Test
+    fun `verifyPassword_비밀번호가 일치하지 않으면 예외가 발생한다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = "secret",
+            maxEntriesCount = 5,
+        )
+
+        assertThatThrownBy { room.verifyPassword("wrong") }
+            .isExactlyInstanceOf(ForbiddenException::class.java)
+    }
+
+    @Test
+    fun `verifyPassword_비밀번호가 있는 방에 비밀번호 없이 입장하면 예외가 발생한다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = "secret",
+            maxEntriesCount = 5,
+        )
+
+        assertThatThrownBy { room.verifyPassword(null) }
+            .isExactlyInstanceOf(ForbiddenException::class.java)
     }
 
     @Test

@@ -21,14 +21,14 @@ private class RoomRepositoryImpl(
         return roomJpaRepository.findByIdOrNull(id)
     }
 
-    override fun findByIdLessThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, size: Int): List<Room> {
-        return roomJpaRepository.findByIdLessThanAndStatusOrderByIdDesc(id, status, Pageable.ofSize(size))
+    override fun findByIdGreaterThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, size: Int): List<Room> {
+        return roomJpaRepository.findByIdGreaterThanAndStatusOrderByIdDesc(id, status, Pageable.ofSize(size))
     }
 
 }
 
 private interface RoomJpaRepository : CrudRepository<Room, Long> {
 
-    fun findByIdLessThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, pageable: Pageable): List<Room>
+    fun findByIdGreaterThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, pageable: Pageable): List<Room>
 }
 
