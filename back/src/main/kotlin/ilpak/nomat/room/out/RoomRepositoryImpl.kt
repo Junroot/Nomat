@@ -17,6 +17,10 @@ private class RoomRepositoryImpl(
         return roomJpaRepository.save(room)
     }
 
+    override fun delete(room: Room) {
+        roomJpaRepository.delete(room)
+    }
+
     override fun findById(id: Long): Room? {
         return roomJpaRepository.findByIdOrNull(id)
     }

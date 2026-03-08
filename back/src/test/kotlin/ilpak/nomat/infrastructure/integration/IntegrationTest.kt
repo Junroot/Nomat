@@ -19,7 +19,7 @@ import java.lang.annotation.Inherited
     classes = [NomatApplication::class, TestConfiguration::class],
     properties = ["spring.main.allow-bean-definition-overriding=true"],
 )
-@TestPropertySource(properties = ["spring.profiles.active=test"])
+@TestPropertySource(properties = ["spring.profiles.active=test", "app.room.reconnect-grace-period-seconds=2"])
 @EnableAutoConfiguration(exclude = [OAuth2ClientAutoConfiguration::class])
 @TestExecutionListeners(
     value = [IntegrationTestExecutionListener::class],

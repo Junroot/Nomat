@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class RoomJoinChannelInterceptor(
     private val roomService: RoomService,
+    private val reconnectGracePeriodManager: ReconnectGracePeriodManager,
 ) : ChannelInterceptor {
 
     override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
@@ -26,11 +27,18 @@ class RoomJoinChannelInterceptor(
         val playerId = accessor.sessionAttributes?.get(JwtHandshakeInterceptor.PLAYER_ID_KEY) as? Long
             ?: throw BadRequestException("인증 정보가 없습니다.")
 
+        if (reconnectGracePeriodManager.cancelGracePeriod(roomId, playerId)) {
+            accessor.sessionAttributes?.set(ROOM_ID_KEY, roomId)
+            return message
+        }
+
         roomService.join(roomId, playerId, password)
+        accessor.sessionAttributes?.set(ROOM_ID_KEY, roomId)
         return message
     }
 
     companion object {
+        const val ROOM_ID_KEY = "roomId"
         private const val ROOM_ID_HEADER = "roomId"
         private const val PASSWORD_HEADER = "password"
     }
