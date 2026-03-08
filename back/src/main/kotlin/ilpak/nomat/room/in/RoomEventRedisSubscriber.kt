@@ -1,7 +1,8 @@
 package ilpak.nomat.room.`in`
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
+import com.fasterxml.jackson.module.kotlin.readValue
+import ilpak.nomat.room.application.dto.RoomEventMessage
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.Message
@@ -19,7 +20,7 @@ private class RoomEventRedisSubscriber(
 ) : MessageListener {
 
     override fun onMessage(message: Message, pattern: ByteArray?) {
-        val event = objectMapper.readValue(message.body, RoomJoinedEventMessage::class.java)
+        val event = objectMapper.readValue<RoomEventMessage>(message.body)
         messagingTemplate.convertAndSend("/topic/rooms/${event.roomId}", event)
     }
 }

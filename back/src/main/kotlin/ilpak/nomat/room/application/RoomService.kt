@@ -111,4 +111,18 @@ class RoomService(
             }
         }
     }
+
+    fun leave(roomId: Long, playerId: Long) {
+        distributedLockExecutor.withLock("room:$roomId:lock") {
+            writeTransactionTemplate.executeWithoutResult {
+                val room = roomRepository.findById(roomId) ?: return@executeWithoutResult
+                room.leave(playerId)
+                if (room.isEmpty) {
+                    roomRepository.delete(room)
+                } else {
+                    roomRepository.save(room)
+                }
+            }
+        }
+    }
 }

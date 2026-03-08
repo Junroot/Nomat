@@ -171,4 +171,89 @@ class RoomTest {
         assertThatThrownBy { room.join(1) }
             .isExactlyInstanceOf(ConflictException::class.java)
     }
+
+    @Test
+    fun `leave_입장한 플레이어가 퇴장하면 entries에서 제거된다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.join(2)
+
+        room.leave(1)
+
+        assertThat(room.playerIds).containsExactly(2L)
+    }
+
+    @Test
+    fun `leave_입장하지 않은 플레이어가 퇴장 시도하면 아무 일도 발생하지 않는다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+
+        room.leave(999)
+
+        assertThat(room.playerIds).containsExactly(1L)
+    }
+
+    @Test
+    fun `leave_퇴장 후 다시 입장할 수 있다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.leave(1)
+
+        room.join(1)
+
+        assertThat(room.playerIds).containsExactly(1L)
+    }
+
+    @Test
+    fun `leave_모든 플레이어가 퇴장하면 방이 비어있다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.join(2)
+
+        room.leave(1)
+        assertThat(room.isEmpty).isFalse()
+
+        room.leave(2)
+        assertThat(room.isEmpty).isTrue()
+    }
 }

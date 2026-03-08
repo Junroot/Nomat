@@ -59,6 +59,9 @@ class Room(
     val playlistMasterId: Long
         get() = playlist.masterId
 
+    val isEmpty: Boolean
+        get() = entries.isEmpty()
+
     @Transient
     private var _sortedEntries: List<RoomEntry>? = null
     val sortedEntries: List<RoomEntry>
@@ -86,6 +89,15 @@ class Room(
         _sortedEntries = null
         status = RoomStatus.ACTIVE
         registerEvent(RoomJoinedEvent(id, playerId))
+    }
+
+    fun leave(playerId: Long) {
+        val removed = entries.removeIf { it.playerId == playerId }
+        if (!removed) {
+            return
+        }
+        _sortedEntries = null
+        registerEvent(RoomLeftEvent(id, playerId))
     }
 
     companion object {
