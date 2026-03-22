@@ -1,11 +1,14 @@
+import { useState } from "react";
 import {
   isRouteErrorResponse,
   Links,
   Meta,
-  Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
+  useOutlet,
 } from "react-router";
+import { AnimatePresence, motion } from "framer-motion";
 
 import type { Route } from "./+types/root";
 import Toaster from "~/components/ui/Toast";
@@ -43,8 +46,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function FrozenOutlet() {
+  const outlet = useOutlet();
+  const [frozen] = useState(outlet);
+  return frozen;
+}
+
 export default function App() {
-  return <Outlet />;
+  const { pathname } = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={pathname}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
+      >
+        <FrozenOutlet />
+      </motion.div>
+    </AnimatePresence>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
