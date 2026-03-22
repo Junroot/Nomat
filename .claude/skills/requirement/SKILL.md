@@ -1,5 +1,5 @@
 ---
-name: analyze
+name: requirement
 description: |
   대화 컨텍스트에서 요구사항을 분석하고, 정리된 GitHub 이슈로 생성하는 스킬.
   사용자가 기능 요청, 버그 리포트, 개선사항 등을 논의한 뒤 이를 이슈로 정리하고 싶을 때 사용한다.
