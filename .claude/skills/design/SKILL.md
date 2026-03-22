@@ -21,16 +21,24 @@ GitHub 이슈의 요구사항을 분석하고, 코드베이스를 탐색하여 �
 사용자가 이슈 번호를 명시하면 해당 이슈를 바로 사용한다.
 
 ```bash
-gh issue view <번호>
+gh issue view <번호> --json labels --jq '.labels[].name'
 ```
 
-이슈 번호가 없으면 `requirement` 라벨이 붙은 이슈 목록을 보여주고 선택하게 한다.
+이슈 번호가 없으면 `requirement` + `verified` 라벨이 모두 붙은 이슈 목록을 보여주고 선택하게 한다.
 
 ```bash
-gh issue list --label "requirement" --state open
+gh issue list --label "requirement,verified" --state open
 ```
 
 목록을 `AskUserQuestion`으로 제시하여 사용자가 선택할 수 있게 한다.
+
+### 1-1단계: 라벨 사전 조건 확인
+
+이슈에 `requirement`와 `verified` 라벨이 **모두** 있는지 확인한다.
+조건을 충족하지 않으면 사용자에게 안내하고 **설계를 진행하지 않는다**.
+
+- `requirement` 라벨 없음 → "이 이슈는 요구사항 분석이 완료되지 않았습니다. 먼저 /requirement를 실행해주세요."
+- `verified` 라벨 없음 → "이 이슈는 검증이 완료되지 않았습니다. 먼저 /verify를 실행해주세요."
 
 ### 2단계: 요구사항 파악
 
@@ -131,12 +139,13 @@ EOF
 )"
 ```
 
-2. `design` 라벨 추가:
+2. `design` 라벨 추가 + `verified` 라벨 제거:
 ```bash
-gh issue edit <번호> --add-label "design"
+gh issue edit <번호> --add-label "design" --remove-label "verified"
 ```
 
 라벨이 저장소에 없으면 먼저 생성한다.
+`verified` 라벨을 제거하는 이유: 설계가 추가되면 다시 검증(/verify)을 받아야 다음 단계로 진행할 수 있다.
 
 ### 7단계: 결과 보고
 
