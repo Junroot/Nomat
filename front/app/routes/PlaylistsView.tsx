@@ -29,6 +29,7 @@ import useMeStore from "~/stores/MeStore";
 import { toast } from "sonner";
 import Button from "~/components/ui/Button";
 import { PlaylistItemSkeleton } from "~/components/ui/Skeleton";
+import ScrollReveal from "~/components/ui/ScrollReveal";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -191,27 +192,28 @@ export default function PlaylistsView() {
                                 </Link>
                             </div>
                         ) : (
-                            playlists.map((playlist) =>
-                                <div
-                                    key={playlist.id}
-                                    id={playlist.id.toString()}
-                                    className={`flex flex-row p-2.5 px-3 gap-3 rounded-lg transition-all duration-200 cursor-pointer hover:bg-neon-cyan/5 ${
-                                        selectedPlaylistId === playlist.id
-                                            ? "bg-neon-cyan/8 border border-neon-cyan/15"
-                                            : "border border-transparent"
-                                    }`}
-                                    onClick={clickPlaylist}
-                                >
-                                    <img
-                                        src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
-                                        className="size-10 rounded-lg object-cover"
-                                        alt="thumbnail"
-                                    />
-                                    <div className="flex flex-col justify-center min-w-0">
-                                        <p className="text-base font-semibold text-zinc-200 truncate">{playlist.title}</p>
-                                        <p className="text-sm text-zinc-500">{playlist.master.displayName}</p>
+                            playlists.map((playlist, index) =>
+                                <ScrollReveal key={playlist.id} delay={index * 50}>
+                                    <div
+                                        id={playlist.id.toString()}
+                                        className={`flex flex-row p-2.5 px-3 gap-3 rounded-lg transition-all duration-200 cursor-pointer hover:bg-neon-cyan/5 ${
+                                            selectedPlaylistId === playlist.id
+                                                ? "bg-neon-cyan/8 border border-neon-cyan/15"
+                                                : "border border-transparent"
+                                        }`}
+                                        onClick={clickPlaylist}
+                                    >
+                                        <img
+                                            src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
+                                            className="size-10 rounded-lg object-cover"
+                                            alt="thumbnail"
+                                        />
+                                        <div className="flex flex-col justify-center min-w-0">
+                                            <p className="text-base font-semibold text-zinc-200 truncate">{playlist.title}</p>
+                                            <p className="text-sm text-zinc-500">{playlist.master.displayName}</p>
+                                        </div>
                                     </div>
-                                </div>
+                                </ScrollReveal>
                             )
                         )}
                     </div>
