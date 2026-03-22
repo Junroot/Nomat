@@ -1,7 +1,6 @@
 import { useParams } from "react-router";
 import AppShell from "~/components/layout/AppShell";
 import SaveIcon from "~/assets/save.svg?react";
-import QuestionMarkSquareIcon from "~/assets/question-mark-squre.svg?react";
 import DeleteIcon from "~/assets/delete.svg?react";
 import StarIcon from "~/assets/star.svg?react";
 import FilledStarIcon from "~/assets/filled-star.svg?react";
@@ -164,12 +163,13 @@ export default function PlaylistWriteView() {
 					<p className="hidden md:block text-4xl font-bold p-4">새 플레이리스트</p>
 					<div className="flex flex-col px-6 gap-2">
 						<p className="text-2xl font-bold">썸네일</p>
-						<p className="px-2 text-zinc-400">썸네일은 대표곡 기준으로 표시됩니다.</p>
 						<div className="mx-auto w-full max-w-48 md:max-w-96 aspect-square">
 							{
 								representativeIndex !== null ?
 									<img className="w-full h-full object-contain rounded-2xl" src={`https://img.youtube.com/vi/${tracks[representativeIndex].embedId}/maxresdefault.jpg`} alt={tracks[representativeIndex].title} draggable={false}/>
-									: <QuestionMarkSquareIcon className="w-full h-full"></QuestionMarkSquareIcon>
+									: <div className="w-full h-full bg-zinc-900 rounded-2xl border border-border flex items-center justify-center">
+										<p className="text-zinc-500 text-sm">대표곡을 선택하면 썸네일이 표시됩니다</p>
+									  </div>
 							}
 						</div>
 					</div>
@@ -215,7 +215,7 @@ export default function PlaylistWriteView() {
 					<div className="w-full flex-1 px-4 py-2">
 						<div className="w-full h-full p-8 bg-zinc-800 text-zinc-200 rounded-2xl flex flex-col gap-2">
 							<div
-								className="px-auto py-6 border-1 text-6xl font-bold text-center hover:bg-zinc-700 rounded-lg cursor-pointer"
+								className="px-auto py-6 border-1 text-6xl font-bold text-center hover:bg-neon-cyan/5 transition-all duration-200 rounded-lg cursor-pointer"
 								onClick={() => {
 									setSelectedTrack(null)
 									setSelectedTrackIndex(null)
@@ -223,9 +223,12 @@ export default function PlaylistWriteView() {
 								}}
 							>+
 							</div>
+							{tracks.length === 0 && (
+								<p className="text-zinc-500 text-center py-8">곡을 추가해보세요</p>
+							)}
 							{
 								tracks.map((track: Track, index: number) => (
-									<div className="flex flex-row items-center p-2 hover:bg-zinc-700 rounded-lg cursor-pointer gap-4"
+									<div className="flex flex-row items-center p-2 hover:bg-neon-cyan/5 transition-all duration-200 rounded-lg cursor-pointer gap-4"
 										 onClick={() => {
 											 setSelectedTrack(track)
 											 setSelectedTrackIndex(index)

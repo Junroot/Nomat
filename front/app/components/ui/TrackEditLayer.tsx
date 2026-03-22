@@ -159,12 +159,14 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 				<div className="p-2 flex justify-center">
 					{ getEmbedIdByUrl(youTubeUrl) ?
 						<YouTube videoId={getEmbedIdByUrl(youTubeUrl) ?? ""} opts={youTubeOptions} onReady={onYouTubeReady}></YouTube>
-						: <div className="w-80 h-45 bg-black"></div>
+						: <div className="w-80 h-45 bg-zinc-900 rounded-lg border border-border flex items-center justify-center">
+							<p className="text-zinc-500 text-sm">YouTube URL을 입력해주세요</p>
+						  </div>
 					}
 				</div>
 				<div className="flex flex-col gap-2 w-full md:w-2xl">
-					<div className="flex flex-col px-4 gap-1">
-						<p className="px-4">YouTube URL</p>
+					<div className="flex flex-col gap-2">
+						<p className="text-sm font-medium text-zinc-300">YouTube URL</p>
 						<div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
 							<input
 								type="text"
@@ -175,10 +177,10 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 								className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
 							/>
 						</div>
-						<p className="px-4 text-xs text-red-600 h-2">{isValidYoutubeUrl() ? " " : "올바른 URL을 입력해 주세요."}</p>
+						<p className="text-xs text-red-600 h-2">{isValidYoutubeUrl() ? " " : "올바른 URL을 입력해 주세요."}</p>
 					</div>
-					<div className="flex flex-col px-4 gap-1">
-						<p className="px-4">제목</p>
+					<div className="flex flex-col gap-2">
+						<p className="text-sm font-medium text-zinc-300">제목</p>
 						<div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
 							<input
 								type="text"
@@ -189,29 +191,29 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 								className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
 							/>
 						</div>
-						<p className="px-4 text-xs text-red-600 h-2">{isValidTitle() ? " " : "제목을 입력해 주세요."}</p>
+						<p className="text-xs text-red-600 h-2">{isValidTitle() ? " " : "제목을 입력해 주세요."}</p>
 					</div>
-					<div className="flex flex-col px-4 gap-1">
-						<p className="px-4">재생 시간</p>
+					<div className="flex flex-col gap-2">
+						<p className="text-sm font-medium text-zinc-300">재생 시간</p>
 						<div className="flex flex-row items-center gap-2">
 							<TimePicker timeSec={startTimeSec} setTimeSec={setStartTimeSec}></TimePicker>
 							<p>-</p>
 							<TimePicker timeSec={endTimeSec} setTimeSec={setEndTimeSec}></TimePicker>
 						</div>
-						<p className="px-4 text-xs text-red-600 h-2">{isValidPlayTime() ? " " : "재생 시간이 올바르지 않습니다."}</p>
+						<p className="text-xs text-red-600 h-2">{isValidPlayTime() ? " " : "재생 시간이 올바르지 않습니다."}</p>
 					</div>
-					<div className="flex flex-col px-4 gap-1">
-						<p className="px-4">반복 횟수</p>
+					<div className="flex flex-col gap-2">
+						<p className="text-sm font-medium text-zinc-300">반복 횟수</p>
 						<div className="flex-1">
 							<Dropdown values={["1", "2", "3", "4", "5"]} selectedValue={repeatCount} setValue={setRepeatCount} ></Dropdown>
 						</div>
-						<p className="px-4 text-xs text-red-600 h-2"></p>
+						<p className="text-xs text-red-600 h-2"></p>
 					</div>
-					<div className="flex flex-col px-4 gap-1">
-						<p className="px-4">추가 정답 <span>({additionalTitles.length}/{maxAdditoinalTitlesCount})</span></p>
+					<div className="flex flex-col gap-2">
+						<p className="text-sm font-medium text-zinc-300">추가 정답 <span>({additionalTitles.length}/{maxAdditoinalTitlesCount})</span></p>
 						<AdditionalTitleEditor maxAdditionalTitlesCount={maxAdditoinalTitlesCount} additionalTitles={additionalTitles} setAdditionalTitles={setAdditionalTitles}></AdditionalTitleEditor>
 					</div>
-					<div className="flex-1 flex flex-row gap-1 flex-wrap text-nowrap px-4 py-1">
+					<div className="flex-1 flex flex-row gap-1 flex-wrap text-nowrap py-1">
 						{
 							additionalTitles.map((title, index) =>
 								<button key={index} className="flex flex-row items-center bg-zinc-600 rounded-full px-3 gap-1 overflow-hidden">
