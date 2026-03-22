@@ -157,7 +157,7 @@ export default function PlaylistsView() {
                                 >
                                 </SelectMenu>
                             </div>
-                            <div className="w-full h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
+                            <div className="w-full h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
                                 <input
                                     type="text"
                                     placeholder="검색어"
