@@ -65,7 +65,7 @@ export default function RoomsView() {
     return (
         <AppShell variant="main" activeTab="rooms" title="플레이 룸">
             <ColumnsContainer>
-                <div className="mx-2 pt-4 px-4 gap-4 w-full flex flex-col items-center">
+                <div className="pt-4 px-4 gap-4 w-full flex flex-col items-center">
                     <div className="w-full max-w-2xl">
                         <SearchBar query={query} setQuery={setQuery}></SearchBar>
                     </div>
