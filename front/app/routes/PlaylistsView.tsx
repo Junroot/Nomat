@@ -216,7 +216,7 @@ export default function PlaylistsView() {
                 </Column1>
                 <Column2>
                     {selectedPlaylist !== null && (
-                        <div className="w-full h-full flex flex-col p-4 gap-4 overflow-y-auto">
+                        <div className="w-full flex flex-col p-4 gap-4">
                             {/* 히어로 영역 */}
                             <div className="flex flex-col md:flex-row gap-4">
                                 <img
