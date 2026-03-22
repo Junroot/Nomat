@@ -34,7 +34,7 @@ export default function MobileHeader(props: MobileHeaderProps) {
     const backButton = (
         <button
             onClick={onBack}
-            className="size-[40px] flex items-center justify-center rounded-lg hover:bg-zinc-800/50 transition-colors"
+            className="size-[40px] flex items-center justify-center rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors"
         >
             <BackArrowIcon className="size-[24px]" />
         </button>
@@ -60,7 +60,7 @@ export default function MobileHeader(props: MobileHeaderProps) {
                         key={index}
                         onClick={action.onClick}
                         title={action.label}
-                        className="size-[40px] flex items-center justify-center rounded-lg hover:bg-zinc-800/50 transition-colors"
+                        className="size-[40px] flex items-center justify-center rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors"
                     >
                         {React.isValidElement<{ className?: string }>(action.icon) &&
                             React.cloneElement(action.icon, {
