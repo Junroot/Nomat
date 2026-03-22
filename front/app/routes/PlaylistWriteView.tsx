@@ -161,11 +161,11 @@ export default function PlaylistWriteView() {
 		>
 			<ColumnsContainer>
 				<Column1>
-					<p className="text-4xl font-bold p-4">새 플레이리스트</p>
+					<p className="hidden md:block text-4xl font-bold p-4">새 플레이리스트</p>
 					<div className="flex flex-col px-6 gap-2">
 						<p className="text-2xl font-bold">썸네일</p>
 						<p className="px-2 text-zinc-400">썸네일은 대표곡 기준으로 표시됩니다.</p>
-						<div className="mx-auto w-full max-w-96 aspect-square">
+						<div className="mx-auto w-full max-w-48 md:max-w-96 aspect-square">
 							{
 								representativeIndex !== null ?
 									<img className="w-full h-full object-contain rounded-2xl" src={`https://img.youtube.com/vi/${tracks[representativeIndex].embedId}/maxresdefault.jpg`} alt={tracks[representativeIndex].title} draggable={false}/>
@@ -208,7 +208,7 @@ export default function PlaylistWriteView() {
 					</div>
 				</Column1>
 				<Column2>
-					<div className="flex flex-row gap-2 mt-22 items-end px-4">
+					<div className="flex flex-row gap-2 mt-4 md:mt-22 items-end px-4">
 						<p className="text-2xl font-bold">곡 목록</p>
 						<p>{`${tracks.length}곡(최대 ${Math.ceil(expectedPlaytime() / 60)}분)`}</p>
 					</div>
