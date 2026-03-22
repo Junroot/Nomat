@@ -155,14 +155,14 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 					&& (isRepresentative() ? <FilledStarIcon></FilledStarIcon>
 						: <StarIcon className="cursor-pointer" onClick={() => props.setRepresentativeIndex(props.selectedIndex)}></StarIcon>) }
 			</div>
-			<div className="flex flex-row items-center gap-2">
-				<div className="p-2">
+			<div className="flex flex-col md:flex-row md:items-center gap-2">
+				<div className="p-2 flex justify-center">
 					{ getEmbedIdByUrl(youTubeUrl) ?
 						<YouTube videoId={getEmbedIdByUrl(youTubeUrl) ?? ""} opts={youTubeOptions} onReady={onYouTubeReady}></YouTube>
 						: <div className="w-80 h-45 bg-black"></div>
 					}
 				</div>
-				<div className="flex flex-col gap-2 w-2xl">
+				<div className="flex flex-col gap-2 w-full md:w-2xl">
 					<div className="flex flex-col px-4 gap-1">
 						<p className="px-4">YouTube URL</p>
 						<div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">

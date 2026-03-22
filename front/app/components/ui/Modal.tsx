@@ -40,7 +40,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
             onAnimationEnd={handleAnimationEnd}
         >
             <div
-                className={`bg-surface border border-border p-6 rounded-2xl shadow-glow-cyan ${closing ? "animate-scale-out" : "animate-scale-in"}`}
+                className={`bg-surface border border-border p-6 rounded-2xl shadow-glow-cyan max-h-[90vh] overflow-y-auto mx-4 ${closing ? "animate-scale-out" : "animate-scale-in"}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}
