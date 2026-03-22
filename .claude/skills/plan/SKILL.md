@@ -19,16 +19,25 @@ description: |
 사용자가 이슈 번호를 명시하면 해당 이슈를 바로 사용한다.
 
 ```bash
-gh issue view <번호> --comments
+gh issue view <번호> --json labels --jq '.labels[].name'
 ```
 
-이슈 번호가 없으면 `requirement`과 `design` 라벨이 모두 붙은 이슈 목록을 보여주고 선택하게 한다.
+이슈 번호가 없으면 `requirement` + `design` + `verified` 라벨이 모두 붙은 이슈 목록을 보여주고 선택하게 한다.
 
 ```bash
-gh issue list --label "requirement" --label "design" --state open
+gh issue list --label "requirement,design,verified" --state open
 ```
 
 목록을 `AskUserQuestion`으로 제시하여 사용자가 선택할 수 있게 한다.
+
+### 1-1단계: 라벨 사전 조건 확인
+
+이슈에 `requirement`, `design`, `verified` 라벨이 **모두** 있는지 확인한다.
+조건을 충족하지 않으면 사용자에게 안내하고 **계획을 진행하지 않는다**.
+
+- `requirement` 라벨 없음 → "이 이슈는 요구사항 분석이 완료되지 않았습니다. 먼저 /requirement를 실행해주세요."
+- `design` 라벨 없음 → "이 이슈는 설계가 완료되지 않았습니다. 먼저 /design을 실행해주세요."
+- `verified` 라벨 없음 → "이 이슈는 검증이 완료되지 않았습니다. 먼저 /verify를 실행해주세요."
 
 ### 2단계: 이슈 분석
 
