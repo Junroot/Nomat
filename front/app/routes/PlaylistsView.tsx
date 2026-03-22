@@ -138,15 +138,19 @@ export default function PlaylistsView() {
         <AppShell variant="main" activeTab="playlists" title="플레이리스트">
             <ColumnsContainer>
                 <Column1>
-                    <div className="flex flex-row px-4 pt-4 gap-4">
+                    <div className="bg-card rounded-lg p-1 flex gap-1 mx-4 mt-4">
                         {tabLabels.map((label, idx) => (
-                            <p
+                            <button
                                 key={tabTypes[idx]}
-                                className={`text-3xl font-bold cursor-pointer ${selectedTab === tabTypes[idx] ? "text-zinc-200" : "text-zinc-600"}`}
+                                className={`flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                                    selectedTab === tabTypes[idx]
+                                        ? "bg-neon-cyan/15 text-neon-cyan"
+                                        : "text-zinc-500 hover:text-zinc-300"
+                                }`}
                                 onClick={() => setSelectedTab(tabTypes[idx])}
                             >
                                 {label}
-                            </p>
+                            </button>
                         ))}
                     </div>
                     {selectedTab === "all" && (
@@ -157,10 +161,8 @@ export default function PlaylistsView() {
                                     selectedOption={selectedSearchType}
                                     selectedHandler={(selectedOption: string) => {
                                         setSelectedSearchType(selectedOption);
-                                    }
-                                    }
-                                >
-                                </SelectMenu>
+                                    }}
+                                />
                             </div>
                             <div className="w-full h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
                                 <input
@@ -173,24 +175,38 @@ export default function PlaylistsView() {
                             </div>
                         </div>
                     )}
-                    <div className="flex flex-col grow py-2 bg-zinc-800 rounded-2xl overflow-y-auto">
-                        {
-                            playlists.map((playlist, i) =>
-                                <div key={i} id={playlist.id.toString()}
-                                     className="flex flex-row p-2 gap-4 hover:bg-zinc-600" onClick={clickPlaylist}>
+                    <div className="flex flex-col grow py-2 overflow-y-auto">
+                        {playlists.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-zinc-500 py-8">
+                                <p>아직 플레이리스트가 없습니다</p>
+                                <Link to="/playlists/create">
+                                    <Button variant="primary">새 플레이리스트 만들기</Button>
+                                </Link>
+                            </div>
+                        ) : (
+                            playlists.map((playlist) =>
+                                <div
+                                    key={playlist.id}
+                                    id={playlist.id.toString()}
+                                    className={`flex flex-row p-2.5 px-3 gap-3 rounded-lg transition-all duration-200 cursor-pointer hover:bg-neon-cyan/5 ${
+                                        selectedPlaylistId === playlist.id
+                                            ? "bg-neon-cyan/8 border border-neon-cyan/15"
+                                            : "border border-transparent"
+                                    }`}
+                                    onClick={clickPlaylist}
+                                >
                                     <img
                                         src={`https://img.youtube.com/vi/${playlist.representativeTrack.embedId}/mqdefault.jpg`}
-                                        className="size-16 object-cover"
-                                        alt="tumbnail"
-                                    >
-                                    </img>
-                                    <div className="flex flex-col justify-center">
-                                        <p className="text-xl font-bold">{playlist.title}</p>
-                                        <p className="text-zinc-400">{playlist.master.displayName}</p>
+                                        className="size-10 rounded-lg object-cover"
+                                        alt="thumbnail"
+                                    />
+                                    <div className="flex flex-col justify-center min-w-0">
+                                        <p className="text-sm font-semibold text-zinc-200 truncate">{playlist.title}</p>
+                                        <p className="text-xs text-zinc-500">{playlist.master.displayName}</p>
                                     </div>
                                 </div>
                             )
-                        }
+                        )}
                     </div>
                     <Link className="w-full pb-4" to="/playlists/create">
                         <Button variant="primary" size="lg" fullWidth>새 플레이리스트</Button>
