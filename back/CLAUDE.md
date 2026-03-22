@@ -60,15 +60,136 @@ module/
 
 ## 테스트 패턴
 
-테스트는 커스텀 어노테이션 `@IntegrationTest`를 사용한 **통합 테스트**:
-- `RANDOM_PORT`와 `test` 프로파일로 전체 Spring 컨텍스트 부트
+### 핵심 원칙: No Mocking
+
+MockK, Mockito 등 모킹 라이브러리를 사용하지 않는다. 모든 외부 의존성(MySQL, Redis, Elasticsearch, Kafka)은 Testcontainers로 실제 인스턴스를 제공하여 통합 테스트한다. 서비스 계층의 단위 테스트는 작성하지 않고, Step 클래스를 통한 통합 테스트로 간접 검증한다.
+
+### 인프라 설정
+
+- 커스텀 `@IntegrationTest` 어노테이션으로 전체 Spring 컨텍스트 부트 (`RANDOM_PORT`, `test` 프로파일)
 - `ContainerConfiguration`을 통해 Testcontainers (MySQL, Elasticsearch, Kafka, Redis) 사용
-- 각 테스트 인스턴스마다 Flyway `clean()` + `migrate()` 실행 (`IntegrationTestExecutionListener`)
-- OAuth2는 제외하고, `TestAuthenticationFilter`가 `playerId` 헤더를 읽어 인증을 시뮬레이션
-- HTTP 검증에 `WebTestClient` 사용
-- `auth(playerResponse)` 확장 함수로 인증 요청의 `playerId` 헤더 설정
-- **Step 클래스** (`PlayerStep`, `PlaylistStep`, `RoomStep`, `FavoritePlaylistStep`)가 재사용 가능한 테스트 셋업 헬퍼 제공
-- Elasticsearch 인덱싱에 의존하는 테스트는 `Awaitility`를 사용해 최종 일관성 처리
+- 각 테스트 인스턴스마다 Flyway `clean()` + `migrate()` + Redis flush 실행 (`IntegrationTestExecutionListener`)
+- OAuth2는 제외하고, `TestAuthenticationFilter`가 `playerId` 헤더를 읽어 인증 시뮬레이션
+
+### 테스트 유형별 가이드
+
+**1. 컨트롤러 통합 테스트** (`in/` 디렉토리)
+
+`@IntegrationTest` + `WebTestClient`로 HTTP 요청을 보낸다. `.auth(playerResponse)` 확장 함수로 인증 처리.
+
+```kotlin
+@IntegrationTest
+class MyControllerTest(
+    @Autowired private val client: WebTestClient,
+    @Autowired private val playerStep: PlayerStep,
+) {
+    private lateinit var playerResponse: PlayerResponse
+
+    @BeforeEach
+    fun setUp() {
+        playerResponse = playerStep.save(dummyPlayerRequest())
+    }
+
+    @Test
+    fun save() {
+        client.post().uri("/my-resource")
+            .auth(playerResponse)
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isCreated
+            .expectBody<MyResponse>()
+            .value {
+                assertThat(it).usingRecursiveComparison()
+                    .ignoringFields("id")
+                    .isEqualTo(expected)
+            }
+    }
+}
+```
+
+**2. 도메인 단위 테스트** (`application/domain/` 디렉토리)
+
+Spring 컨텍스트 없이 순수 Kotlin 단위 테스트. 엔티티의 비즈니스 로직만 검증.
+
+```kotlin
+class MyEntityTest {
+    @Test
+    fun `create_초기 상태 검증`() {
+        val entity = MyEntity(...)
+        assertThat(entity.status).isEqualTo(MyStatus.PENDING)
+    }
+
+    @Test
+    fun `doSomething_조건 미충족 시 예외 발생`() {
+        val entity = MyEntity(...)
+        assertThatThrownBy { entity.doSomething() }
+            .isExactlyInstanceOf(ConflictException::class.java)
+    }
+}
+```
+
+**3. DTO 검증 테스트** (`dto/` 디렉토리)
+
+`HibernateValidator`로 Jakarta Bean Validation 어노테이션 검증.
+
+```kotlin
+class MyRequestTest {
+    @Test
+    fun create() {
+        val result = HibernateValidator.default.validate(getRequest())
+        assertThat(result).isEmpty()
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidTitle")
+    fun invalidTitle(title: String) {
+        val request = getRequest().copy(title = title)
+        val result = HibernateValidator.default.validate(request)
+        assertThat(result).hasSize(1)
+    }
+
+    companion object {
+        @JvmStatic
+        fun invalidTitle(): List<String> = listOf("", "a".repeat(MAX_LENGTH + 1))
+    }
+}
+```
+
+**4. WebSocket/STOMP 테스트** (실시간 기능)
+
+`WebSocketStompClient`로 STOMP 연결, `LinkedBlockingQueue` + Awaitility로 비동기 메시지 검증.
+
+### Step 클래스 & 픽스처
+
+테스트 데이터 생성은 Step 클래스(`PlayerStep`, `PlaylistStep`, `RoomStep`, `FavoritePlaylistStep`)와 `dummy*Request()` 팩토리 함수를 활용한다. 새 도메인을 추가하면 해당 Step 클래스도 함께 생성한다.
+
+```kotlin
+val player = playerStep.save(dummyPlayerRequest())
+val playlist = playlistStep.save(player, dummyPlaylistCreationRequest())
+val room = roomStep.save(player, dummyRoomRequest(playlist.id))
+```
+
+### 테스트 메서드 네이밍
+
+한국어 백틱으로 테스트 의도를 명확히 한다. 단순 정상 케이스는 영어 메서드명도 허용.
+
+```kotlin
+fun `save_플레이어는 1000개까지만 플레이리스트 생성 가능`()
+fun `join_방 정원 초과 시 예외 발생`()
+fun save()  // 단순 정상 케이스
+```
+
+### 비동기 처리
+
+Elasticsearch 인덱싱, WebSocket 메시지 등 비동기 작업은 Awaitility로 대기한다:
+
+```kotlin
+await()
+    .pollDelay(Duration.ofSeconds(1))
+    .pollInterval(Duration.ofSeconds(1))
+    .atMost(Duration.ofSeconds(5))
+    .untilAsserted { /* 검증 */ }
+```
 
 ## 데이터베이스 마이그레이션
 
