@@ -88,7 +88,7 @@
   animation: scale-out 0.2s ease-out forwards;
 }
 @utility animate-slide-down {
-  animation: slide-down 0.2s ease-out;
+  animation: slide-down 0.2s ease-out forwards;
 }
 
 /* 그라디언트 배경 */
