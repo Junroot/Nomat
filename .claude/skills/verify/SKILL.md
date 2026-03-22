@@ -5,7 +5,7 @@ description: |
   검증 결과는 이슈 코멘트로 기록하고 사용자에게도 요약 보고한다.
   "검증해줘", "#123 검증", "이슈 검토해줘", "다음 단계 넘어가도 돼?", "코드랑 맞는지 확인해줘",
   "설계 검증", "요구사항 검증", "이슈 리뷰해줘", "verify" 등의 표현이 나올 때 트리거한다.
-  analyze, design, plan 각 단계의 산출물을 코드베이스와 대조하여
+  requirement, design, plan 각 단계의 산출물을 코드베이스와 대조하여
   모순, 누락, 실현 불가능한 항목을 찾아낼 때 사용한다.
 ---
 
@@ -97,7 +97,28 @@ gh issue view <번호> --comments
 [다음 단계로 넘어가도 되는지, 또는 수정 후 재검증이 필요한지]
 ```
 
-### 5단계: 결과 보고
+### 5단계: 기존 검증 코멘트 정리
+
+새 검증을 작성하기 전에, 해당 이슈에 이전 검증 코멘트가 있으면 **outdated로 숨김 처리**한다.
+`gh api`를 사용하여 이슈의 코멘트 목록을 조회하고, `## 검증 결과`로 시작하는 코멘트를 찾아 minimize(숨김) 처리한다.
+
+```bash
+# 이슈 코멘트 목록 조회
+gh api repos/{owner}/{repo}/issues/<번호>/comments --jq '.[] | select(.body | startswith("## 검증 결과")) | .node_id'
+
+# 각 코멘트를 OUTDATED로 숨김 처리
+gh api graphql -f query='
+  mutation {
+    minimizeComment(input: {subjectId: "<node_id>", classifier: OUTDATED}) {
+      minimizedComment { isMinimized }
+    }
+  }
+'
+```
+
+이전 검증이 여러 건 있으면 모두 숨김 처리한다. 새 검증 코멘트만 펼쳐진 상태로 남아야 한다.
+
+### 6단계: 결과 보고
 
 1. 이슈에 검증 코멘트를 작성한다:
 ```bash
