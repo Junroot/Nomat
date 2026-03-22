@@ -144,7 +144,7 @@ export default function PlaylistsView() {
                         {tabLabels.map((label, idx) => (
                             <button
                                 key={tabTypes[idx]}
-                                className={`flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                                className={`flex-1 px-3 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 cursor-pointer ${
                                     selectedTab === tabTypes[idx]
                                         ? "bg-neon-cyan/15 text-neon-cyan"
                                         : "text-zinc-500 hover:text-zinc-300"
@@ -203,8 +203,8 @@ export default function PlaylistsView() {
                                         alt="thumbnail"
                                     />
                                     <div className="flex flex-col justify-center min-w-0">
-                                        <p className="text-sm font-semibold text-zinc-200 truncate">{playlist.title}</p>
-                                        <p className="text-xs text-zinc-500">{playlist.master.displayName}</p>
+                                        <p className="text-base font-semibold text-zinc-200 truncate">{playlist.title}</p>
+                                        <p className="text-sm text-zinc-500">{playlist.master.displayName}</p>
                                     </div>
                                 </div>
                             )
@@ -225,12 +225,12 @@ export default function PlaylistsView() {
                                     alt="thumbnail"
                                 />
                                 <div className="flex flex-col gap-2 min-w-0">
-                                    <p className="text-xl font-extrabold text-zinc-200">{selectedPlaylist.title}</p>
-                                    <div className="flex flex-col text-xs text-zinc-500 leading-relaxed">
+                                    <p className="text-2xl font-extrabold text-zinc-200">{selectedPlaylist.title}</p>
+                                    <div className="flex flex-col text-sm text-zinc-500 leading-relaxed">
                                         <p><UserIcon className="inline-block size-4 mr-1"/>{selectedPlaylist.master.displayName}</p>
                                         <p><SongIcon className="inline-block size-4 mr-1"/>{selectedPlaylist.trackCount}곡 (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>
                                     </div>
-                                    <p className="text-sm text-zinc-400 line-clamp-3">{selectedPlaylist.description}</p>
+                                    <p className="text-base text-zinc-400 line-clamp-3">{selectedPlaylist.description}</p>
                                     <div className="flex flex-row items-center gap-2 mt-1">
                                         <Button
                                             variant="icon"
