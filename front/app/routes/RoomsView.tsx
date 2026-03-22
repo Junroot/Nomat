@@ -147,7 +147,7 @@ export default function RoomsView() {
                     </div>
                 </div>
             </ColumnsContainer>
-            {showCreate && <RoomCreate onClose={() => setShowCreate(false)} />}
+            <RoomCreate isOpen={showCreate} onClose={() => setShowCreate(false)} />
         </AppShell>
     );
 }
