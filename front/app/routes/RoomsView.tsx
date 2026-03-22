@@ -49,7 +49,7 @@ export default function RoomsView() {
             },
             {
                 id: 4,
-                title: "애니 OST 맞추기",
+                title: "애니 OST 맞히기",
                 playlist: { id: 4, title: "오타쿠", trackCount: 15 },
                 representativeTrackEmbedId: "UxxajLWwzqY",
                 masterDisplayName: "오타쿠",

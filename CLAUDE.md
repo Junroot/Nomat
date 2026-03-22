@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-Nomat은 노래 맞추기 게임 애플리케이션이다. 사용자는 Discord OAuth2로 인증하고, YouTube 트랙 기반 플레이리스트를 생성/관리하며, 공유 감상 방에 참여한다. 모노레포 구조로 백엔드, 프론트엔드, 인프라 코드를 포함한다.
+Nomat은 노래 맞히기 게임 애플리케이션이다. 사용자는 Discord OAuth2로 인증하고, YouTube 트랙 기반 플레이리스트를 생성/관리하며, 공유 감상 방에 참여한다. 모노레포 구조로 백엔드, 프론트엔드, 인프라 코드를 포함한다.
 
 ## 저장소 구조
 

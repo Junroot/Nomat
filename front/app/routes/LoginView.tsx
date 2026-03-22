@@ -30,7 +30,7 @@ export default function LoginView() {
                     NOMAT
                 </h1>
                 <p className="text-zinc-500 text-base mb-10">
-                    친구들과 함께하는 노래 맞추기 게임
+                    친구들과 함께하는 노래 맞히기 게임
                 </p>
                 <button
                     className="inline-flex items-center gap-3 px-8 py-3.5 bg-[#5865f2] rounded-[14px] text-white font-bold text-base cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
