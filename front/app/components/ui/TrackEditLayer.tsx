@@ -164,28 +164,28 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 				<div className="flex flex-col gap-2 w-2xl">
 					<div className="flex flex-col px-4 gap-1">
 						<p className="px-4">YouTube URL</p>
-						<div className="flex-1 h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
+						<div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
 							<input
 								type="text"
 								placeholder="YouTube URL"
 								value={youTubeUrl}
 								onChange={(e) => {setYouTubeUrl(e.target.value)}}
 								maxLength={100}
-								className="w-full pl-[8px] focus:outline-none"
+								className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
 							/>
 						</div>
 						<p className="px-4 text-xs text-red-600 h-2">{isValidYoutubeUrl() ? " " : "올바른 URL을 입력해 주세요."}</p>
 					</div>
 					<div className="flex flex-col px-4 gap-1">
 						<p className="px-4">제목</p>
-						<div className="flex-1 h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
+						<div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
 							<input
 								type="text"
 								placeholder="제목"
 								value={title}
 								onChange={(e) => {setTitle(e.target.value)}}
 								maxLength={maxTitleLength}
-								className="w-full pl-[8px] focus:outline-none"
+								className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
 							/>
 						</div>
 						<p className="px-4 text-xs text-red-600 h-2">{isValidTitle() ? " " : "제목을 입력해 주세요."}</p>

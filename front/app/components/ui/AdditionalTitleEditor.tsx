@@ -32,7 +32,7 @@ export default function AdditionalTitleEditor({maxAdditionalTitlesCount, additio
     }
 
     return (
-        <div className={"flex-1 h-10 p-2 shrink text-zinc-200 rounded-full " + (canInput() ? "bg-zinc-600" : "bg-zinc-800")}>
+        <div className={"flex-1 h-10 p-2 shrink border text-zinc-200 rounded-full transition-all duration-200 " + (canInput() ? "bg-surface border-border focus-within:border-neon-cyan focus-within:shadow-glow-cyan" : "bg-zinc-800 border-border")}>
             <input
                 disabled={!canInput()}
                 type="text"
@@ -41,7 +41,7 @@ export default function AdditionalTitleEditor({maxAdditionalTitlesCount, additio
                 maxLength={maxTitleLength}
                 onChange={(e) => {setAdditionalTitle(e.target.value)}}
                 onKeyDown={handleInputKeyDown}
-                className="w-full pl-[8px] focus:outline-none"
+                className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
             />
         </div>
     )

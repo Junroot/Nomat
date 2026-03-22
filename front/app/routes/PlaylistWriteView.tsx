@@ -181,20 +181,20 @@ export default function PlaylistWriteView() {
 					</div>
 					<div className="flex flex-col px-4 gap-2">
 						<p className="text-2xl font-bold">이름</p>
-						<div className="w-full h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
+						<div className="w-full h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
 							<input
 								type="text"
 								placeholder="이름"
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								maxLength={maxTitleLength}
-								className="w-full pl-[8px] focus:outline-none"
+								className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
 							/>
 						</div>
 					</div>
 					<div className="flex flex-col px-4 gap-2">
 						<p className="text-2xl font-bold">소개</p>
-						<div className="w-full p-2 shrink bg-zinc-600 text-zinc-200 rounded-2xl">
+						<div className="w-full p-2 shrink bg-surface border border-border text-zinc-200 rounded-2xl focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
                             <textarea
 								rows={1}
 								ref={descriptionRef}
@@ -208,7 +208,7 @@ export default function PlaylistWriteView() {
 								onInput={handleDescriptionInput}
 								onChange={(e) => setDescription(e.target.value)}
 								maxLength={maxDescriptionLength}
-								className="w-full pl-[8px] resize-none overflow-hidden focus:outline-none"
+								className="w-full pl-[8px] placeholder-zinc-500 resize-none overflow-hidden focus:outline-none"
 							/>
 						</div>
 					</div>

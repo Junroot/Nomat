@@ -185,7 +185,7 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                             {!selectedPlaylist && (
                                 <input
                                     type="text"
-                                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-secondary transition"
+                                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200"
                                     placeholder="플레이리스트 검색"
                                     value={searchTerm}
                                     onChange={e => {
@@ -248,7 +248,7 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                         <label className="block mb-2 text-sm font-semibold text-zinc-300">방 이름</label>
                         <input
                             type="text"
-                            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-secondary transition"
+                            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200"
                             placeholder="1자 이상 입력"
                             value={roomName}
                             onChange={e => setRoomName(e.target.value)}
@@ -261,7 +261,7 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                     <div>
                         <label className="block mb-2 text-sm font-semibold text-zinc-300">최대 인원수</label>
                         <select
-                            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-secondary transition"
+                            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200"
                             value={selectedRoomCapacity}
                             onChange={e => setSelectedRoomCapacity(Number(e.target.value))}
                         >
@@ -282,7 +282,7 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                             />
                             <input
                                 type="password"
-                                className={`w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-secondary transition ${!usePassword ? 'opacity-50' : ''}`}
+                                className={`w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200 ${!usePassword ? 'opacity-50' : ''}`}
                                 placeholder="비밀번호 입력"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
