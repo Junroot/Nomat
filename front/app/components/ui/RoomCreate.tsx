@@ -143,7 +143,7 @@ export default function RoomCreate({isOpen, onClose}: RoomCreateProps) {
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
-            <div className="w-full max-w-md">
+            <div className="w-[28rem] max-w-full">
                 <div className="text-xl font-bold mb-6 text-center text-zinc-100">방 만들기</div>
                 <form className="flex flex-col gap-5">
                     {/* 플레이리스트 선택 */}
@@ -296,6 +296,7 @@ export default function RoomCreate({isOpen, onClose}: RoomCreateProps) {
                     {/* 버튼 */}
                     <div className="flex gap-2 mt-2">
                         <Button
+                            type="button"
                             variant="primary"
                             size="lg"
                             fullWidth
@@ -309,6 +310,7 @@ export default function RoomCreate({isOpen, onClose}: RoomCreateProps) {
                             만들기
                         </Button>
                         <Button
+                            type="button"
                             variant="secondary"
                             size="lg"
                             fullWidth
