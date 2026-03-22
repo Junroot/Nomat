@@ -1,7 +1,6 @@
 import { useParams } from "react-router";
 import AppShell from "~/components/layout/AppShell";
 import SaveIcon from "~/assets/save.svg?react";
-import QuestionMarkSquareIcon from "~/assets/question-mark-squre.svg?react";
 import DeleteIcon from "~/assets/delete.svg?react";
 import StarIcon from "~/assets/star.svg?react";
 import FilledStarIcon from "~/assets/filled-star.svg?react";
@@ -169,7 +168,9 @@ export default function PlaylistWriteView() {
 							{
 								representativeIndex !== null ?
 									<img className="w-full h-full object-contain rounded-2xl" src={`https://img.youtube.com/vi/${tracks[representativeIndex].embedId}/maxresdefault.jpg`} alt={tracks[representativeIndex].title} draggable={false}/>
-									: <QuestionMarkSquareIcon className="w-full h-full"></QuestionMarkSquareIcon>
+									: <div className="w-full h-full bg-zinc-900 rounded-2xl border border-border flex items-center justify-center">
+										<p className="text-zinc-500 text-sm">대표곡을 선택하면 썸네일이 표시됩니다</p>
+									  </div>
 							}
 						</div>
 					</div>
