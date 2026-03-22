@@ -272,6 +272,7 @@ export default function PlaylistsView() {
                                 embedId={selectedPlaylist.representativeTrack.embedId}
                                 startTimeSec={selectedPlaylist.representativeTrack.startTimeSec}
                                 endTimeSec={selectedPlaylist.representativeTrack.endTimeSec}
+                                title={selectedPlaylist.title}
                             />
                         </div>
                     )}
