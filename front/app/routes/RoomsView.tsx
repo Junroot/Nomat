@@ -155,7 +155,7 @@ export default function RoomsView() {
                                     </Link>
                                 ))}
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             </ColumnsContainer>
