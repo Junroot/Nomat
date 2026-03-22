@@ -36,7 +36,7 @@ export default function Dropdown({values, selectedValue, setValue}: DropdownProp
                 <button
                     type="button"
                     onClick={toggleDropdown}
-                    className="inline-flex flex flex-row w-full rounded-full p-2 h-10 bg-surface border border-border pl-[16px] transition-all duration-200 hover:border-neon-cyan"
+                    className="inline-flex flex flex-row w-full rounded-full p-2 h-10 bg-surface border border-border pl-[16px] transition-colors duration-200 hover:border-neon-cyan"
                 >
                     <p className="flex-1">{ selectedValue }</p>
                     {isOpen
@@ -46,7 +46,7 @@ export default function Dropdown({values, selectedValue, setValue}: DropdownProp
                 </button>
             </div>
 
-            <div className={`absolute right-0 mt-2 w-full rounded-2xl bg-card border border-border shadow-glow-cyan transition-all duration-200 origin-top ${isOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-2 scale-95 pointer-events-none"}`}>
+            <div className={`absolute right-0 mt-2 w-full rounded-2xl bg-card border border-border shadow-glow-cyan transition-[opacity,transform] duration-200 origin-top ${isOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-2 scale-95 pointer-events-none"}`}>
                     <div>
                         {
                             values.map((value, index) =>
