@@ -34,8 +34,7 @@ export default function Dropdown({values, selectedValue, setValue}: DropdownProp
                 </button>
             </div>
 
-            {isOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-full rounded-2xl bg-card border border-border shadow-glow-cyan animate-slide-down">
+            <div className={`absolute right-0 mt-2 w-full rounded-2xl bg-card border border-border shadow-glow-cyan transition-all duration-200 origin-top ${isOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-2 scale-95 pointer-events-none"}`}>
                     <div>
                         {
                             values.map((value, index) =>
@@ -46,7 +45,6 @@ export default function Dropdown({values, selectedValue, setValue}: DropdownProp
                         }
                     </div>
                 </div>
-            )}
         </div>
   )
 }

@@ -20,8 +20,7 @@ export default function SelectMenu({options, selectedOption, selectedHandler}: S
           <span className={`ml-2 transition-all duration-200 ${isOpen ? "text-neon-cyan" : ""}`}>{isOpen ? "▲" : "▼"}</span>
         </button>
 
-        {isOpen && (
-          <ul className="absolute left-0 mt-2 w-full z-100 bg-card border border-border text-zinc-200 rounded-lg shadow-glow-cyan animate-slide-down">
+        <ul className={`absolute left-0 mt-2 w-full z-100 bg-card border border-border text-zinc-200 rounded-lg shadow-glow-cyan transition-all duration-200 origin-top ${isOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-2 scale-95 pointer-events-none"}`}>
             {options.map((option, index) => (
               <li
                 key={index}
@@ -35,7 +34,6 @@ export default function SelectMenu({options, selectedOption, selectedHandler}: S
               </li>
             ))}
           </ul>
-        )}
       </div>
     );
   }
