@@ -92,6 +92,15 @@
   animation: slide-down 0.2s ease-out forwards;
 }
 
+@keyframes pulse-star {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@utility animate-pulse-star {
+  animation: pulse-star 0.3s ease-out;
+}
+
 @keyframes stagger-fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
