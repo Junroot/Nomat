@@ -109,6 +109,15 @@
   animation: stagger-fade-in 0.3s ease-out both;
 }
 
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -20px); }
+}
+@keyframes float-reverse {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20px, 30px); }
+}
+
 /* 그라디언트 배경 */
 @utility bg-gradient-dark {
   background: linear-gradient(145deg, #18181b, #1a1a22);
