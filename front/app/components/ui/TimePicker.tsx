@@ -85,14 +85,14 @@ export default function TimePicker({timeSec, setTimeSec}: TimePickerProps) {
     }
 
     return (
-        <div className="flex-1 h-10 p-2 shrink bg-zinc-600 text-zinc-200 rounded-full">
+        <div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
             <input
                 ref={inputRef}
                 type="text"
                 value={formatedTime}
-                readOnly
+                onChange={() => {}}
                 onKeyDown={handleInputKeyDown}
-                className="w-full pl-[8px] focus:outline-none"
+                className="w-full pl-[8px] caret-neon-cyan focus:outline-none"
             />
         </div>
     )

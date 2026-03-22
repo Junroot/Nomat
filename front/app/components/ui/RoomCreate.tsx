@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {fetchFavoritePlaylists, fetchMyPlaylists, searchPlaylistsByTitle} from "~/utils/api";
+import Button from "~/components/ui/Button";
+import Dropdown from "~/components/ui/Dropdown";
 
 interface PlaylistOption {
     value: number;
@@ -183,48 +185,47 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                                 </button>
                             </div>
                             {!selectedPlaylist && (
-                                <input
-                                    type="text"
-                                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200"
-                                    placeholder="플레이리스트 검색"
-                                    value={searchTerm}
-                                    onChange={e => {
-                                        setSearchTerm(e.target.value);
-                                        setSelectedPlaylist(null);
-                                    }}
-                                    onFocus={() => setInputFocused(true)}
-                                    onBlur={() => setTimeout(() => setInputFocused(false), 150)}
-                                />
+                                <div className="w-full h-10 p-2 bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
+                                    <input
+                                        type="text"
+                                        className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
+                                        placeholder="플레이리스트 검색"
+                                        value={searchTerm}
+                                        onChange={e => {
+                                            setSearchTerm(e.target.value);
+                                            setSelectedPlaylist(null);
+                                        }}
+                                        onFocus={() => setInputFocused(true)}
+                                        onBlur={() => setTimeout(() => setInputFocused(false), 150)}
+                                    />
+                                </div>
                             )}
                             {/* 자동완성 드롭다운: 탭 없이 목록만 노출 */}
                             {inputFocused && !selectedPlaylist && (
                                 <div
-                                    className="absolute z-10 w-full bg-zinc-900 rounded-b-lg border border-zinc-700 shadow-lg max-h-56 overflow-y-auto pt-0">
-                                    {/* 전체 탭: 검색 결과 */}
-                                    <div>
-                                        {isLoading && (
-                                            <div className="px-3 py-2 text-zinc-400 text-center">검색 중...</div>
-                                        )}
-                                        {searchError && (
-                                            <div className="px-3 py-2 text-red-400 text-center">{searchError}</div>
-                                        )}
-                                        {!isLoading && !searchError && filteredPlaylists.length === 0 && normalizedSearch.length > 0 && (
-                                            <div className="px-3 py-2 text-zinc-400 text-center">검색 결과 없음</div>
-                                        )}
-                                        {!isLoading && !searchError && filteredPlaylists.map(p => (
-                                            <div
-                                                key={p.value}
-                                                className="px-3 py-2 text-zinc-100 cursor-pointer hover:bg-zinc-700 transition flex items-center justify-between gap-2"
-                                                onMouseDown={() => {
-                                                    setSelectedPlaylist(p);
-                                                    setSearchTerm("");
-                                                    setInputFocused(false);
-                                                }}
-                                            >
-                                                <span>{p.title}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    className="absolute z-10 w-full mt-2 bg-card rounded-2xl border border-border shadow-glow-cyan max-h-56 overflow-y-auto">
+                                    {isLoading && (
+                                        <div className="px-4 py-2 text-zinc-400 text-center">검색 중...</div>
+                                    )}
+                                    {searchError && (
+                                        <div className="px-4 py-2 text-red-400 text-center">{searchError}</div>
+                                    )}
+                                    {!isLoading && !searchError && filteredPlaylists.length === 0 && normalizedSearch.length > 0 && (
+                                        <div className="px-4 py-2 text-zinc-400 text-center">검색 결과 없음</div>
+                                    )}
+                                    {!isLoading && !searchError && filteredPlaylists.map(p => (
+                                        <div
+                                            key={p.value}
+                                            className="px-4 py-2 text-zinc-200 cursor-pointer rounded-2xl transition-all duration-200 hover:bg-neon-cyan/10 hover:text-neon-cyan"
+                                            onMouseDown={() => {
+                                                setSelectedPlaylist(p);
+                                                setSearchTerm("");
+                                                setInputFocused(false);
+                                            }}
+                                        >
+                                            <span>{p.title}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                             {/* 선택된 플레이리스트 */}
@@ -246,13 +247,15 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                     {/* 방 이름 */}
                     <div>
                         <label className="block mb-2 text-sm font-semibold text-zinc-300">방 이름</label>
-                        <input
-                            type="text"
-                            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200"
-                            placeholder="1자 이상 입력"
-                            value={roomName}
-                            onChange={e => setRoomName(e.target.value)}
-                        />
+                        <div className="w-full h-10 p-2 bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
+                            <input
+                                type="text"
+                                className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
+                                placeholder="1자 이상 입력"
+                                value={roomName}
+                                onChange={e => setRoomName(e.target.value)}
+                            />
+                        </div>
                         {!isValidRoomName && (
                             <div className="text-red-400 text-xs mt-1">방 이름을 입력하세요.</div>
                         )}
@@ -260,15 +263,11 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                     {/* 최대 인원수 */}
                     <div>
                         <label className="block mb-2 text-sm font-semibold text-zinc-300">최대 인원수</label>
-                        <select
-                            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200"
-                            value={selectedRoomCapacity}
-                            onChange={e => setSelectedRoomCapacity(Number(e.target.value))}
-                        >
-                            {Array.from({length: MAX_ROOM_CAPACITY}, (_, i) => i + 1).map(n => (
-                                <option key={n} value={n}>{n}</option>
-                            ))}
-                        </select>
+                        <Dropdown
+                            values={Array.from({length: MAX_ROOM_CAPACITY}, (_, i) => String(i + 1))}
+                            selectedValue={String(selectedRoomCapacity)}
+                            setValue={(value) => setSelectedRoomCapacity(Number(value))}
+                        />
                     </div>
                     {/* 비밀번호 */}
                     <div>
@@ -280,14 +279,16 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                                 onChange={e => setUsePassword(e.target.checked)}
                                 className="accent-secondary w-4 h-4"
                             />
-                            <input
-                                type="password"
-                                className={`w-full rounded-lg border border-border bg-surface px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-neon-cyan focus:shadow-glow-cyan transition-all duration-200 ${!usePassword ? 'opacity-50' : ''}`}
-                                placeholder="비밀번호 입력"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                disabled={!usePassword}
-                            />
+                            <div className={`w-full h-10 p-2 bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200 ${!usePassword ? 'opacity-50' : ''}`}>
+                                <input
+                                    type="password"
+                                    className="w-full pl-[8px] placeholder-zinc-500 focus:outline-none"
+                                    placeholder="비밀번호 입력"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    disabled={!usePassword}
+                                />
+                            </div>
                         </div>
                         {!isValidPassword && (
                             <div className="text-red-400 text-xs mt-1">비밀번호를 입력하세요.</div>
@@ -295,9 +296,10 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                     </div>
                     {/* 버튼 */}
                     <div className="flex gap-2 mt-2">
-                        <button
-                            type="button"
-                            className={`flex-1 rounded-lg py-2 font-bold transition ${isValidForm ? 'bg-cyan-400 text-zinc-900 hover:bg-cyan-400/80 cursor-pointer' : 'bg-zinc-700 text-zinc-400 cursor-not-allowed'}`}
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            fullWidth
                             disabled={!isValidForm}
                             onClick={() => {
                                 if (!isValidForm) return;
@@ -306,14 +308,15 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                             }}
                         >
                             만들기
-                        </button>
-                        <button
-                            type="button"
-                            className="flex-1 rounded-lg py-2 bg-zinc-700 text-zinc-200 font-bold hover:bg-zinc-600 transition cursor-pointer"
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            size="lg"
+                            fullWidth
                             onClick={onClose}
                         >
                             취소
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

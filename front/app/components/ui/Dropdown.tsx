@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import DropDownIcon from "~/assets/drop-down.svg?react"
 import DropUpIcon from "~/assets/drop-up.svg?react"
 
@@ -10,8 +10,20 @@ interface DropdownProps {
 
 export default function Dropdown({values, selectedValue, setValue}: DropdownProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
 
     const toggleDropdown = () => setIsOpen(!isOpen)
+
+    useEffect(() => {
+        if (!isOpen) return
+        const handleClickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setIsOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [isOpen])
 
     function clickValue(value: string) {
         setValue(value)
@@ -19,7 +31,7 @@ export default function Dropdown({values, selectedValue, setValue}: DropdownProp
     }
 
     return (
-        <div className="relative">
+        <div ref={containerRef} className="relative">
             <div>
                 <button
                     type="button"
