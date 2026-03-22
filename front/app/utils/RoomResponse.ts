@@ -4,6 +4,9 @@ export default interface RoomResponse {
     playlist: RoomResponsePlaylist,
     representativeTrackEmbedId: string,
     masterDisplayName: string,
+    currentPlayerCount: number,
+    maxPlayerCount: number,
+    hasPassword: boolean,
 }
 
 export interface RoomResponsePlaylist {
