@@ -215,7 +215,7 @@ export default function PlaylistWriteView() {
 					<div className="w-full flex-1 px-4 py-2">
 						<div className="w-full h-full p-8 bg-zinc-800 text-zinc-200 rounded-2xl flex flex-col gap-2">
 							<div
-								className="px-auto py-6 border-1 text-6xl font-bold text-center hover:bg-zinc-700 rounded-lg cursor-pointer"
+								className="px-auto py-6 border-1 text-6xl font-bold text-center hover:bg-neon-cyan/5 transition-all duration-200 rounded-lg cursor-pointer"
 								onClick={() => {
 									setSelectedTrack(null)
 									setSelectedTrackIndex(null)
@@ -223,9 +223,12 @@ export default function PlaylistWriteView() {
 								}}
 							>+
 							</div>
+							{tracks.length === 0 && (
+								<p className="text-zinc-500 text-center py-8">곡을 추가해보세요</p>
+							)}
 							{
 								tracks.map((track: Track, index: number) => (
-									<div className="flex flex-row items-center p-2 hover:bg-zinc-700 rounded-lg cursor-pointer gap-4"
+									<div className="flex flex-row items-center p-2 hover:bg-neon-cyan/5 transition-all duration-200 rounded-lg cursor-pointer gap-4"
 										 onClick={() => {
 											 setSelectedTrack(track)
 											 setSelectedTrackIndex(index)
