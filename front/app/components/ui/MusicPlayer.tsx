@@ -87,12 +87,12 @@ export default function MusicPlayer({ embedId, startTimeSec, endTimeSec }: Music
 
     return (
         <>
-            <div className="w-full p-2 flex flex-row items-center gap-2">
-                <button className="size-16 cursor-pointer" onClick={togglePlay}>
+            <div className="w-full bg-surface border border-border rounded-xl p-3 flex flex-row items-center gap-2">
+                <button className="size-16 cursor-pointer hover:text-neon-cyan hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.5)] transition-all duration-200" onClick={togglePlay}>
                     { isPlaying ? <PauseIcon className="size-16"/> : <PlayIcon  className="size-16"/> }
                 </button>
-                <div className="w-full h-2 bg-zinc-500 rounded-full">
-                    <div className="h-2 bg-cyan-400 rounded" style={{ width: `${progress}%` }}></div>
+                <div className="w-full h-2 bg-muted rounded-full">
+                    <div className="h-2 bg-neon-cyan shadow-glow-cyan rounded-full" style={{ width: `${progress}%` }}></div>
                 </div>
             </div>
             <div className="hidden">
