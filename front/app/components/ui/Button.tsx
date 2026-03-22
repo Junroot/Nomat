@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "icon";
 type Size = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -19,6 +19,8 @@ const variantStyles: Record<Variant, string> = {
         "bg-transparent text-zinc-400 border border-transparent hover:bg-zinc-800 hover:text-zinc-200",
     danger:
         "bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30",
+    icon:
+        "size-10 p-0 rounded-full bg-zinc-700 text-zinc-300 border border-transparent hover:bg-zinc-600 hover:text-zinc-100",
 };
 
 const sizeStyles: Record<Size, string> = {
@@ -46,7 +48,7 @@ export default function Button({
                 inline-flex items-center justify-center font-medium
                 transition-all duration-200 cursor-pointer
                 ${variantStyles[variant]}
-                ${sizeStyles[size]}
+                ${variant !== "icon" ? sizeStyles[size] : ""}
                 ${fullWidth ? "w-full" : ""}
                 ${isDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
                 ${className}

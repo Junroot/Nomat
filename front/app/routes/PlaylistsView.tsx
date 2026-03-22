@@ -26,6 +26,8 @@ import FilledStarIcon from "~/assets/filled-star.svg?react";
 import PencilIcon from "~/assets/pencil.svg?react";
 import DeleteIcon from "~/assets/delete.svg?react";
 import useMeStore from "~/stores/MeStore";
+import { toast } from "sonner";
+import Button from "~/components/ui/Button";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -98,8 +100,10 @@ export default function PlaylistsView() {
         try {
             if (optimistic.favorite) {
                 await favoritePlaylist(playlistId);
+                toast.info("즐겨찾기에 추가되었습니다.");
             } else {
                 await unfavoritePlaylist(playlistId);
+                toast.info("즐겨찾기가 해제되었습니다.");
             }
             // 즐겨찾기 탭에서 해제한 경우 목록 새로고침
             if (selectedTab === "favorite") {
@@ -107,6 +111,7 @@ export default function PlaylistsView() {
             }
         } catch (e) {
             setSelectedPlaylist({...selectedPlaylist});
+            toast.error("즐겨찾기 변경에 실패했습니다.");
         } finally {
             setFavoriteUpdating(false);
         }
@@ -120,9 +125,9 @@ export default function PlaylistsView() {
             setPlaylists(prev => prev.filter(p => p.id !== selectedPlaylist.id));
             setSelectedPlaylist(null);
             setSelectedPlaylistId(null);
+            toast.success("플레이리스트가 삭제되었습니다.");
         } catch (e) {
-            // 단순 경고 (필요시 향후 토스트로 대체 가능)
-            alert("삭제 중 문제가 발생했습니다.");
+            toast.error("삭제 중 문제가 발생했습니다.");
         } finally {
             setDeleting(false);
             setShowDeleteConfirm(false);
@@ -188,10 +193,7 @@ export default function PlaylistsView() {
                         }
                     </div>
                     <Link className="w-full pb-4" to="/playlists/create">
-                        <button
-                            className="w-full bg-cyan-400 py-2 text-zinc-900 rounded-full cursor-pointer text-2xl font-bold">
-                            새 플레이리스트
-                        </button>
+                        <Button variant="primary" size="lg" fullWidth>새 플레이리스트</Button>
                     </Link>
                 </Column1>
                 <Column2>
@@ -203,34 +205,34 @@ export default function PlaylistsView() {
                                     <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
                                     <div className="flex flex-row items-center gap-2">
                                         {me && me.id === selectedPlaylist.master.id && (
-                                            <button
-                                                className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                            <Button
+                                                variant="icon"
                                                 onClick={() => setShowDeleteConfirm(true)}
                                                 title="플레이리스트 삭제"
                                             >
                                                 <DeleteIcon className="w-6 h-6"/>
-                                            </button>
+                                            </Button>
                                         )}
                                         {me && me.id === selectedPlaylist.master.id && (
-                                            <button
-                                                className="size-10 flex items-center justify-center rounded-full bg-zinc-700 hover:bg-zinc-600 text-sm cursor-pointer"
+                                            <Button
+                                                variant="icon"
                                                 onClick={() => {
                                                     window.location.href = `/playlists/${selectedPlaylist.id}/modify`;
                                                 }}
                                                 title="플레이리스트 수정"
                                             >
                                                 <PencilIcon className="w-5 h-5"/>
-                                            </button>
+                                            </Button>
                                         )}
-                                        <button
+                                        <Button
+                                            variant="icon"
                                             disabled={favoriteUpdating}
                                             onClick={toggleFavorite}
-                                            className={`size-10 flex items-center justify-center rounded-full transition-colors bg-zinc-700 hover:bg-zinc-600 ${favoriteUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                                             title={selectedPlaylist.favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                                         >
                                             {selectedPlaylist.favorite ? <FilledStarIcon className="w-6 h-6"/> :
                                                 <StarIcon className="w-6 h-6"/>}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                                 <div className="flex flex-col">
@@ -269,19 +271,17 @@ export default function PlaylistsView() {
                         <p className="text-xl font-bold mb-4">플레이리스트 삭제</p>
                         <p className="mb-4">선택한 플레이리스트를 정말로 삭제하시겠습니까?</p>
                         <div className="flex flex-row justify-end gap-2">
-                            <button
-                                onClick={() => setShowDeleteConfirm(false)}
-                                className="flex-1 bg-zinc-700 hover:bg-zinc-600 rounded-full py-2 text-center font-bold transition-colors cursor-pointer"
-                            >
+                            <Button variant="secondary" fullWidth onClick={() => setShowDeleteConfirm(false)}>
                                 취소
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="danger"
+                                fullWidth
                                 onClick={handleConfirmDelete}
-                                className={`flex-1 bg-red-600 hover:bg-red-500 rounded-full py-2 text-center font-bold transition-colors ${deleting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                                disabled={deleting}
+                                loading={deleting}
                             >
-                                {deleting ? "삭제 중..." : "삭제"}
-                            </button>
+                                삭제
+                            </Button>
                         </div>
                     </div>
                 </div>

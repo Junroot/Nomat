@@ -5,6 +5,7 @@ import CloseIcon from "~/assets/close.svg?react"
 import StarIcon from "~/assets/star.svg?react"
 import FilledStarIcon from "~/assets/filled-star.svg?react"
 import Dropdown from "./Dropdown"
+import Button from "./Button"
 import { getEmbedIdByUrl, getUrlByEmbedId } from "~/utils/youtube"
 import YouTube from "react-youtube"
 
@@ -154,14 +155,14 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 					&& (isRepresentative() ? <FilledStarIcon></FilledStarIcon>
 						: <StarIcon className="cursor-pointer" onClick={() => props.setRepresentativeIndex(props.selectedIndex)}></StarIcon>) }
 			</div>
-			<div className="flex flex-row items-center gap-2">
-				<div className="p-2">
+			<div className="flex flex-col md:flex-row md:items-center gap-2">
+				<div className="p-2 flex justify-center">
 					{ getEmbedIdByUrl(youTubeUrl) ?
 						<YouTube videoId={getEmbedIdByUrl(youTubeUrl) ?? ""} opts={youTubeOptions} onReady={onYouTubeReady}></YouTube>
 						: <div className="w-80 h-45 bg-black"></div>
 					}
 				</div>
-				<div className="flex flex-col gap-2 w-2xl">
+				<div className="flex flex-col gap-2 w-full md:w-2xl">
 					<div className="flex flex-col px-4 gap-1">
 						<p className="px-4">YouTube URL</p>
 						<div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
@@ -223,14 +224,8 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 				</div>
 			</div>
             <div className="flex flex-row mt-6 gap-2">
-                <button
-                    className={"flex-1 rounded-full p-2 grow font-bold " + (isValidInput() ? "bg-cyan-400 text-zinc-900 cursor-pointer" : "bg-zinc-800 text-zinc-100")}
-                    onClick={submit}
-                >확인</button>
-                <button
-                    className="flex-1 rounded-full p-2 grow bg-zinc-700 text-zinc-100 font-bold cursor-pointer"
-                    onClick={props.onClose}
-                >취소</button>
+                <Button variant="primary" fullWidth disabled={!isValidInput()} onClick={submit}>확인</Button>
+                <Button variant="secondary" fullWidth onClick={props.onClose}>취소</Button>
             </div>
         </div>
     )
