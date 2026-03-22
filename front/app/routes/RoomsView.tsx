@@ -5,13 +5,16 @@ import { Link } from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import type RoomResponse from "~/utils/RoomResponse";
 import RoomCreate from "~/components/ui/RoomCreate";
+import { RoomCardSkeleton } from "~/components/ui/Skeleton";
 
 export default function RoomsView() {
     const [query, setQuery] = useState("");
     const [rooms, setRooms] = useState<Array<RoomResponse>>([]);
     const [showCreate, setShowCreate] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        const timer = setTimeout(() => {
         setRooms([
             {
                 id: 1,
@@ -54,6 +57,9 @@ export default function RoomsView() {
                 hasPassword: false,
             },
         ]);
+        setIsLoading(false);
+        }, 500);
+        return () => clearTimeout(timer);
     }, []);
 
     const filteredRooms = useMemo(() => {
@@ -75,7 +81,13 @@ export default function RoomsView() {
                         <SearchBar query={query} setQuery={setQuery} />
                     </div>
                     <div className="w-full">
-                        {filteredRooms.length === 0 && query.trim().length > 0 ? (
+                        {isLoading ? (
+                            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                {Array.from({ length: 8 }).map((_, i) => (
+                                    <RoomCardSkeleton key={i} />
+                                ))}
+                            </div>
+                        ) : filteredRooms.length === 0 && query.trim().length > 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="size-12 mb-3 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -143,7 +155,7 @@ export default function RoomsView() {
                                     </Link>
                                 ))}
                             </div>
-                        )}
+                        ))}
                     </div>
                 </div>
             </ColumnsContainer>
