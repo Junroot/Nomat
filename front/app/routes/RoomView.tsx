@@ -73,11 +73,11 @@ export default function RoomView() {
                             </div>
                         </div>
                     </div>
-                    <div className="p-2 m-2 rounded-full bg-zinc-700">
+                    <div className="p-2 m-2 rounded-full bg-surface border border-border focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
                         <input
                             type="text"
                             placeholder="보낼 메시지 입력"
-                            className="w-full p-[2px] pl-[8px] focus:outline-none"
+                            className="w-full p-[2px] pl-[8px] placeholder-zinc-500 focus:outline-none"
                         />
                     </div>
                 </Column2>
