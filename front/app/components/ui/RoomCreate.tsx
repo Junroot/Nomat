@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {fetchFavoritePlaylists, fetchMyPlaylists, searchPlaylistsByTitle} from "~/utils/api";
 import Button from "~/components/ui/Button";
 import Dropdown from "~/components/ui/Dropdown";
+import Modal from "~/components/ui/Modal";
 
 interface PlaylistOption {
     value: number;
@@ -9,12 +10,13 @@ interface PlaylistOption {
 }
 
 interface RoomCreateProps {
+    isOpen: boolean;
     onClose: () => void;
 }
 
 const MAX_ROOM_CAPACITY = 20;
 
-export default function RoomCreate({onClose}: RoomCreateProps) {
+export default function RoomCreate({isOpen, onClose}: RoomCreateProps) {
     const [roomName, setRoomName] = useState("");
     const [selectedRoomCapacity, setSelectedRoomCapacity] = useState(1);
     const [usePassword, setUsePassword] = useState(false);
@@ -140,11 +142,8 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
     }, [usePassword]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* 배경 오버레이 */}
-            <div className="absolute inset-0 bg-black opacity-60"/>
-            {/* 모달 내용 */}
-            <div className="relative bg-zinc-900 rounded-xl p-6 w-full max-w-md shadow-2xl border border-zinc-800">
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <div className="w-full max-w-md">
                 <div className="text-xl font-bold mb-6 text-center text-zinc-100">방 만들기</div>
                 <form className="flex flex-col gap-5">
                     {/* 플레이리스트 선택 */}
@@ -320,6 +319,6 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                     </div>
                 </form>
             </div>
-        </div>
+        </Modal>
     );
 }
