@@ -1,9 +1,5 @@
 import {Link} from "react-router";
-import NavigationBar from "~/components/layout/NavigationBar";
-import NavigationItem from "~/components/layout/NavigationItem";
-import Me from "~/components/ui/Me";
-import RoomIcon from "~/assets/room.svg?react";
-import PlaylistIcon from "~/assets/playlist.svg?react"
+import AppShell from "~/components/layout/AppShell";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import Column1 from "~/components/layout/Column1";
 import SelectMenu from "~/components/ui/SelectMenu";
@@ -134,16 +130,7 @@ export default function PlaylistsView() {
     }
 
     return (
-        <div className="flex flex-row w-full h-full">
-            <NavigationBar>
-                <div className="grow shrink flex flex-col gap-4">
-                    <Link to="/" replace>
-                        <NavigationItem icon={<RoomIcon></RoomIcon>} title={"플레이 룸"}></NavigationItem>
-                    </Link>
-                    <NavigationItem clicked icon={<PlaylistIcon></PlaylistIcon>} title={"플레이리스트"}></NavigationItem>
-                </div>
-                <div className="grow-0 shrink-0"><Me></Me></div>
-            </NavigationBar>
+        <AppShell variant="main" activeTab="playlists" title="플레이리스트">
             <ColumnsContainer>
                 <Column1>
                     <div className="flex flex-row px-4 pt-4 gap-4">
@@ -299,6 +286,6 @@ export default function PlaylistsView() {
                     </div>
                 </div>
             )}
-        </div>
+        </AppShell>
     );
 }

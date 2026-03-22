@@ -1,12 +1,8 @@
 import { useParams } from "react-router";
-import NavigationBar from "~/components/layout/NavigationBar";
-import NavigationItem from "~/components/layout/NavigationItem";
-import Me from "~/components/ui/Me";
-import BackIcon from "~/assets/back.svg?react";
+import AppShell from "~/components/layout/AppShell";
 import PlayIcon from "~/assets/play.svg?react";
 import PlaylistIcon from "~/assets/playlist.svg?react";
 import UsersIcon from "~/assets/users.svg?react";
-import { Link } from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import Column1 from "~/components/layout/Column1";
 import Column2 from "~/components/layout/Column2";
@@ -19,19 +15,12 @@ export default function RoomView() {
     const playlistDescription = "오늘의 일본 인기곡 Top 100으로 구성된 맵입니다. 재미있게 즐겨 주세요!"
 
     return (
-        <div className="flex flex-row w-full h-full">
-            <NavigationBar>
-                <div className="grow shrink flex flex-col gap-4">
-                    <Link to="/" replace>
-                        <NavigationItem icon={<BackIcon></BackIcon>} title={"뒤로가기"}>
-                        </NavigationItem>
-                    </Link>
-                    <NavigationItem icon={<PlayIcon></PlayIcon>} title={"시작하기"}></NavigationItem>
-                </div>
-                <div className="grow-0 shrink-0">
-                    <Me></Me>
-                </div>
-            </NavigationBar>
+        <AppShell
+            variant="sub"
+            title={title}
+            backTo="/"
+            actions={[{ icon: <PlayIcon />, label: "시작하기", onClick: () => {} }]}
+        >
             <ColumnsContainer>
                 <Column1>
                     <p className="text-4xl pt-4 font-bold">{title}</p>
@@ -93,6 +82,6 @@ export default function RoomView() {
                     </div>
                 </Column2>
             </ColumnsContainer>
-        </div>
+        </AppShell>
     );
 };

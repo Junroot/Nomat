@@ -1,8 +1,5 @@
 import { useParams } from "react-router";
-import NavigationBar from "~/components/layout/NavigationBar";
-import NavigationItem from "~/components/layout/NavigationItem";
-import Me from "~/components/ui/Me";
-import BackArrowIcon from "~/assets/back-arrow.svg?react";
+import AppShell from "~/components/layout/AppShell";
 import SaveIcon from "~/assets/save.svg?react";
 import QuestionMarkSquareIcon from "~/assets/question-mark-squre.svg?react";
 import DeleteIcon from "~/assets/delete.svg?react";
@@ -162,14 +159,12 @@ export default function PlaylistWriteView() {
 	}
 
 	return (
-		<div className="flex flex-row w-full h-full">
-			<NavigationBar>
-				<div className="grow shrink flex flex-col gap-4">
-					<NavigationItem onClick={() => setIsBackModalOpen(true)} icon={<BackArrowIcon></BackArrowIcon>} title={"뒤로가기"}></NavigationItem>
-					<NavigationItem onClick={onClickSave} icon={<SaveIcon></SaveIcon>} title={"저장하기"}></NavigationItem>
-				</div>
-				<div className="grow-0 shrink-0"><Me></Me></div>
-			</NavigationBar>
+		<AppShell
+			variant="sub"
+			title="새 플레이리스트"
+			onBack={() => setIsBackModalOpen(true)}
+			actions={[{ icon: <SaveIcon />, label: "저장하기", onClick: onClickSave }]}
+		>
 			<ColumnsContainer>
 				<Column1>
 					<p className="text-4xl font-bold p-4">새 플레이리스트</p>
@@ -309,6 +304,6 @@ export default function PlaylistWriteView() {
 				>
 				</TrackCreateLayer>
 			</Modal>
-		</div>
+		</AppShell>
 	)
 }
