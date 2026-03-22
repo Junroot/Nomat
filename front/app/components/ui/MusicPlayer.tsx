@@ -87,7 +87,7 @@ export default function MusicPlayer({ embedId, startTimeSec, endTimeSec }: Music
 
     return (
         <>
-            <div className="w-full bg-surface border border-border rounded-xl p-3 flex flex-row items-center gap-2">
+            <div className="w-full border border-border rounded-xl p-3 flex flex-row items-center gap-2">
                 <button className="size-16 cursor-pointer hover:text-neon-cyan hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.5)] transition-all duration-200" onClick={togglePlay}>
                     { isPlaying ? <PauseIcon className="size-16"/> : <PlayIcon  className="size-16"/> }
                 </button>
