@@ -28,6 +28,7 @@ import DeleteIcon from "~/assets/delete.svg?react";
 import useMeStore from "~/stores/MeStore";
 import { toast } from "sonner";
 import Button from "~/components/ui/Button";
+import { PlaylistItemSkeleton } from "~/components/ui/Skeleton";
 
 export default function PlaylistsView() {
     const searchTypes = ["제목", "제작자"];
@@ -45,6 +46,7 @@ export default function PlaylistsView() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [favoriteKey, setFavoriteKey] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (selectedPlaylistId === null) {
@@ -56,27 +58,26 @@ export default function PlaylistsView() {
     }, [selectedPlaylistId])
 
     useEffect(() => {
+        setIsLoading(true);
+        let request: Promise<PlaylistMetaDataResponse[]>;
         if (selectedTab === "all") {
             if (debouncedQuery.length > 0) {
                 if (selectedSearchType === "제작자") {
-                    fetchByMasterDisplayName(debouncedQuery)
-                        .then(playlists => setPlaylists(playlists));
-                    return;
-                } else if (selectedSearchType === "제목") {
-                    searchPlaylistsByTitle(debouncedQuery)
-                        .then(playlists => setPlaylists(playlists));
+                    request = fetchByMasterDisplayName(debouncedQuery);
+                } else {
+                    request = searchPlaylistsByTitle(debouncedQuery);
                 }
             } else {
-                fetchRecentlyAddedPlaylists()
-                    .then(playlists => setPlaylists(playlists));
+                request = fetchRecentlyAddedPlaylists();
             }
         } else if (selectedTab === "favorite") {
-            fetchFavoritePlaylists()
-                .then(playlists => setPlaylists(playlists));
-        } else if (selectedTab === "mine") {
-            fetchMyPlaylists()
-                .then(playlists => setPlaylists(playlists));
+            request = fetchFavoritePlaylists();
+        } else {
+            request = fetchMyPlaylists();
         }
+        request
+            .then(playlists => setPlaylists(playlists))
+            .finally(() => setIsLoading(false));
     }, [selectedTab, selectedSearchType, debouncedQuery]);
 
     // 검색어 디바운스
@@ -178,7 +179,11 @@ export default function PlaylistsView() {
                         </div>
                     )}
                     <div className="flex flex-col grow py-2 overflow-y-auto">
-                        {playlists.length === 0 ? (
+                        {isLoading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <PlaylistItemSkeleton key={i} />
+                            ))
+                        ) : playlists.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-zinc-500 py-8">
                                 <p>아직 플레이리스트가 없습니다</p>
                                 <Link to="/playlists/create">
