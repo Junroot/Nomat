@@ -53,6 +53,37 @@
   box-shadow: 0 0 40px rgba(52, 211, 153, 0.3), inset 0 0 30px rgba(52, 211, 153, 0.1);
 }
 
+/* 애니메이션 */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+@utility animate-fade-out {
+  animation: fade-out 0.2s ease-out;
+}
+@utility animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+@utility animate-slide-down {
+  animation: slide-down 0.2s ease-out;
+}
+
 /* 그라디언트 배경 */
 @utility bg-gradient-dark {
   background: linear-gradient(145deg, #18181b, #1a1a22);
