@@ -44,6 +44,7 @@ export default function PlaylistsView() {
     const me = useMeStore(state => state.me);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [favoriteKey, setFavoriteKey] = useState(0);
 
     useEffect(() => {
         if (selectedPlaylistId === null) {
@@ -97,6 +98,7 @@ export default function PlaylistsView() {
         const playlistId = selectedPlaylist.id;
         const optimistic = {...selectedPlaylist, favorite: !selectedPlaylist.favorite} as PlaylistResponse;
         setSelectedPlaylist(optimistic);
+        setFavoriteKey(prev => prev + 1);
         try {
             if (optimistic.favorite) {
                 await favoritePlaylist(playlistId);
@@ -213,70 +215,66 @@ export default function PlaylistsView() {
                     </Link>
                 </Column1>
                 <Column2>
-                    {
-                        selectedPlaylist !== null &&
-                        <div className="w-full h-full flex flex-col justify-center p-4">
-                            <div className="w-full flex flex-col bg-zinc-800 text-zinc-200 rounded-2xl p-8 gap-4">
-                                <div className="flex flex-row justify-between items-center">
-                                    <p className="text-4xl font-bold">{selectedPlaylist.title}</p>
-                                    <div className="flex flex-row items-center gap-2">
-                                        {me && me.id === selectedPlaylist.master.id && (
-                                            <Button
-                                                variant="icon"
-                                                onClick={() => setShowDeleteConfirm(true)}
-                                                title="플레이리스트 삭제"
-                                            >
-                                                <DeleteIcon className="w-6 h-6"/>
-                                            </Button>
-                                        )}
-                                        {me && me.id === selectedPlaylist.master.id && (
-                                            <Button
-                                                variant="icon"
-                                                onClick={() => {
-                                                    window.location.href = `/playlists/${selectedPlaylist.id}/modify`;
-                                                }}
-                                                title="플레이리스트 수정"
-                                            >
-                                                <PencilIcon className="w-5 h-5"/>
-                                            </Button>
-                                        )}
+                    {selectedPlaylist !== null && (
+                        <div className="w-full md:h-full flex flex-col md:justify-center p-4 gap-4">
+                            {/* 히어로 영역 */}
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <img
+                                    src={`https://img.youtube.com/vi/${selectedPlaylist.representativeTrack.embedId}/hq720.jpg`}
+                                    className="size-32 md:size-[120px] object-cover rounded-xl border border-border shadow-[0_4px_20px_rgba(0,0,0,0.3)] shrink-0 mx-auto md:mx-0"
+                                    alt="thumbnail"
+                                />
+                                <div className="flex flex-col gap-2 min-w-0">
+                                    <p className="text-xl font-extrabold text-zinc-200">{selectedPlaylist.title}</p>
+                                    <div className="flex flex-col text-xs text-zinc-500 leading-relaxed">
+                                        <p><UserIcon className="inline-block size-4 mr-1"/>{selectedPlaylist.master.displayName}</p>
+                                        <p><SongIcon className="inline-block size-4 mr-1"/>{selectedPlaylist.trackCount}곡 (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>
+                                    </div>
+                                    <p className="text-sm text-zinc-400 line-clamp-3">{selectedPlaylist.description}</p>
+                                    <div className="flex flex-row items-center gap-2 mt-1">
                                         <Button
                                             variant="icon"
                                             disabled={favoriteUpdating}
                                             onClick={toggleFavorite}
                                             title={selectedPlaylist.favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                                         >
-                                            {selectedPlaylist.favorite ? <FilledStarIcon className="w-6 h-6"/> :
-                                                <StarIcon className="w-6 h-6"/>}
+                                            <span key={favoriteKey} className="animate-pulse-star">
+                                                {selectedPlaylist.favorite
+                                                    ? <FilledStarIcon className="w-6 h-6"/>
+                                                    : <StarIcon className="w-6 h-6"/>}
+                                            </span>
                                         </Button>
+                                        {me && me.id === selectedPlaylist.master.id && (
+                                            <>
+                                                <Button
+                                                    variant="icon"
+                                                    onClick={() => {
+                                                        window.location.href = `/playlists/${selectedPlaylist.id}/modify`;
+                                                    }}
+                                                    title="플레이리스트 수정"
+                                                >
+                                                    <PencilIcon className="w-5 h-5"/>
+                                                </Button>
+                                                <Button
+                                                    variant="icon"
+                                                    onClick={() => setShowDeleteConfirm(true)}
+                                                    title="플레이리스트 삭제"
+                                                >
+                                                    <DeleteIcon className="w-6 h-6"/>
+                                                </Button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    <p><UserIcon className="inline-block"/>{selectedPlaylist.master.displayName}</p>
-                                    <p><SongIcon className="inline-block"/>{selectedPlaylist.trackCount}곡
-                                        (약 {Math.round(selectedPlaylist.expectedPlayTimeSec / 60)}분)</p>
-                                </div>
-                                <div className="flex flex-col">
-                                    <p className="text-3xl font-bold">소개</p>
-                                    <p>{selectedPlaylist.description}</p>
-                                </div>
-                                <div className="flex flex-col">
-                                    <p className="text-3xl font-bold">대표곡 미리 듣기</p>
-                                    <MusicPlayer embedId={selectedPlaylist.representativeTrack.embedId}
-                                                 startTimeSec={selectedPlaylist.representativeTrack.startTimeSec}
-                                                 endTimeSec={selectedPlaylist.representativeTrack.endTimeSec}></MusicPlayer>
-                                </div>
-                                <div className="flex flex-col items-center">
-                                    <img
-                                        src={`https://img.youtube.com/vi/${selectedPlaylist.representativeTrack.embedId}/hq720.jpg`}
-                                        className="size-64 object-cover"
-                                        alt="tumbnail"
-                                    >
-                                    </img>
-                                </div>
                             </div>
+                            {/* 뮤직 플레이어 */}
+                            <MusicPlayer
+                                embedId={selectedPlaylist.representativeTrack.embedId}
+                                startTimeSec={selectedPlaylist.representativeTrack.startTimeSec}
+                                endTimeSec={selectedPlaylist.representativeTrack.endTimeSec}
+                            />
                         </div>
-                    }
+                    )}
                 </Column2>
             </ColumnsContainer>
             {/* 삭제 확인 모달 */}
