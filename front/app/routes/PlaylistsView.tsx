@@ -216,12 +216,12 @@ export default function PlaylistsView() {
                 </Column1>
                 <Column2>
                     {selectedPlaylist !== null && (
-                        <div className="w-full h-full flex flex-col justify-center p-4 gap-4">
+                        <div className="w-full md:h-full flex flex-col md:justify-center p-4 gap-4">
                             {/* 히어로 영역 */}
                             <div className="flex flex-col md:flex-row gap-4">
                                 <img
                                     src={`https://img.youtube.com/vi/${selectedPlaylist.representativeTrack.embedId}/hq720.jpg`}
-                                    className="w-full md:w-[120px] md:h-[120px] aspect-square object-cover rounded-xl border border-border shadow-[0_4px_20px_rgba(0,0,0,0.3)] shrink-0"
+                                    className="size-32 md:size-[120px] object-cover rounded-xl border border-border shadow-[0_4px_20px_rgba(0,0,0,0.3)] shrink-0 mx-auto md:mx-0"
                                     alt="thumbnail"
                                 />
                                 <div className="flex flex-col gap-2 min-w-0">
