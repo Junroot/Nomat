@@ -8,7 +8,7 @@ interface SearchBarProps {
 export default function SearchBar({ query, setQuery }: SearchBarProps) {
     return (
       <div className="w-full p-[8px]">
-        <div className="group w-full h-[48px] p-[8px] flex flex-row rounded-full bg-surface border border-border group-focus-within:border-neon-cyan group-focus-within:shadow-glow-cyan transition-all duration-200">
+        <div className="group w-full h-[48px] p-[8px] flex flex-row rounded-full bg-surface border border-border focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
             <SearchIcon className="size-[24px] m-[4px] text-muted group-focus-within:text-neon-cyan transition-all duration-200"></SearchIcon>
             <input
                 type="text"
