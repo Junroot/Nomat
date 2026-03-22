@@ -14,6 +14,8 @@ import Column2 from "~/components/layout/Column2";
 import TrackCreateLayer, {type Track} from "~/components/ui/TrackEditLayer";
 import {createPlaylist, fetchPlaylistWithTracks, modifyPlaylist} from "~/utils/api";
 import type { AxiosError } from "axios";
+import { toast } from "sonner";
+import Button from "~/components/ui/Button";
 
 export default function PlaylistWriteView() {
 	const { playlistId } = useParams();
@@ -25,8 +27,6 @@ export default function PlaylistWriteView() {
 	const [description, setDescription] = useState("")
 	const [tracks, setTracks] = useState<Track[]>([])
 	const [representativeIndex, setRepresentativeIndex] = useState<number | null>(null)
-	const [isAlertModalOpen, setIsAlertModalOpen] = useState(false)
-	const [alertMessage, setAlertMessage] = useState("")
 	const descriptionRef = useRef<HTMLTextAreaElement>(null)
 	const navigate = useNavigate()
 	const maxTitleLength = 100
@@ -100,33 +100,27 @@ export default function PlaylistWriteView() {
 
 	async function onClickSave() {
 		if (title.trim() === "") {
-			setAlertMessage("플레이리스트 이름을 입력해주세요.")
-			setIsAlertModalOpen(true)
+			toast.error("플레이리스트 이름을 입력해주세요.")
 			return
 		}
 		if (title.trim().length > maxTitleLength) {
-			setAlertMessage(`플레이리스트 이름은 ${maxTitleLength}자를 초과할 수 없습니다.`)
-			setIsAlertModalOpen(true)
+			toast.error(`플레이리스트 이름은 ${maxTitleLength}자를 초과할 수 없습니다.`)
 			return
 		}
 		if (description.trim() === "") {
-			setAlertMessage("플레이리스트 소개를 입력해주세요.")
-			setIsAlertModalOpen(true)
+			toast.error("플레이리스트 소개를 입력해주세요.")
 			return
 		}
 		if (description.trim().length > maxDescriptionLength) {
-			setAlertMessage(`플레이리스트 소개는 ${maxDescriptionLength}자를 초과할 수 없습니다.`)
-			setIsAlertModalOpen(true)
+			toast.error(`플레이리스트 소개는 ${maxDescriptionLength}자를 초과할 수 없습니다.`)
 			return
 		}
 		if (tracks.length === 0) {
-			setAlertMessage("플레이리스트에 곡을 추가해주세요.")
-			setIsAlertModalOpen(true)
+			toast.error("플레이리스트에 곡을 추가해주세요.")
 			return
 		}
 		if (representativeIndex === null) {
-			setAlertMessage("대표곡을 선택해주세요.")
-			setIsAlertModalOpen(true)
+			toast.error("대표곡을 선택해주세요.")
 			return
 		}
 
@@ -150,11 +144,11 @@ export default function PlaylistWriteView() {
 			} else {
 				await createPlaylist(request);
 			}
+			toast.success("플레이리스트가 저장되었습니다.")
 			navigate("/playlists");
 		} catch (error) {
 			const axiosError = error as AxiosError<{message: string}>;
-			setAlertMessage(axiosError.response?.data?.message ?? "알 수 없는 오류가 발생했습니다.");
-			setIsAlertModalOpen(true);
+			toast.error(axiosError.response?.data?.message ?? "알 수 없는 오류가 발생했습니다.");
 		}
 	}
 
@@ -261,28 +255,8 @@ export default function PlaylistWriteView() {
 					<h2 className="text-xl font-bold mb-4">뒤로가기</h2>
 					<p>수정 중인 플레이리스트를 저장하지 않고 뒤로 가시겠습니까?</p>
 					<div className="flex flex-row mt-6 gap-2">
-						<button
-							className="rounded-full p-2 grow bg-cyan-400 text-zinc-900 font-bold cursor-pointer"
-							onClick={goBack}
-						>확인
-						</button>
-						<button
-							className="rounded-full p-2 grow bg-zinc-200 text-zinc-900 font-bold cursor-pointer"
-							onClick={() => setIsBackModalOpen(false)}
-						>취소
-						</button>
-					</div>
-				</div>
-			</Modal>
-			<Modal isOpen={isAlertModalOpen} onClose={() => setIsAlertModalOpen(false)}>
-				<div className="flex flex-col w-full">
-					<p>{alertMessage}</p>
-					<div className="flex flex-row mt-6 gap-2">
-						<button
-							className="rounded-full p-2 grow bg-cyan-400 text-zinc-900 font-bold cursor-pointer"
-							onClick={() => setIsAlertModalOpen(false)}
-						>닫기
-						</button>
+						<Button variant="primary" fullWidth onClick={goBack}>확인</Button>
+						<Button variant="secondary" fullWidth onClick={() => setIsBackModalOpen(false)}>취소</Button>
 					</div>
 				</div>
 			</Modal>

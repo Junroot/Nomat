@@ -303,7 +303,7 @@ export default function RoomCreate({onClose}: RoomCreateProps) {
                             disabled={!isValidForm}
                             onClick={() => {
                                 if (!isValidForm) return;
-                                // TODO: 실제 방 생성 API 호출
+                                // TODO: 실제 방 생성 API 호출 후 toast.success() 표시
                                 onClose();
                             }}
                         >
