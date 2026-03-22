@@ -6,6 +6,7 @@ import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import type RoomResponse from "~/utils/RoomResponse";
 import RoomCreate from "~/components/ui/RoomCreate";
 import { RoomCardSkeleton } from "~/components/ui/Skeleton";
+import ScrollReveal from "~/components/ui/ScrollReveal";
 
 export default function RoomsView() {
     const [query, setQuery] = useState("");
@@ -105,23 +106,24 @@ export default function RoomsView() {
                         ) : (
                             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                 {/* 방 생성 카드 */}
-                                <div
-                                    className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-neon-cyan/40 hover:bg-neon-cyan/[0.03] transition-all duration-300 min-h-[160px] animate-stagger-fade-in"
-                                    onClick={() => setShowCreate(true)}
-                                >
-                                    <div className="size-10 rounded-xl bg-neon-cyan/10 flex items-center justify-center">
-                                        <span className="text-xl font-bold text-neon-cyan">+</span>
+                                <ScrollReveal>
+                                    <div
+                                        className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-neon-cyan/40 hover:bg-neon-cyan/[0.03] transition-all duration-300 min-h-[160px]"
+                                        onClick={() => setShowCreate(true)}
+                                    >
+                                        <div className="size-10 rounded-xl bg-neon-cyan/10 flex items-center justify-center">
+                                            <span className="text-xl font-bold text-neon-cyan">+</span>
+                                        </div>
+                                        <span className="text-sm text-zinc-400">방 만들기</span>
                                     </div>
-                                    <span className="text-sm text-zinc-400">방 만들기</span>
-                                </div>
+                                </ScrollReveal>
                                 {/* 방 카드 목록 */}
                                 {filteredRooms.map((room, index) => (
-                                    <Link
-                                        to={`/rooms/${room.id}`}
-                                        key={room.id}
-                                        className="bg-gradient-dark border border-border rounded-xl overflow-hidden hover:border-neon-cyan/40 hover:shadow-glow-cyan hover:-translate-y-0.5 transition-all duration-300 animate-stagger-fade-in"
-                                        style={{ animationDelay: `${(index + 1) * 50}ms` }}
-                                    >
+                                    <ScrollReveal key={room.id} delay={(index + 1) * 50}>
+                                        <Link
+                                            to={`/rooms/${room.id}`}
+                                            className="block bg-gradient-dark border border-border rounded-xl overflow-hidden hover:border-neon-cyan/40 hover:shadow-glow-cyan hover:-translate-y-0.5 transition-all duration-300"
+                                        >
                                         {/* 썸네일 */}
                                         <div className="relative h-[100px] overflow-hidden">
                                             <img
@@ -152,7 +154,8 @@ export default function RoomsView() {
                                             <div className="text-sm font-semibold text-zinc-200 mb-1 truncate">{room.title}</div>
                                             <div className="text-xs text-zinc-500 truncate">{room.playlist.title} · {room.playlist.trackCount}곡</div>
                                         </div>
-                                    </Link>
+                                        </Link>
+                                    </ScrollReveal>
                                 ))}
                             </div>
                         )}

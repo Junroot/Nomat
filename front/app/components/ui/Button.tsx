@@ -46,7 +46,7 @@ export default function Button({
             disabled={isDisabled}
             className={`
                 inline-flex items-center justify-center font-medium
-                transition-all duration-200 cursor-pointer
+                transition-all duration-200 cursor-pointer active:scale-[0.98]
                 ${variantStyles[variant]}
                 ${variant !== "icon" ? sizeStyles[size] : ""}
                 ${fullWidth ? "w-full" : ""}
