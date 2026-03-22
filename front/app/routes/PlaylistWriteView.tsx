@@ -163,7 +163,6 @@ export default function PlaylistWriteView() {
 					<p className="hidden md:block text-4xl font-bold p-4">새 플레이리스트</p>
 					<div className="flex flex-col px-6 gap-2">
 						<p className="text-2xl font-bold">썸네일</p>
-						<p className="px-2 text-zinc-400">썸네일은 대표곡 기준으로 표시됩니다.</p>
 						<div className="mx-auto w-full max-w-48 md:max-w-96 aspect-square">
 							{
 								representativeIndex !== null ?
