@@ -5,6 +5,7 @@ import CloseIcon from "~/assets/close.svg?react"
 import StarIcon from "~/assets/star.svg?react"
 import FilledStarIcon from "~/assets/filled-star.svg?react"
 import Dropdown from "./Dropdown"
+import Button from "./Button"
 import { getEmbedIdByUrl, getUrlByEmbedId } from "~/utils/youtube"
 import YouTube from "react-youtube"
 
@@ -223,14 +224,8 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 				</div>
 			</div>
             <div className="flex flex-row mt-6 gap-2">
-                <button
-                    className={"flex-1 rounded-full p-2 grow font-bold " + (isValidInput() ? "bg-cyan-400 text-zinc-900 cursor-pointer" : "bg-zinc-800 text-zinc-100")}
-                    onClick={submit}
-                >확인</button>
-                <button
-                    className="flex-1 rounded-full p-2 grow bg-zinc-700 text-zinc-100 font-bold cursor-pointer"
-                    onClick={props.onClose}
-                >취소</button>
+                <Button variant="primary" fullWidth disabled={!isValidInput()} onClick={submit}>확인</Button>
+                <Button variant="secondary" fullWidth onClick={props.onClose}>취소</Button>
             </div>
         </div>
     )
