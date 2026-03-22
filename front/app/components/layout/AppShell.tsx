@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
+import { motion } from "framer-motion";
 import useBreakpoint from "~/hooks/useBreakpoint";
 import NavigationBar from "~/components/layout/NavigationBar";
 import NavigationItem from "~/components/layout/NavigationItem";
@@ -9,6 +10,21 @@ import Me from "~/components/ui/Me";
 import RoomIcon from "~/assets/room.svg?react";
 import PlaylistIcon from "~/assets/playlist.svg?react";
 import BackIcon from "~/assets/back.svg?react";
+
+function AnimatedContent({ className, children }: { className?: string; children: ReactNode }) {
+    const { pathname } = useLocation();
+    return (
+        <motion.div
+            key={pathname}
+            className={className}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.15 }}
+        >
+            {children}
+        </motion.div>
+    );
+}
 
 interface AppShellMainProps {
     variant: "main";
@@ -71,11 +87,11 @@ function MainShell({
             {isMobile ? (
                 <div className="flex-1 flex flex-col h-full min-h-0">
                     <MobileHeader variant="main" title={title} />
-                    <div className="flex-1 overflow-auto">{children}</div>
+                    <AnimatedContent className="flex-1 overflow-auto">{children}</AnimatedContent>
                     <MobileBottomNav activeTab={activeTab} />
                 </div>
             ) : (
-                children
+                <AnimatedContent className="flex-1 h-full">{children}</AnimatedContent>
             )}
         </div>
     );
@@ -127,10 +143,10 @@ function SubShell({
                         onBack={onBack}
                         actions={actions}
                     />
-                    <div className="flex-1 overflow-auto">{children}</div>
+                    <AnimatedContent className="flex-1 overflow-auto">{children}</AnimatedContent>
                 </div>
             ) : (
-                children
+                <AnimatedContent className="flex-1 h-full">{children}</AnimatedContent>
             )}
         </div>
     );
