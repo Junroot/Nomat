@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {fetchFavoritePlaylists, fetchMyPlaylists, searchPlaylistsByTitle} from "~/utils/api";
+import {createRoom, fetchFavoritePlaylists, fetchMyPlaylists, searchPlaylistsByTitle} from "~/utils/api";
+import { toast } from "sonner";
 import Button from "~/components/ui/Button";
 import Dropdown from "~/components/ui/Dropdown";
 import Modal from "~/components/ui/Modal";
@@ -12,15 +13,17 @@ interface PlaylistOption {
 interface RoomCreateProps {
     isOpen: boolean;
     onClose: () => void;
+    onCreated: (roomId: number, password?: string) => void;
 }
 
 const MAX_ROOM_CAPACITY = 20;
 
-export default function RoomCreate({isOpen, onClose}: RoomCreateProps) {
+export default function RoomCreate({isOpen, onClose, onCreated}: RoomCreateProps) {
     const [roomName, setRoomName] = useState("");
     const [selectedRoomCapacity, setSelectedRoomCapacity] = useState(1);
     const [usePassword, setUsePassword] = useState(false);
     const [password, setPassword] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
     const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistOption | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [inputFocused, setInputFocused] = useState(false);
@@ -300,14 +303,27 @@ export default function RoomCreate({isOpen, onClose}: RoomCreateProps) {
                             variant="primary"
                             size="lg"
                             fullWidth
-                            disabled={!isValidForm}
-                            onClick={() => {
-                                if (!isValidForm) return;
-                                // TODO: 실제 방 생성 API 호출 후 toast.success() 표시
-                                onClose();
+                            disabled={!isValidForm || isCreating}
+                            onClick={async () => {
+                                if (!isValidForm || isCreating) return;
+                                setIsCreating(true);
+                                try {
+                                    const room = await createRoom({
+                                        title: roomName.trim(),
+                                        password: usePassword ? password : undefined,
+                                        maxEntriesCount: selectedRoomCapacity,
+                                        playlistId: selectedPlaylist!.value,
+                                    });
+                                    onClose();
+                                    onCreated(room.id, usePassword ? password : undefined);
+                                } catch {
+                                    toast.error("방 생성에 실패했습니다.");
+                                } finally {
+                                    setIsCreating(false);
+                                }
                             }}
                         >
-                            만들기
+                            {isCreating ? "생성 중..." : "만들기"}
                         </Button>
                         <Button
                             type="button"

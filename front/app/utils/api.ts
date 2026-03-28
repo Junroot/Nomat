@@ -90,6 +90,18 @@ export async function deletePlaylist(playlistId: number): Promise<void> {
     await client.delete(`/playlists/${playlistId}`);
 }
 
+interface RoomRequest {
+    title: string;
+    password?: string;
+    maxEntriesCount: number;
+    playlistId: number;
+}
+
+export async function createRoom(request: RoomRequest): Promise<RoomDetailResponse> {
+    const response = await client.post<RoomDetailResponse>("/rooms", request);
+    return response.data;
+}
+
 export async function fetchRoomDetail(roomId: number): Promise<RoomDetailResponse> {
     const response = await client.get<RoomDetailResponse>(`/rooms/${roomId}`);
     return response.data;
