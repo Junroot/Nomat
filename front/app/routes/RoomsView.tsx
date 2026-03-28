@@ -193,7 +193,19 @@ export default function RoomsView() {
                     </div>
                 </div>
             </ColumnsContainer>
-            <RoomCreate isOpen={showCreate} onClose={() => setShowCreate(false)} />
+            <RoomCreate
+                isOpen={showCreate}
+                onClose={() => setShowCreate(false)}
+                onCreated={async (roomId, password) => {
+                    try {
+                        const client = await connectToRoom(roomId, password);
+                        setConnection(client, roomId);
+                        navigate(`/rooms/${roomId}`);
+                    } catch (error) {
+                        toast.error(String(error));
+                    }
+                }}
+            />
             <PasswordModal
                 isOpen={passwordModal.isOpen}
                 onClose={handlePasswordClose}

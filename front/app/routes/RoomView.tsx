@@ -32,11 +32,11 @@ export default function RoomView() {
     const { isMobile } = useBreakpoint();
     const [showInfo, setShowInfo] = useState(false);
 
-    const { roomDetail, players, systemMessages, isLoading } = useRoomSubscription(Number(roomId));
+    const { roomDetail, players, systemMessages, isLoading, leaveRoom } = useRoomSubscription(Number(roomId));
 
     if (isLoading || !roomDetail) {
         return (
-            <AppShell variant="sub" title="로딩 중..." backTo="/">
+            <AppShell variant="sub" title="로딩 중..." onBack={leaveRoom}>
                 <div className="flex items-center justify-center h-full">
                     <div className="size-8 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
                 </div>
@@ -50,7 +50,7 @@ export default function RoomView() {
         <AppShell
             variant="sub"
             title={roomDetail.title}
-            backTo="/"
+            onBack={leaveRoom}
             actions={[{ icon: <PlayIcon />, label: "시작하기", onClick: () => {} }]}
         >
             <ColumnsContainer>
