@@ -49,7 +49,7 @@ class RoomService(
                 it,
                 trackCountsByRoomIdMap[it.id]?.toInt() ?: 0,
                 masterIdToDisplayNameMap[it.master?.playerId] ?: return@mapNotNull null,
-                representativeTrackByRoomIdMap[it.id],
+                representativeTrackByRoomIdMap[it.id] ?: return@mapNotNull null,
             )
         }
     }
