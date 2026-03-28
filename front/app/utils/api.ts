@@ -4,6 +4,7 @@ import type PlaylistResponse from "./PlaylistResponse";
 import type { PlaylistWithTracksResponse } from "./PlaylistResponse";
 import type PlaylistRequest from "./PlaylistRequest";
 import type PlaylistMetaDataResponse from "./PlaylistMetaDataResponse";
+import type RoomDetailResponse from "./RoomDetailResponse";
 
 // 즐겨찾기 요청용 내부 타입
 interface FavoritePlaylistRequest { playlistId: number }
@@ -86,4 +87,9 @@ export async function unfavoritePlaylist(playlistId: number): Promise<void> {
 
 export async function deletePlaylist(playlistId: number): Promise<void> {
     await client.delete(`/playlists/${playlistId}`);
+}
+
+export async function fetchRoomDetail(roomId: number): Promise<RoomDetailResponse> {
+    const response = await client.get<RoomDetailResponse>(`/rooms/${roomId}`);
+    return response.data;
 }
