@@ -92,6 +92,7 @@ class RoomControllerTest(
     @Test
     fun getDetail() {
         val roomDetailResponse = roomStep.save(player, dummyRoomRequest(playlist.id))
+        roomStep.join(player.id, roomDetailResponse.id, "password")
 
         client.get().uri("/rooms/{roomId}", roomDetailResponse.id)
             .auth(player)
@@ -99,9 +100,21 @@ class RoomControllerTest(
             .expectStatus().isOk()
             .expectBody<RoomDetailResponse>()
             .value {
-                assertThat(it).usingRecursiveComparison()
-                    .isEqualTo(roomDetailResponse)
+                assertThat(it.id).isEqualTo(roomDetailResponse.id)
+                assertThat(it.title).isEqualTo(roomDetailResponse.title)
+                assertThat(it.players).hasSize(1)
             }
+    }
+
+    @Test
+    fun `getDetail_방 멤버가 아닌 플레이어는 조회 불가`() {
+        val roomDetailResponse = roomStep.save(player, dummyRoomRequest(playlist.id))
+        val nonMember = playerStep.save(dummyPlayerRequest(nickname = "nonMember", registrationId = "nonMemberId"))
+
+        client.get().uri("/rooms/{roomId}", roomDetailResponse.id)
+            .auth(nonMember)
+            .exchange()
+            .expectStatus().isForbidden()
     }
 
     @Test
