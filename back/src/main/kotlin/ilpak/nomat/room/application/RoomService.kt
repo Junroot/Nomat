@@ -38,15 +38,18 @@ class RoomService(
 
     fun get(cursorRoomId: Long, size: Int): List<RoomResponse> {
         val rooms = roomRepository.findByIdGreaterThanAndStatusOrderByIdDesc(cursorRoomId, RoomStatus.ACTIVE, size)
+        val roomIds = rooms.map { it.id }
         val masterIds = rooms.mapNotNull { it.master?.playerId }.toSet()
-        val masterIdToNicknameMap = playerService.findByIdIn(masterIds).associate { it.id to it.nickname }
-        val trackCountsByRoomIdMap = roomPlaylistTrackRepository.countByRoomIds(rooms.map { it.id })
+        val masterIdToDisplayNameMap = playerService.findByIdIn(masterIds).associate { it.id to it.displayName }
+        val trackCountsByRoomIdMap = roomPlaylistTrackRepository.countByRoomIds(roomIds)
+        val representativeTrackByRoomIdMap = roomPlaylistTrackRepository.findRepresentativeEmbedIdByRoomIds(roomIds)
 
         return rooms.mapNotNull {
             RoomResponse.of(
                 it,
                 trackCountsByRoomIdMap[it.id]?.toInt() ?: 0,
-                masterIdToNicknameMap[it.playlistMasterId] ?: return@mapNotNull null
+                masterIdToDisplayNameMap[it.master?.playerId] ?: return@mapNotNull null,
+                representativeTrackByRoomIdMap[it.id],
             )
         }
     }

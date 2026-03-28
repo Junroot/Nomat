@@ -6,6 +6,7 @@ import ilpak.nomat.common.metadata.AuditMetadata
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
+import org.hibernate.annotations.BatchSize
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -28,6 +29,7 @@ class Room(
     val maxEntriesCount: Int,
     @Embedded
     val playlist: RoomPlaylist,
+    @BatchSize(size = 100)
     @ElementCollection
     @CollectionTable(name = "room_entry", joinColumns = [JoinColumn(name = "room_id")])
     private val entries: MutableList<RoomEntry> = mutableListOf(),

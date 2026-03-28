@@ -6,17 +6,30 @@ data class RoomResponse(
     val id: Long,
     val title: String,
     val playlist: PlaylistResponse,
-    val masterNickname: String?,
+    val masterDisplayName: String,
+    val hasPassword: Boolean,
+    val maxPlayerCount: Int,
+    val currentPlayerCount: Int,
+    val representativeTrackEmbedId: String?,
 ) {
 
     companion object {
 
-        fun of(room: Room, trackCount: Int, nickname: String): RoomResponse {
+        fun of(
+            room: Room,
+            trackCount: Int,
+            masterDisplayName: String,
+            representativeTrackEmbedId: String?,
+        ): RoomResponse {
             return RoomResponse(
                 room.id,
                 room.title,
                 PlaylistResponse.of(room.playlist, trackCount),
-                nickname,
+                masterDisplayName,
+                room.password != null,
+                room.maxEntriesCount,
+                room.playerIds.size,
+                representativeTrackEmbedId,
             )
         }
     }

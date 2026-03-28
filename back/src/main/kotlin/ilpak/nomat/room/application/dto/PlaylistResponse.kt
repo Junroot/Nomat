@@ -4,7 +4,7 @@ import ilpak.nomat.room.application.domain.RoomPlaylist
 
 data class PlaylistResponse(
     val title: String,
-    val count: Int,
+    val trackCount: Int,
     val id: Long,
 ) {
     companion object {

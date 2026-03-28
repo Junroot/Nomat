@@ -2,6 +2,7 @@ package ilpak.nomat.infrastructure.integration.step
 
 import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.player.application.dto.PlayerResponse
+import ilpak.nomat.room.application.RoomService
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomRequest
 import org.springframework.boot.test.context.TestComponent
@@ -23,7 +24,12 @@ fun dummyRoomRequest(
 @TestComponent
 class RoomStep(
     private val client: WebTestClient,
+    private val roomService: RoomService,
 ) {
+
+    fun join(playerId: Long, roomId: Long, password: String?) {
+        roomService.join(roomId, playerId, password)
+    }
 
     fun save(playerResponse: PlayerResponse, request: RoomRequest): RoomDetailResponse {
         return client.post().uri("/rooms")
