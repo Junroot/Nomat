@@ -8,6 +8,7 @@ import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import Column1 from "~/components/layout/Column1";
 import Column2 from "~/components/layout/Column2";
 import useBreakpoint from "~/hooks/useBreakpoint";
+import useRoomSubscription from "~/hooks/useRoomSubscription";
 import type RoomChatMessage from "~/utils/ChatMessage";
 
 const NEON_COLORS = [
@@ -26,64 +27,51 @@ function formatTime(timestamp: string): string {
     return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }
 
-interface MockPlayer {
-    id: number;
-    nickname: string;
-    isMaster: boolean;
-}
-
-const mockPlayers: MockPlayer[] = [
-    { id: 1, nickname: "ROOT#3465", isMaster: true },
-    { id: 2, nickname: "Hassium#0436", isMaster: false },
-    { id: 3, nickname: "MusicLover#1234", isMaster: false },
-];
-
-const mockMessages: RoomChatMessage[] = [
-    { type: "system", eventType: "join", targetNickname: "ROOT#3465", timestamp: "2026-03-23T14:00:00" },
-    { type: "message", senderId: 1, senderNickname: "ROOT#3465", content: "안녕하세요! 방장입니다.", timestamp: "2026-03-23T14:00:30" },
-    { type: "system", eventType: "join", targetNickname: "Hassium#0436", timestamp: "2026-03-23T14:01:00" },
-    { type: "message", senderId: 2, senderNickname: "Hassium#0436", content: "안녕하세요~", timestamp: "2026-03-23T14:01:15" },
-    { type: "message", senderId: 2, senderNickname: "Hassium#0436", content: "재밌어보이네요!", timestamp: "2026-03-23T14:01:20" },
-    { type: "message", senderId: 1, senderNickname: "ROOT#3465", content: "곧 시작할게요 잠시만 기다려주세요", timestamp: "2026-03-23T14:02:00" },
-    { type: "system", eventType: "join", targetNickname: "MusicLover#1234", timestamp: "2026-03-23T14:02:30" },
-    { type: "message", senderId: 3, senderNickname: "MusicLover#1234", content: "저도 참여합니다!", timestamp: "2026-03-23T14:02:45" },
-];
-
 export default function RoomView() {
     const { roomId } = useParams();
     const { isMobile } = useBreakpoint();
     const [showInfo, setShowInfo] = useState(false);
-    const title = "들어오셈";
-    const playlistTitle = "오늘의 TOP 100: 일본";
-    const playlistMaster = "ROOT#3465";
-    const playlistDescription = "오늘의 일본 인기곡 Top 100으로 구성된 맵입니다. 재미있게 즐겨 주세요!"
+
+    const { roomDetail, players, systemMessages, isLoading } = useRoomSubscription(Number(roomId));
+
+    if (isLoading || !roomDetail) {
+        return (
+            <AppShell variant="sub" title="로딩 중..." backTo="/">
+                <div className="flex items-center justify-center h-full">
+                    <div className="size-8 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+                </div>
+            </AppShell>
+        );
+    }
+
+    const messages: RoomChatMessage[] = systemMessages;
 
     return (
         <AppShell
             variant="sub"
-            title={title}
+            title={roomDetail.title}
             backTo="/"
             actions={[{ icon: <PlayIcon />, label: "시작하기", onClick: () => {} }]}
         >
             <ColumnsContainer>
                 {(!isMobile || showInfo) && (
                     <Column1>
-                        <p className="text-4xl pt-4 font-bold hidden md:block">{title}</p>
+                        <p className="text-4xl pt-4 font-bold hidden md:block">{roomDetail.title}</p>
                         <div className="w-full p-3 md:p-4 flex flex-col gap-1 bg-zinc-800 rounded-2xl">
                             <div className="inline-flex items-end gap-1 text-lg md:text-2xl font-bold">
                                 <PlaylistIcon className="size-5 md:size-8" />
-                                <p>{playlistTitle}</p>
+                                <p>{roomDetail.playlist.title}</p>
                             </div>
-                            <p className="text-sm md:text-md text-zinc-400">by. {playlistMaster}</p>
-                            <p className="text-sm md:text-md mt-2 md:mt-4 text-zinc-200">{playlistDescription}</p>
+                            <p className="text-sm md:text-md text-zinc-400">by. {roomDetail.playlist.master}</p>
+                            <p className="text-sm md:text-md mt-2 md:mt-4 text-zinc-200">{roomDetail.playlist.description}</p>
                         </div>
                         <div className="w-full p-3 md:p-4 flex flex-col gap-1 md:gap-2 bg-zinc-800 rounded-2xl">
                             <div className="inline-flex items-end gap-1 text-lg md:text-2xl font-bold">
                                 <UsersIcon className="size-5 md:size-8" />
                                 <p>플레이어</p>
-                                <p className="text-sm md:text-lg">{mockPlayers.length}/16</p>
+                                <p className="text-sm md:text-lg">{players.length}</p>
                             </div>
-                            {mockPlayers.map((player) => (
+                            {players.map((player) => (
                                 <div key={player.id} className="flex items-center gap-2 md:gap-3 p-1.5 md:p-2 hover:bg-zinc-700/50 cursor-pointer rounded-lg transition-colors duration-200">
                                     <div className="relative">
                                         <UsersIcon className="size-7 md:size-10 rounded-full border border-zinc-600" />
@@ -119,7 +107,7 @@ export default function RoomView() {
                         </button>
                     )}
                     <div className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto">
-                        {mockMessages.map((msg, index) => {
+                        {messages.map((msg, index) => {
                             if (msg.type === "system") {
                                 return (
                                     <div key={index} className="flex justify-center py-1.5">
