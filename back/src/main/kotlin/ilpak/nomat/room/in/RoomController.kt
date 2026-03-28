@@ -33,8 +33,11 @@ private class RoomController(
     }
 
     @GetMapping("/{roomId}")
-    fun getDetail(@PathVariable roomId: Long): RoomDetailResponse {
-        return roomService.getDetail(roomId)
+    fun getDetail(
+        @PathVariable roomId: Long,
+        @AuthenticationPrincipal playerId: Long,
+    ): RoomDetailResponse {
+        return roomService.getDetail(roomId, playerId)
     }
 
     @ResponseStatus(HttpStatus.CREATED)

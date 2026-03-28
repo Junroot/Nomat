@@ -1,6 +1,7 @@
 package ilpak.nomat.room.application
 
 import ilpak.nomat.common.exception.BadRequestException
+import ilpak.nomat.common.exception.ForbiddenException
 import ilpak.nomat.common.exception.NotFoundException
 import ilpak.nomat.common.exception.NotFoundResource
 import ilpak.nomat.common.lock.DistributedLockExecutor
@@ -54,8 +55,11 @@ class RoomService(
         }
     }
 
-    fun getDetail(roomId: Long): RoomDetailResponse {
+    fun getDetail(roomId: Long, playerId: Long): RoomDetailResponse {
         val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
+        if (!room.playerIds.contains(playerId)) {
+            throw ForbiddenException("방 멤버만 조회할 수 있습니다.")
+        }
         val players = playerService.findByIdIn(room.playerIds + room.playlistMasterId)
         val playerIdToNicknameMap = players.associate { it.id to it.nickname }
         val trackCount = roomPlaylistTrackRepository.countByRoomId(room).toInt()
