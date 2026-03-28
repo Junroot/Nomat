@@ -4,6 +4,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import { useNavigate } from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import type RoomResponse from "~/utils/RoomResponse";
+import { fetchRooms } from "~/utils/api";
 import RoomCreate from "~/components/ui/RoomCreate";
 import PasswordModal from "~/components/ui/PasswordModal";
 import { RoomCardSkeleton } from "~/components/ui/Skeleton";
@@ -21,58 +22,24 @@ export default function RoomsView() {
     const [showCreate, setShowCreate] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [connectingRoomId, setConnectingRoomId] = useState<number | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const [passwordModal, setPasswordModal] = useState<{ isOpen: boolean; roomId: number | null }>({ isOpen: false, roomId: null });
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [passwordError, setPasswordError] = useState<string | null>(null);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-        setRooms([
-            {
-                id: 1,
-                title: "K-POP 퀴즈방",
-                playlist: { id: 1, title: "내가 만든 플리", trackCount: 12 },
-                representativeTrackEmbedId: "sPLqsLsooJY",
-                masterDisplayName: "플레이어1",
-                currentPlayerCount: 3,
-                maxPlayerCount: 20,
-                hasPassword: false,
-            },
-            {
-                id: 2,
-                title: "2000년대 히트곡",
-                playlist: { id: 2, title: "올드보이", trackCount: 8 },
-                representativeTrackEmbedId: "dTAAsCNK7RA",
-                masterDisplayName: "올드보이",
-                currentPlayerCount: 7,
-                maxPlayerCount: 10,
-                hasPassword: false,
-            },
-            {
-                id: 3,
-                title: "친구들만의 방",
-                playlist: { id: 3, title: "뮤직러버", trackCount: 20 },
-                representativeTrackEmbedId: "9bZkp7q19f0",
-                masterDisplayName: "뮤직러버",
-                currentPlayerCount: 2,
-                maxPlayerCount: 5,
-                hasPassword: true,
-            },
-            {
-                id: 4,
-                title: "애니 OST 맞히기",
-                playlist: { id: 4, title: "오타쿠", trackCount: 15 },
-                representativeTrackEmbedId: "UxxajLWwzqY",
-                masterDisplayName: "오타쿠",
-                currentPlayerCount: 5,
-                maxPlayerCount: 10,
-                hasPassword: false,
-            },
-        ]);
-        setIsLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
+        fetchRooms()
+            .then((data) => {
+                setRooms(data);
+                setError(null);
+            })
+            .catch(() => {
+                setError("방 목록을 불러오지 못했습니다");
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     }, []);
 
     const filteredRooms = useMemo(() => {
@@ -143,20 +110,19 @@ export default function RoomsView() {
                                     <RoomCardSkeleton key={i} />
                                 ))}
                             </div>
+                        ) : error ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="size-12 mb-3 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                </svg>
+                                <p className="text-sm font-semibold">{error}</p>
+                            </div>
                         ) : filteredRooms.length === 0 && query.trim().length > 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="size-12 mb-3 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                                 </svg>
                                 <p className="text-sm font-semibold">검색 결과가 없습니다</p>
-                            </div>
-                        ) : filteredRooms.length === 0 && query.trim().length === 0 && rooms.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="size-12 mb-3 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                                </svg>
-                                <p className="text-sm font-semibold">아직 방이 없습니다</p>
-                                <p className="text-xs mt-1">새로운 방을 만들어보세요</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">

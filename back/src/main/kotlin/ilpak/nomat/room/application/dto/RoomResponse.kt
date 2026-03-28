@@ -10,7 +10,7 @@ data class RoomResponse(
     val hasPassword: Boolean,
     val maxPlayerCount: Int,
     val currentPlayerCount: Int,
-    val representativeTrackEmbedId: String?,
+    val representativeTrackEmbedId: String,
 ) {
 
     companion object {
@@ -19,7 +19,7 @@ data class RoomResponse(
             room: Room,
             trackCount: Int,
             masterDisplayName: String,
-            representativeTrackEmbedId: String?,
+            representativeTrackEmbedId: String,
         ): RoomResponse {
             return RoomResponse(
                 room.id,
