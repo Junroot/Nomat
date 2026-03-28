@@ -1,18 +1,30 @@
 import AppShell from "~/components/layout/AppShell";
 import SearchBar from "~/components/ui/SearchBar";
 import React, {useEffect, useMemo, useState} from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import type RoomResponse from "~/utils/RoomResponse";
 import RoomCreate from "~/components/ui/RoomCreate";
+import PasswordModal from "~/components/ui/PasswordModal";
 import { RoomCardSkeleton } from "~/components/ui/Skeleton";
 import ScrollReveal from "~/components/ui/ScrollReveal";
+import { connectToRoom } from "~/utils/stomp";
+import useRoomConnectionStore from "~/stores/RoomConnectionStore";
+import { toast } from "sonner";
 
 export default function RoomsView() {
+    const navigate = useNavigate();
+    const setConnection = useRoomConnectionStore((s) => s.setConnection);
+
     const [query, setQuery] = useState("");
     const [rooms, setRooms] = useState<Array<RoomResponse>>([]);
     const [showCreate, setShowCreate] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [connectingRoomId, setConnectingRoomId] = useState<number | null>(null);
+
+    const [passwordModal, setPasswordModal] = useState<{ isOpen: boolean; roomId: number | null }>({ isOpen: false, roomId: null });
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -74,6 +86,49 @@ export default function RoomsView() {
         );
     }, [rooms, query]);
 
+    async function handleRoomClick(room: RoomResponse) {
+        if (connectingRoomId !== null) return;
+
+        if (room.hasPassword) {
+            setPasswordModal({ isOpen: true, roomId: room.id });
+            setPasswordError(null);
+            return;
+        }
+
+        setConnectingRoomId(room.id);
+        try {
+            const client = await connectToRoom(room.id);
+            setConnection(client, room.id);
+            navigate(`/rooms/${room.id}`);
+        } catch (error) {
+            toast.error(String(error));
+        } finally {
+            setConnectingRoomId(null);
+        }
+    }
+
+    async function handlePasswordSubmit(password: string) {
+        if (!passwordModal.roomId) return;
+
+        setPasswordLoading(true);
+        setPasswordError(null);
+        try {
+            const client = await connectToRoom(passwordModal.roomId, password);
+            setConnection(client, passwordModal.roomId);
+            setPasswordModal({ isOpen: false, roomId: null });
+            navigate(`/rooms/${passwordModal.roomId}`);
+        } catch (error) {
+            setPasswordError(String(error));
+        } finally {
+            setPasswordLoading(false);
+        }
+    }
+
+    function handlePasswordClose() {
+        setPasswordModal({ isOpen: false, roomId: null });
+        setPasswordError(null);
+    }
+
     return (
         <AppShell variant="main" activeTab="rooms" title="플레이 룸">
             <ColumnsContainer>
@@ -120,9 +175,13 @@ export default function RoomsView() {
                                 {/* 방 카드 목록 */}
                                 {filteredRooms.map((room, index) => (
                                     <ScrollReveal key={room.id} delay={(index + 1) * 50}>
-                                        <Link
-                                            to={`/rooms/${room.id}`}
-                                            className="block bg-gradient-dark border border-border rounded-xl overflow-hidden hover:border-neon-cyan/40 hover:shadow-glow-cyan hover:-translate-y-0.5 transition-all duration-300"
+                                        <div
+                                            onClick={() => handleRoomClick(room)}
+                                            className={`block bg-gradient-dark border border-border rounded-xl overflow-hidden transition-all duration-300 ${
+                                                connectingRoomId === room.id
+                                                    ? "opacity-70 pointer-events-none"
+                                                    : "cursor-pointer hover:border-neon-cyan/40 hover:shadow-glow-cyan hover:-translate-y-0.5"
+                                            }`}
                                         >
                                         {/* 썸네일 */}
                                         <div className="relative h-[100px] overflow-hidden">
@@ -132,6 +191,12 @@ export default function RoomsView() {
                                                 alt="thumbnail"
                                             />
                                             <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#18181b] to-transparent" />
+                                            {/* 로딩 오버레이 */}
+                                            {connectingRoomId === room.id && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                    <div className="size-6 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+                                                </div>
+                                            )}
                                             {/* 뱃지 오버레이 */}
                                             <div className="absolute top-2 right-2 flex gap-1.5">
                                                 {room.hasPassword && (
@@ -154,7 +219,7 @@ export default function RoomsView() {
                                             <div className="text-sm font-semibold text-zinc-200 mb-1 truncate">{room.title}</div>
                                             <div className="text-xs text-zinc-500 truncate">{room.playlist.title} · {room.playlist.trackCount}곡</div>
                                         </div>
-                                        </Link>
+                                        </div>
                                     </ScrollReveal>
                                 ))}
                             </div>
@@ -163,6 +228,13 @@ export default function RoomsView() {
                 </div>
             </ColumnsContainer>
             <RoomCreate isOpen={showCreate} onClose={() => setShowCreate(false)} />
+            <PasswordModal
+                isOpen={passwordModal.isOpen}
+                onClose={handlePasswordClose}
+                onSubmit={handlePasswordSubmit}
+                isLoading={passwordLoading}
+                error={passwordError}
+            />
         </AppShell>
     );
 }
