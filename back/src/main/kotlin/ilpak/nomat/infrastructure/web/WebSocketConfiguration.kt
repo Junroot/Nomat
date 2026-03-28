@@ -14,6 +14,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor
 class WebSocketConfiguration(
     private val jwtHandshakeInterceptor: HandshakeInterceptor,
     private val roomJoinChannelInterceptor: RoomJoinChannelInterceptor,
+    private val stompErrorHandler: StompErrorHandler,
     @Value("\${app.cors.origins}") private val origins: String,
 ) : WebSocketMessageBrokerConfigurer {
 
@@ -21,6 +22,7 @@ class WebSocketConfiguration(
         registry.addEndpoint("/ws")
             .setAllowedOrigins(origins)
             .addInterceptors(jwtHandshakeInterceptor)
+        registry.setErrorHandler(stompErrorHandler)
     }
 
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
