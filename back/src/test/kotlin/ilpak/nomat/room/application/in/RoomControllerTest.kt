@@ -13,6 +13,7 @@ import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.dto.PlaylistDetailResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomRequest
+import ilpak.nomat.room.application.dto.PlaylistResponse
 import ilpak.nomat.room.application.dto.RoomResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -114,6 +115,40 @@ class RoomControllerTest(
             .expectBody<List<RoomResponse>>()
             .value {
                 assertThat(it).isEmpty()
+            }
+    }
+
+    @Test
+    fun `get_방 목록 응답에 추가 필드가 포함된다`() {
+        val room = roomStep.save(player, dummyRoomRequest(playlist.id))
+        roomStep.join(player.id, room.id, "password")
+
+        client.get().uri("/rooms")
+            .auth(player)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody<List<RoomResponse>>()
+            .value { rooms ->
+                assertThat(rooms).hasSize(1)
+                val roomResponse = rooms[0]
+                assertThat(roomResponse).usingRecursiveComparison()
+                    .ignoringFields("id")
+                    .isEqualTo(
+                        RoomResponse(
+                            id = 0L,
+                            title = "Test Room",
+                            playlist = PlaylistResponse(
+                                title = playlist.title,
+                                trackCount = playlist.tracks.size,
+                                id = playlist.id,
+                            ),
+                            masterDisplayName = player.displayName,
+                            hasPassword = true,
+                            maxPlayerCount = 10,
+                            currentPlayerCount = 1,
+                            representativeTrackEmbedId = playlist.tracks.first { it.isRepresentative }.embedId,
+                        )
+                    )
             }
     }
 }

@@ -23,19 +23,45 @@ private class RoomPlaylistTrackRepositoryImpl(
 
     override fun countByRoomIds(roomIds: Collection<Long>): Map<Long, Long> {
         return roomPlaylistTrackJpaRepository.countByRoomIds(roomIds)
+            .associate { it.roomId to it.count }
     }
+
+    override fun findRepresentativeEmbedIdByRoomIds(roomIds: Collection<Long>): Map<Long, String> {
+        return roomPlaylistTrackJpaRepository.findRepresentativeEmbedIdByRoomIds(roomIds)
+            .associate { it.roomId to it.embedId }
+    }
+}
+
+private interface RoomIdCount {
+    val roomId: Long
+    val count: Long
+}
+
+private interface RoomIdEmbedId {
+    val roomId: Long
+    val embedId: String
 }
 
 private interface RoomPlaylistTrackJpaRepository : CrudRepository<RoomPlaylistTrack, RoomPlaylistTrackId> {
 
     fun countByRoom(room: Room): Long
+
     @Query(
         """
-        SELECT rpt.room.id, COUNT(rpt.trackId) 
-        FROM RoomPlaylistTrack rpt 
-        WHERE rpt.room.id IN :roomIds 
+        SELECT rpt.room.id AS roomId, COUNT(rpt.trackId) AS count
+        FROM RoomPlaylistTrack rpt
+        WHERE rpt.room.id IN :roomIds
         GROUP BY rpt.room.id
     """
     )
-    fun countByRoomIds(roomIds: Collection<Long>): Map<Long, Long>
+    fun countByRoomIds(roomIds: Collection<Long>): List<RoomIdCount>
+
+    @Query(
+        """
+        SELECT rpt.room.id AS roomId, rpt.embedId AS embedId
+        FROM RoomPlaylistTrack rpt
+        WHERE rpt.room.id IN :roomIds AND rpt.representative = true
+    """
+    )
+    fun findRepresentativeEmbedIdByRoomIds(roomIds: Collection<Long>): List<RoomIdEmbedId>
 }
