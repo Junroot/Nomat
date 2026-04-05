@@ -18,19 +18,24 @@ interface RoomJoinedLeftEvent extends RoomEventBase {
     type: "JOINED" | "LEFT";
 }
 
+interface RoomSessionReplacedEvent extends RoomEventBase {
+    type: "SESSION_REPLACED";
+}
+
 interface RoomChatEvent extends RoomEventBase {
     type: "CHAT";
     content: string;
     timestamp: string;
 }
 
-type RoomEventMessage = RoomJoinedLeftEvent | RoomChatEvent;
+type RoomEventMessage = RoomJoinedLeftEvent | RoomSessionReplacedEvent | RoomChatEvent;
 
 interface UseRoomSubscriptionResult {
     roomDetail: RoomDetailResponse | null;
     players: RoomMemberResponse[];
     messages: RoomChatMessage[];
     isLoading: boolean;
+    isDeactivated: boolean;
     sendMessage: (content: string) => void;
     leaveRoom: () => void;
 }
@@ -46,9 +51,12 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     const [players, setPlayers] = useState<RoomMemberResponse[]>([]);
     const [messages, setMessages] = useState<RoomChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDeactivated, setIsDeactivated] = useState(false);
 
     const subscriptionRef = useRef<StompSubscription | null>(null);
     const disconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isLeavingVoluntarilyRef = useRef(false);
+    const isDeactivatedRef = useRef(false);
 
     function clearPendingTimeout() {
         if (disconnectTimeoutRef.current) {
@@ -64,6 +72,12 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
         clear();
     }
 
+    function deactivate() {
+        isDeactivatedRef.current = true;
+        setIsDeactivated(true);
+        disconnectAndCleanup();
+    }
+
     const handleEventRef = useRef<(event: RoomEventMessage) => void>(() => {});
     handleEventRef.current = (event: RoomEventMessage) => {
         if (event.type === "JOINED") {
@@ -75,11 +89,20 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                 ...prev,
                 { type: "system", eventType: "join", targetNickname: event.nickname, timestamp: new Date().toISOString() },
             ]);
+        } else if (event.type === "SESSION_REPLACED") {
+            if (event.playerId === meId) {
+                deactivate();
+                return;
+            }
         } else if (event.type === "LEFT") {
             if (event.playerId === meId) {
                 clearPendingTimeout();
-                disconnectAndCleanup();
-                navigate("/");
+                if (isLeavingVoluntarilyRef.current) {
+                    disconnectAndCleanup();
+                    navigate("/");
+                } else {
+                    deactivate();
+                }
                 return;
             }
             setPlayers((prev) => prev.filter((p) => p.id !== event.playerId));
@@ -104,6 +127,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     const leaveRoomRef = useRef<() => void>(() => {});
     leaveRoomRef.current = () => {
         clearPendingTimeout();
+        isLeavingVoluntarilyRef.current = true;
         if (client?.connected) {
             client.publish({ destination: "/app/rooms/leave" });
         }
@@ -116,6 +140,8 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
 
     useEffect(() => {
         clearPendingTimeout();
+
+        if (isDeactivatedRef.current) return;
 
         if (!client || storeRoomId !== roomId) {
             navigate("/");
@@ -137,6 +163,8 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
         }
 
         return () => {
+            if (isDeactivatedRef.current) return;
+
             // StrictMode 재마운트 시 취소되도록 지연 정리
             disconnectTimeoutRef.current = setTimeout(() => {
                 if (!subscriptionRef.current) return;
@@ -157,6 +185,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
         players,
         messages,
         isLoading,
+        isDeactivated,
         sendMessage,
         leaveRoom,
     };
