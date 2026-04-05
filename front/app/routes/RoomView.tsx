@@ -32,6 +32,7 @@ export default function RoomView() {
     const [showInfo, setShowInfo] = useState(false);
 
     const [input, setInput] = useState("");
+    const inputRef = useRef<HTMLInputElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isNearBottomRef = useRef(true);
@@ -43,6 +44,17 @@ export default function RoomView() {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages]);
+
+    useEffect(() => {
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === "Enter" && document.activeElement !== inputRef.current) {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+        }
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
 
     function handleSend() {
         const trimmed = input.trim();
@@ -159,6 +171,7 @@ export default function RoomView() {
                     </div>
                     <div className="p-2 m-2 flex items-center gap-2 rounded-full bg-surface border border-border focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
                         <input
+                            ref={inputRef}
                             type="text"
                             placeholder="보낼 메시지 입력"
                             className="flex-1 p-[2px] pl-[8px] placeholder-zinc-500 focus:outline-none"
