@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import AppShell from "~/components/layout/AppShell";
 import PlayIcon from "~/assets/play.svg?react";
@@ -28,6 +28,7 @@ function formatTime(timestamp: string): string {
 
 export default function RoomView() {
     const { roomId } = useParams();
+    const navigate = useNavigate();
     const { isMobile } = useBreakpoint();
     const [showInfo, setShowInfo] = useState(false);
 
@@ -37,7 +38,7 @@ export default function RoomView() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isNearBottomRef = useRef(true);
 
-    const { roomDetail, players, messages, isLoading, sendMessage, leaveRoom } = useRoomSubscription(Number(roomId));
+    const { roomDetail, players, messages, isLoading, isDeactivated, sendMessage, leaveRoom } = useRoomSubscription(Number(roomId));
 
     useEffect(() => {
         if (isNearBottomRef.current) {
@@ -198,6 +199,18 @@ export default function RoomView() {
                     </div>
                 </Column2>
             </ColumnsContainer>
+            {isDeactivated && (
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-zinc-950/80 backdrop-blur-sm">
+                    <p className="text-xl font-bold text-zinc-200">다른 탭에서 사용 중입니다</p>
+                    <button
+                        type="button"
+                        className="px-6 py-2.5 rounded-xl bg-neon-cyan/20 text-neon-cyan font-semibold hover:bg-neon-cyan/30 transition-colors cursor-pointer"
+                        onClick={() => navigate("/")}
+                    >
+                        방 목록으로 이동
+                    </button>
+                </div>
+            )}
         </AppShell>
     );
 }
