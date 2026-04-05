@@ -7,9 +7,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 @JsonSubTypes(
     JsonSubTypes.Type(value = RoomJoinedEventMessage::class, name = "JOINED"),
     JsonSubTypes.Type(value = RoomLeftEventMessage::class, name = "LEFT"),
+    JsonSubTypes.Type(value = RoomChatEventMessage::class, name = "CHAT"),
 )
 interface RoomEventMessage {
     val roomId: Long
     val playerId: Long
     val nickname: String
+
+    companion object {
+        fun channelFor(roomId: Long): String = "room:$roomId:events"
+        const val CHANNEL_PATTERN = "room:*:events"
+    }
 }

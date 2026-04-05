@@ -1,6 +1,7 @@
 package ilpak.nomat.infrastructure.web
 
 import ilpak.nomat.common.exception.BadRequestException
+import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.room.application.RoomService
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class RoomJoinChannelInterceptor(
     private val roomService: RoomService,
+    private val playerService: PlayerService,
     private val reconnectGracePeriodManager: ReconnectGracePeriodManager,
 ) : ChannelInterceptor {
 
@@ -27,18 +29,19 @@ class RoomJoinChannelInterceptor(
         val playerId = accessor.sessionAttributes?.get(JwtHandshakeInterceptor.PLAYER_ID_KEY) as? Long
             ?: throw BadRequestException("인증 정보가 없습니다.")
 
-        if (reconnectGracePeriodManager.cancelGracePeriod(roomId, playerId)) {
-            accessor.sessionAttributes?.set(ROOM_ID_KEY, roomId)
-            return message
+        if (!reconnectGracePeriodManager.cancelGracePeriod(roomId, playerId)) {
+            roomService.join(roomId, playerId, password)
         }
 
-        roomService.join(roomId, playerId, password)
+        val player = playerService.findById(playerId)
         accessor.sessionAttributes?.set(ROOM_ID_KEY, roomId)
+        accessor.sessionAttributes?.set(NICKNAME_KEY, player.nickname)
         return message
     }
 
     companion object {
         const val ROOM_ID_KEY = "roomId"
+        const val NICKNAME_KEY = "nickname"
         private const val ROOM_ID_HEADER = "roomId"
         private const val PASSWORD_HEADER = "password"
     }

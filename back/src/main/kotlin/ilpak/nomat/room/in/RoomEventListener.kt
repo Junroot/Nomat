@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.room.application.domain.RoomJoinedEvent
 import ilpak.nomat.room.application.domain.RoomLeftEvent
+import ilpak.nomat.room.application.dto.RoomEventMessage
 import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
 import ilpak.nomat.room.application.dto.RoomLeftEventMessage
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -21,7 +22,7 @@ private class RoomEventListener(
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleRoomJoined(event: RoomJoinedEvent) {
         val player = playerService.findById(event.playerId)
-        val channel = "room:${event.roomId}:events"
+        val channel = RoomEventMessage.channelFor(event.roomId)
         val message = objectMapper.writeValueAsString(
             RoomJoinedEventMessage(
                 roomId = event.roomId,
@@ -35,7 +36,7 @@ private class RoomEventListener(
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleRoomLeft(event: RoomLeftEvent) {
         val player = playerService.findById(event.playerId)
-        val channel = "room:${event.roomId}:events"
+        val channel = RoomEventMessage.channelFor(event.roomId)
         val message = objectMapper.writeValueAsString(
             RoomLeftEventMessage(
                 roomId = event.roomId,

@@ -40,7 +40,7 @@ private class GlobalControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     fun methodArgumentNotValidException(exception: MethodArgumentNotValidException): ExceptionResponse {
-        val message = exception.bindingResult.fieldErrors.joinToString(", ") { "${it.defaultMessage}" }
+        val message = exception.bindingResult.fieldErrors.joinToString(", ") { it.defaultMessage ?: "" }
         return ExceptionResponse(message)
     }
 

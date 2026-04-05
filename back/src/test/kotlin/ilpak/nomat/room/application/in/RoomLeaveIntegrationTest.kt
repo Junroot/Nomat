@@ -10,6 +10,7 @@ import ilpak.nomat.infrastructure.integration.step.dummyPlayerRequest
 import ilpak.nomat.infrastructure.integration.step.dummyPlaylistCreationRequest
 import ilpak.nomat.infrastructure.integration.step.dummyRoomRequest
 import ilpak.nomat.infrastructure.integration.util.auth
+import ilpak.nomat.infrastructure.integration.util.connectStomp
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
@@ -21,16 +22,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.messaging.converter.MappingJackson2MessageConverter
 import org.springframework.messaging.simp.stomp.StompFrameHandler
 import org.springframework.messaging.simp.stomp.StompHeaders
-import org.springframework.messaging.simp.stomp.StompSession
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.springframework.web.socket.WebSocketHttpHeaders
-import org.springframework.web.socket.client.standard.StandardWebSocketClient
-import org.springframework.web.socket.messaging.WebSocketStompClient
 import java.lang.reflect.Type
 import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
@@ -61,8 +56,8 @@ class RoomLeaveIntegrationTest(
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
         val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
 
-        val sessionA = connectStomp(player, room.id, "password")
-        val sessionB = connectStomp(joiner, room.id, "password")
+        val sessionA = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
+        val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
 
         val receivedEvents = LinkedBlockingQueue<RoomEventMessage>()
         sessionA.subscribe("/topic/rooms/${room.id}", object : StompFrameHandler {
@@ -77,7 +72,7 @@ class RoomLeaveIntegrationTest(
         Thread.sleep(500)
 
         // 유예 시간(2초) 내 재접속
-        val sessionB2 = connectStomp(joiner, room.id, "password")
+        val sessionB2 = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
 
         // 유예 시간(2초)이 지나도 퇴장 이벤트가 발생하지 않아야 함
         Thread.sleep(3000)
@@ -97,8 +92,8 @@ class RoomLeaveIntegrationTest(
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
         val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
 
-        val sessionA = connectStomp(player, room.id, "password")
-        val sessionB = connectStomp(joiner, room.id, "password")
+        val sessionA = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
+        val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
 
         val receivedEvents = LinkedBlockingQueue<RoomEventMessage>()
         sessionA.subscribe("/topic/rooms/${room.id}", object : StompFrameHandler {
@@ -131,8 +126,8 @@ class RoomLeaveIntegrationTest(
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
         val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
 
-        connectStomp(player, room.id, "password")
-        val sessionB = connectStomp(joiner, room.id, "password")
+        connectStomp(objectMapper, tokenService, port, player, room.id, "password")
+        val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
 
         // 유저 B 연결 해제
         sessionB.disconnect()
@@ -151,7 +146,7 @@ class RoomLeaveIntegrationTest(
     fun `모든 유저가 퇴장하면 방이 삭제된다`() {
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
 
-        val sessionA = connectStomp(player, room.id, "password")
+        val sessionA = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
 
         // 유일한 유저가 연결 해제
         sessionA.disconnect()
@@ -178,25 +173,4 @@ class RoomLeaveIntegrationTest(
             .responseBody
     }
 
-    private fun connectStomp(player: PlayerResponse, roomId: Long, password: String?): StompSession {
-        val stompClient = WebSocketStompClient(StandardWebSocketClient())
-        stompClient.messageConverter = MappingJackson2MessageConverter(objectMapper)
-
-        val stompHeaders = StompHeaders()
-        stompHeaders.add("roomId", roomId.toString())
-        if (password != null) {
-            stompHeaders.add("password", password)
-        }
-
-        val httpHeaders = WebSocketHttpHeaders()
-        val token = tokenService.getNewToken(player.id)
-        httpHeaders.add("Cookie", "${TokenService.TOKEN_COOKIE_KEY}=$token")
-
-        return stompClient.connectAsync(
-            "ws://localhost:$port/ws",
-            httpHeaders,
-            stompHeaders,
-            object : StompSessionHandlerAdapter() {}
-        ).get(5, TimeUnit.SECONDS)
-    }
 }
