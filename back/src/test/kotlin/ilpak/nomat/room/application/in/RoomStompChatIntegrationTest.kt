@@ -70,9 +70,9 @@ class RoomStompChatIntegrationTest(
             .pollInterval(Duration.ofMillis(100))
             .atMost(Duration.ofSeconds(5))
             .untilAsserted {
-                val chatEvents = receivedEvents.filter { it is RoomChatEventMessage }
+                val chatEvents = receivedEvents.filterIsInstance<RoomChatEventMessage>()
                 assertThat(chatEvents).hasSize(1)
-                val event = chatEvents.first() as RoomChatEventMessage
+                val event = chatEvents.first()
                 assertThat(event.playerId).isEqualTo(joiner.id)
                 assertThat(event.nickname).isEqualTo("joiner")
                 assertThat(event.roomId).isEqualTo(room.id)
@@ -106,9 +106,9 @@ class RoomStompChatIntegrationTest(
             .pollInterval(Duration.ofMillis(100))
             .atMost(Duration.ofSeconds(5))
             .untilAsserted {
-                val chatEvents = receivedEvents.filter { it is RoomChatEventMessage }
+                val chatEvents = receivedEvents.filterIsInstance<RoomChatEventMessage>()
                 assertThat(chatEvents).hasSize(1)
-                val event = chatEvents.first() as RoomChatEventMessage
+                val event = chatEvents.first()
                 assertThat(event.playerId).isEqualTo(player.id)
                 assertThat(event.content).isEqualTo("테스트 메시지")
             }

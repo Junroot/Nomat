@@ -105,7 +105,12 @@ cd back && ./gradlew test --tests "ilpak.nomat.모듈.테스트클래스"
 프론트엔드는 테스트 프레임워크가 없으므로 테스트 코드 작성은 건너뛴다.
 타입체크(`npm run typecheck`)도 worktree에서 실행하지 않는다 — worktree에는 `node_modules`가 없어서 npm 명령이 동작하지 않기 때문이다. 타입체크는 PR의 CI에서 자동 확인된다.
 
-### 6단계: 커밋
+### 6단계: 코드 품질 검토
+
+`/simplify` 스킬을 실행하여 변경된 코드의 재사용성, 품질, 효율성을 검토한다.
+simplify가 개선 사항을 반영했다면, 테스트를 다시 실행하여 통과를 확인한다.
+
+### 7단계: 커밋
 
 변경 사항을 커밋한다. 이 프로젝트는 한국어 Conventional Commits을 사용한다:
 
@@ -123,7 +128,7 @@ EOF
 - 접두사: `feat:`, `fix:`, `refactor:`, `test:`, `chore:` 등
 - 변경이 크면 논리적 단위로 여러 커밋으로 나눈다.
 
-### 7단계: PR 생성
+### 8단계: PR 생성
 
 worktree에서 push하고 PR을 생성한다:
 
@@ -150,7 +155,7 @@ EOF
 - `Closes #<이슈번호>`로 task 이슈를 연결하여, PR 머지 시 자동으로 이슈가 닫히게 한다.
 - 테스트 계획에 작성한 테스트와 수동 검증 항목을 포함한다.
 
-### 8단계: worktree 정리 및 결과 보고
+### 9단계: worktree 정리 및 결과 보고
 
 `ExitWorktree` 도구로 worktree를 정리하고 원래 작업 디렉토리로 돌아온다.
 

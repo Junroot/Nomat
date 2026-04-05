@@ -101,27 +101,6 @@ gh issue view <번호> --comments
 
 새 검증을 작성하기 전에, 해당 이슈에 이전 검증 코멘트가 있으면 **outdated로 숨김 처리**한다.
 `gh api`를 사용하여 이슈의 코멘트 목록을 조회하고, `## 검증 결과`로 시작하는 코멘트를 찾아 minimize(숨김) 처리한다.
-
-```bash
-# 이슈 코멘트 목록 조회
-gh api repos/{owner}/{repo}/issues/<번호>/comments --jq '.[] | select(.body | startswith("## 검증 결과")) | .node_id'
-
-# 각 코멘트를 OUTDATED로 숨김 처리
-gh api graphql -f query='
-  mutation {
-    minimizeComment(input: {subjectId: "<node_id>", classifier: OUTDATED}) {
-      minimizedComment { isMinimized }
-    }
-  }
-'
-```
-
-이전 검증이 여러 건 있으면 모두 숨김 처리한다. 새 검증 코멘트만 펼쳐진 상태로 남아야 한다.
-
-### 6단계: 결과 보고
-
-새 검증을 작성하기 전에, 해당 이슈에 이전 **검증 코멘트**가 있으면 **outdated로 숨김 처리**한다.
-`gh api`를 사용하여 이슈의 코멘트 목록을 조회하고, `## 검증 결과`로 시작하는 코멘트를 찾아 minimize(숨김) 처리한다.
 **설계 코멘트(`## 설계`로 시작)는 숨김 처리하지 않는다.**
 
 ```bash
