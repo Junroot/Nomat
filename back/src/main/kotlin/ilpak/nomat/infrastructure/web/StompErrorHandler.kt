@@ -16,7 +16,7 @@ class StompErrorHandler : StompSubProtocolErrorHandler() {
         val validationException = findException<MethodArgumentNotValidException>(ex)
         if (validationException != null) {
             val message = validationException.bindingResult.fieldErrors
-                .joinToString(", ") { "${it.defaultMessage}" }
+                .joinToString(", ") { it.defaultMessage ?: "" }
             return super.handleClientMessageProcessingError(clientMessage, RuntimeException(message))
         }
 

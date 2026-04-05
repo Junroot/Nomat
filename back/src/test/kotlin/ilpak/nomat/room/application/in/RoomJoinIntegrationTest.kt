@@ -9,6 +9,7 @@ import ilpak.nomat.infrastructure.integration.step.dummyPlayerRequest
 import ilpak.nomat.infrastructure.integration.step.dummyPlaylistCreationRequest
 import ilpak.nomat.infrastructure.integration.step.dummyRoomRequest
 import ilpak.nomat.infrastructure.integration.util.auth
+import ilpak.nomat.infrastructure.integration.util.connectStomp
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
@@ -23,16 +24,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.messaging.converter.MappingJackson2MessageConverter
 import org.springframework.messaging.simp.stomp.StompFrameHandler
 import org.springframework.messaging.simp.stomp.StompHeaders
-import org.springframework.messaging.simp.stomp.StompSession
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.springframework.web.socket.WebSocketHttpHeaders
-import org.springframework.web.socket.client.standard.StandardWebSocketClient
-import org.springframework.web.socket.messaging.WebSocketStompClient
 import java.lang.reflect.Type
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
@@ -66,7 +61,7 @@ class RoomJoinIntegrationTest(
     fun `STOMP 연결 시 방에 입장한다`() {
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
 
-        val session = connectStomp(player, room.id, "password")
+        val session = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
 
         val detail = getRoomDetail(room.id)
         assertNotNull(detail)
@@ -81,7 +76,7 @@ class RoomJoinIntegrationTest(
         val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
 
         assertThatThrownBy {
-            connectStomp(joiner, room.id, "wrong_password")
+            connectStomp(objectMapper, tokenService, port, joiner, room.id, "wrong_password")
         }
     }
 
@@ -92,7 +87,7 @@ class RoomJoinIntegrationTest(
             RoomRequest(title = "No Password Room", password = null, maxEntriesCount = 10, playlistId = playlist.id)
         )
 
-        val session = connectStomp(player, room.id, null)
+        val session = connectStomp(objectMapper, tokenService, port, player, room.id, null)
 
         val detail = getRoomDetail(room.id)
         assertNotNull(detail)
@@ -104,7 +99,7 @@ class RoomJoinIntegrationTest(
     fun `PENDING 방에 첫 입장 후 ACTIVE로 전환된다`() {
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
 
-        val session = connectStomp(player, room.id, "password")
+        val session = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
 
         client.get().uri("/rooms")
             .auth(player)
@@ -133,7 +128,7 @@ class RoomJoinIntegrationTest(
             executor.submit {
                 startLatch.await()
                 try {
-                    connectStomp(p, room.id, "password")
+                    connectStomp(objectMapper, tokenService, port, p, room.id, "password")
                     results[p.id] = true
                 } catch (e: Exception) {
                     results[p.id] = false
@@ -156,7 +151,7 @@ class RoomJoinIntegrationTest(
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
         val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
 
-        val sessionA = connectStomp(player, room.id, "password")
+        val sessionA = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
         val receivedEvents = LinkedBlockingQueue<RoomJoinedEventMessage>()
         sessionA.subscribe("/topic/rooms/${room.id}", object : StompFrameHandler {
             override fun getPayloadType(headers: StompHeaders): Type = RoomJoinedEventMessage::class.java
@@ -165,7 +160,7 @@ class RoomJoinIntegrationTest(
             }
         })
 
-        val sessionB = connectStomp(joiner, room.id, "password")
+        val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
 
         await()
             .pollInterval(Duration.ofMillis(100))
@@ -192,25 +187,4 @@ class RoomJoinIntegrationTest(
             .responseBody
     }
 
-    private fun connectStomp(player: PlayerResponse, roomId: Long, password: String?): StompSession {
-        val stompClient = WebSocketStompClient(StandardWebSocketClient())
-        stompClient.messageConverter = MappingJackson2MessageConverter(objectMapper)
-
-        val stompHeaders = StompHeaders()
-        stompHeaders.add("roomId", roomId.toString())
-        if (password != null) {
-            stompHeaders.add("password", password)
-        }
-
-        val httpHeaders = WebSocketHttpHeaders()
-        val token = tokenService.getNewToken(player.id)
-        httpHeaders.add("Cookie", "${TokenService.TOKEN_COOKIE_KEY}=$token")
-
-        return stompClient.connectAsync(
-            "ws://localhost:$port/ws",
-            httpHeaders,
-            stompHeaders,
-            object : StompSessionHandlerAdapter() {}
-        ).get(5, TimeUnit.SECONDS)
-    }
 }

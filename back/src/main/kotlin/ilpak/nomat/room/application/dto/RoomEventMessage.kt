@@ -13,4 +13,9 @@ interface RoomEventMessage {
     val roomId: Long
     val playerId: Long
     val nickname: String
+
+    companion object {
+        fun channelFor(roomId: Long): String = "room:$roomId:events"
+        const val CHANNEL_PATTERN = "room:*:events"
+    }
 }

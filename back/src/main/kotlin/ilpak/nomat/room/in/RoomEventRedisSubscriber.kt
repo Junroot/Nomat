@@ -35,7 +35,7 @@ private class RoomEventRedisSubscriberConfiguration {
     ): RedisMessageListenerContainer {
         val container = RedisMessageListenerContainer()
         container.setConnectionFactory(connectionFactory)
-        container.addMessageListener(roomEventRedisSubscriber, PatternTopic("room:*:events"))
+        container.addMessageListener(roomEventRedisSubscriber, PatternTopic(RoomEventMessage.CHANNEL_PATTERN))
         return container
     }
 }
