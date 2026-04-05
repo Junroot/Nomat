@@ -1,5 +1,5 @@
 import { useParams } from "react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppShell from "~/components/layout/AppShell";
 import PlayIcon from "~/assets/play.svg?react";
 import PlaylistIcon from "~/assets/playlist.svg?react";
@@ -9,7 +9,6 @@ import Column1 from "~/components/layout/Column1";
 import Column2 from "~/components/layout/Column2";
 import useBreakpoint from "~/hooks/useBreakpoint";
 import useRoomSubscription from "~/hooks/useRoomSubscription";
-import type RoomChatMessage from "~/utils/ChatMessage";
 
 const NEON_COLORS = [
     "text-neon-cyan",
@@ -32,7 +31,37 @@ export default function RoomView() {
     const { isMobile } = useBreakpoint();
     const [showInfo, setShowInfo] = useState(false);
 
-    const { roomDetail, players, systemMessages, isLoading, leaveRoom } = useRoomSubscription(Number(roomId));
+    const [input, setInput] = useState("");
+    const inputRef = useRef<HTMLInputElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const isNearBottomRef = useRef(true);
+
+    const { roomDetail, players, messages, isLoading, sendMessage, leaveRoom } = useRoomSubscription(Number(roomId));
+
+    useEffect(() => {
+        if (isNearBottomRef.current) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [messages]);
+
+    useEffect(() => {
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === "Enter" && document.activeElement !== inputRef.current) {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+        }
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    function handleSend() {
+        const trimmed = input.trim();
+        if (!trimmed) return;
+        sendMessage(trimmed);
+        setInput("");
+    }
 
     if (isLoading || !roomDetail) {
         return (
@@ -43,8 +72,6 @@ export default function RoomView() {
             </AppShell>
         );
     }
-
-    const messages: RoomChatMessage[] = systemMessages;
 
     return (
         <AppShell
@@ -106,7 +133,15 @@ export default function RoomView() {
                             </svg>
                         </button>
                     )}
-                    <div className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto">
+                    <div
+                        ref={messagesContainerRef}
+                        className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto"
+                        onScroll={() => {
+                            const el = messagesContainerRef.current;
+                            if (!el) return;
+                            isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+                        }}
+                    >
                         {messages.map((msg, index) => {
                             if (msg.type === "system") {
                                 return (
@@ -132,13 +167,34 @@ export default function RoomView() {
                                 </div>
                             );
                         })}
+                        <div ref={messagesEndRef} />
                     </div>
-                    <div className="p-2 m-2 rounded-full bg-surface border border-border focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
+                    <div className="p-2 m-2 flex items-center gap-2 rounded-full bg-surface border border-border focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
                         <input
+                            ref={inputRef}
                             type="text"
                             placeholder="보낼 메시지 입력"
-                            className="w-full p-[2px] pl-[8px] placeholder-zinc-500 focus:outline-none"
+                            className="flex-1 p-[2px] pl-[8px] placeholder-zinc-500 focus:outline-none"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            maxLength={200}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                                    e.preventDefault();
+                                    handleSend();
+                                }
+                            }}
                         />
+                        <button
+                            type="button"
+                            className="size-7 flex items-center justify-center rounded-full bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shrink-0"
+                            disabled={!input.trim()}
+                            onClick={handleSend}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-4">
+                                <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95l14.095-5.637a.75.75 0 0 0 0-1.394L3.105 2.289Z" />
+                            </svg>
+                        </button>
                     </div>
                 </Column2>
             </ColumnsContainer>

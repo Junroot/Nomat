@@ -1,25 +1,37 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import useRoomConnectionStore from "~/stores/RoomConnectionStore";
 import useMeStore from "~/stores/MeStore";
 import { fetchRoomDetail } from "~/utils/api";
 import type RoomDetailResponse from "~/utils/RoomDetailResponse";
 import type { RoomMemberResponse } from "~/utils/RoomDetailResponse";
-import type { SystemMessage } from "~/utils/ChatMessage";
+import type RoomChatMessage from "~/utils/ChatMessage";
 import type { StompSubscription } from "@stomp/stompjs";
 
-interface RoomEventMessage {
-    type: "JOINED" | "LEFT";
+interface RoomEventBase {
     roomId: number;
     playerId: number;
     nickname: string;
 }
 
+interface RoomJoinedLeftEvent extends RoomEventBase {
+    type: "JOINED" | "LEFT";
+}
+
+interface RoomChatEvent extends RoomEventBase {
+    type: "CHAT";
+    content: string;
+    timestamp: string;
+}
+
+type RoomEventMessage = RoomJoinedLeftEvent | RoomChatEvent;
+
 interface UseRoomSubscriptionResult {
     roomDetail: RoomDetailResponse | null;
     players: RoomMemberResponse[];
-    systemMessages: SystemMessage[];
+    messages: RoomChatMessage[];
     isLoading: boolean;
+    sendMessage: (content: string) => void;
     leaveRoom: () => void;
 }
 
@@ -32,7 +44,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
 
     const [roomDetail, setRoomDetail] = useState<RoomDetailResponse | null>(null);
     const [players, setPlayers] = useState<RoomMemberResponse[]>([]);
-    const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
+    const [messages, setMessages] = useState<RoomChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const subscriptionRef = useRef<StompSubscription | null>(null);
@@ -59,7 +71,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                 if (prev.some((p) => p.id === event.playerId)) return prev;
                 return [...prev, { id: event.playerId, nickname: event.nickname, isMaster: false }];
             });
-            setSystemMessages((prev) => [
+            setMessages((prev) => [
                 ...prev,
                 { type: "system", eventType: "join", targetNickname: event.nickname, timestamp: new Date().toISOString() },
             ]);
@@ -71,11 +83,22 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                 return;
             }
             setPlayers((prev) => prev.filter((p) => p.id !== event.playerId));
-            setSystemMessages((prev) => [
+            setMessages((prev) => [
                 ...prev,
                 { type: "system", eventType: "leave", targetNickname: event.nickname, timestamp: new Date().toISOString() },
             ]);
+        } else if (event.type === "CHAT") {
+            setMessages((prev) => [
+                ...prev,
+                { type: "message", senderId: event.playerId, senderNickname: event.nickname, content: event.content, timestamp: event.timestamp },
+            ]);
         }
+    };
+
+    const sendMessageRef = useRef<(content: string) => void>(() => {});
+    sendMessageRef.current = (content: string) => {
+        if (!client?.connected) return;
+        client.publish({ destination: "/app/rooms/chat", body: JSON.stringify({ content }) });
     };
 
     const leaveRoomRef = useRef<() => void>(() => {});
@@ -126,11 +149,15 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
         };
     }, [client, storeRoomId, roomId, navigate, clear]);
 
+    const sendMessage = useCallback((content: string) => sendMessageRef.current(content), []);
+    const leaveRoom = useCallback(() => leaveRoomRef.current(), []);
+
     return {
         roomDetail,
         players,
-        systemMessages,
+        messages,
         isLoading,
-        leaveRoom: () => leaveRoomRef.current(),
+        sendMessage,
+        leaveRoom,
     };
 }
