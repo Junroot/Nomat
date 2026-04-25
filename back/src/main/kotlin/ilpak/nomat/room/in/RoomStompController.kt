@@ -8,12 +8,15 @@ import ilpak.nomat.room.application.dto.RoomChatEventMessage
 import ilpak.nomat.room.application.dto.RoomChatRequest
 import ilpak.nomat.room.application.dto.RoomEventMessage
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor
 import org.springframework.stereotype.Controller
 import java.time.Instant
+
+private val log = LoggerFactory.getLogger(RoomStompController::class.java)
 
 @Controller
 private class RoomStompController(
