@@ -1,4 +1,10 @@
-## ADDED Requirements
+# pr-auto-review Specification
+
+## Purpose
+
+GitHub PR이 열리거나 갱신될 때 Claude Code가 자동으로 코드 리뷰를 수행하고 결과를 PR 코멘트로 게시하는 워크플로우 역량을 정의한다. 머지 게이팅과 분리된 비차단 보조 리뷰로, 공식 `anthropics/claude-code-action`과 OAuth 토큰 기반 인증을 사용하며 최소 권한 원칙을 따른다.
+
+## Requirements
 
 ### Requirement: PR 이벤트 자동 트리거
 시스템은 PR이 새로 열리거나(`opened`) head 브랜치에 새 커밋이 푸시될 때(`synchronize`) GitHub Actions에서 Claude Code 자동 리뷰 워크플로우를 실행해야 한다(SHALL). 트리거는 `pull_request` 이벤트만 사용하며 `pull_request_target`은 사용하지 않는다.
@@ -79,15 +85,15 @@
 - **THEN** 단일 워크플로우가 트리거되어 cross-cutting 컨텍스트를 함께 보고 리뷰 코멘트를 게시한다
 
 ### Requirement: 최소 권한 원칙 적용
-워크플로우의 GitHub 토큰 권한은 `pull-requests: write`와 `contents: read`만 명시해야 한다(MUST). 그 외 권한(예: `issues`, `id-token`, `actions`, `packages`)은 부여하지 않는다.
+워크플로우의 GitHub 토큰 권한은 액션 동작에 필요한 최소 항목으로만 좁혀야 한다(MUST). 구체적으로 `contents: read`(소스·diff 읽기), `pull-requests: write`(코멘트 게시), `id-token: write`(`anthropics/claude-code-action` 공식 예제 워크플로우의 권장 디폴트로, OIDC 기반 외부 서비스 인증 호환성을 위해 포함)만 명시한다. 그 외 권한(예: `issues`, `actions`, `packages`)은 부여하지 않는다.
 
 #### Scenario: 워크플로우 권한 블록 선언
 - **WHEN** 워크플로우 또는 잡 레벨 `permissions:` 블록이 정의된다
-- **THEN** `pull-requests: write`와 `contents: read`만 명시되며 다른 권한 항목은 누락 또는 `none`으로 유지된다
+- **THEN** `contents: read`, `pull-requests: write`, `id-token: write` 세 항목만 명시되며 다른 권한 항목은 누락 또는 `none`으로 유지된다
 
 #### Scenario: 권한 미명시로 기본값이 적용되는 상황
 - **WHEN** 저장소 기본 GITHUB_TOKEN 권한이 광범위하게 설정되어 있다
-- **THEN** 워크플로우 파일이 자체 `permissions:` 블록으로 권한을 좁혀 액션 호출이 최소 권한으로 동작한다
+- **THEN** 워크플로우 파일이 자체 `permissions:` 블록으로 권한을 좁혀 액션 호출이 위 세 항목으로만 동작한다
 
 ### Requirement: 토큰 발급·갱신 운영 절차 문서화
 저장소는 `CLAUDE_CODE_OAUTH_TOKEN` 발급·등록·갱신 절차를 README 또는 별도 운영 문서에 한국어로 명시해야 한다(SHALL).

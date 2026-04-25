@@ -7,7 +7,7 @@
 ## 2. infra: PR 자동 리뷰 워크플로우 추가
 
 - [x] 2.1 `.github/workflows/claude-pr-review.yml` 신규 작성 — `on: pull_request`, `types: [opened, synchronize]` 트리거 정의 (`pull_request_target` 미사용)
-- [x] 2.2 워크플로우 또는 잡 레벨 `permissions:` 블록에 `pull-requests: write`, `contents: read`만 명시 (그 외 권한 부여하지 않음)
+- [x] 2.2 워크플로우 또는 잡 레벨 `permissions:` 블록에 `contents: read`, `pull-requests: write`, `id-token: write`만 명시 (그 외 권한 부여하지 않음)
 - [x] 2.3 PR 단위 동시성 제어 추가 — `concurrency.group: claude-pr-review-${{ github.event.pull_request.number }}` + `cancel-in-progress: true`
 - [x] 2.4 잡 단계에서 `anthropics/claude-code-action`을 호출하고 `CLAUDE_CODE_OAUTH_TOKEN` secret을 입력으로 주입 — 액션 버전은 메이저 태그 또는 SHA로 핀 고정
 - [x] 2.5 `paths` 필터를 두지 않아 모든 디렉터리(back/front/infra/문서) 변경 PR이 동일하게 리뷰되는지 워크플로우 정의에서 확인
@@ -22,8 +22,8 @@
 
 ## 4. 자체 검증 (워크플로우 동작 확인)
 
-- [ ] 4.1 변경 사항을 feature 브랜치에 커밋하고 develop 대상 PR을 올려 `opened` 이벤트로 워크플로우가 트리거되는지 확인
-- [ ] 4.2 PR 페이지에서 자동 리뷰 코멘트가 정상 게시되는지 확인 — 액션 로그에서 OAuth 인증·diff 분석·코멘트 게시 단계 모두 성공인지 점검
-- [ ] 4.3 같은 PR에 추가 커밋을 푸시해 `synchronize` 이벤트가 워크플로우를 재트리거하고 이전 진행 중 실행이 취소되는지 (concurrency 동작) 확인
-- [ ] 4.4 워크플로우 실행이 실패해도 (예: secret을 일시적으로 빈 값으로 두고 테스트) PR 머지 가능 상태가 유지되는지 (non-blocking) 확인 후 secret 복구
-- [ ] 4.5 백엔드만 변경한 PR / 프론트엔드만 변경한 PR / 여러 디렉터리가 섞인 PR 각각에서 워크플로우가 동일하게 트리거되어 리뷰 코멘트를 남기는지 관찰 (가능하면 develop 머지 직후 수일간 모니터링)
+- [x] 4.1 변경 사항을 feature 브랜치에 커밋하고 develop 대상 PR을 올려 `opened` 이벤트로 워크플로우가 트리거되는지 확인
+- [x] 4.2 PR 페이지에서 자동 리뷰 코멘트가 정상 게시되는지 확인 — 액션 로그에서 OAuth 인증·diff 분석·코멘트 게시 단계 모두 성공인지 점검
+- [x] 4.3 같은 PR에 추가 커밋을 푸시해 `synchronize` 이벤트가 워크플로우를 재트리거하고 이전 진행 중 실행이 취소되는지 (concurrency 동작) 확인
+- [x] 4.4 워크플로우 실행이 실패해도 (예: secret을 일시적으로 빈 값으로 두고 테스트) PR 머지 가능 상태가 유지되는지 (non-blocking) 확인 후 secret 복구
+- [x] 4.5 백엔드만 변경한 PR / 프론트엔드만 변경한 PR / 여러 디렉터리가 섞인 PR 각각에서 워크플로우가 동일하게 트리거되어 리뷰 코멘트를 남기는지 관찰 (가능하면 develop 머지 직후 수일간 모니터링)

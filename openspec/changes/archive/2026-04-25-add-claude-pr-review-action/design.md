@@ -116,15 +116,20 @@ concurrency:
 - *paths 필터로 코드 디렉터리만 트리거*: 문서 전용 PR을 제외할 수 있으나 절약 효과가 작고 누락 위험이 더 크다.
 - *PR 라벨 기반 트리거*: 작성자가 `review` 라벨을 붙여야 동작 → 자동화 취지에 어긋난다.
 
-### Decision 6: 권한은 최소한으로 부여 — `pull-requests: write`, `contents: read`
+### Decision 6: 권한은 최소한으로 부여 — `contents: read`, `pull-requests: write`, `id-token: write`
 
-**선택**: 워크플로우 또는 잡 레벨 `permissions:` 블록에 두 권한만 명시한다. 그 외(`issues`, `id-token`, `actions` 등)는 부여하지 않는다.
+**선택**: 워크플로우 또는 잡 레벨 `permissions:` 블록에 세 권한만 명시한다. 그 외(`issues`, `actions`, `packages` 등)는 부여하지 않는다.
 
 **근거**:
 
 - 코멘트 게시: `pull-requests: write` 필요.
 - diff·소스 읽기: `contents: read` 필요.
+- `id-token: write`: `anthropics/claude-code-action`의 공식 예제 워크플로우(`examples/claude.yml`)가 권장 디폴트로 포함하는 항목이다. OAuth 토큰 인증 경로에서는 직접 사용되지 않지만, 액션이 향후 OIDC 기반 외부 서비스 연동(Bedrock·Vertex AI·Foundry 등) 옵션을 활성화하거나 내부 동작이 OIDC 토큰을 요구하도록 변경될 가능성에 대비해 공식 예제와 정합을 유지한다. 자동 리뷰만 수행하는 우리 워크플로우는 OIDC 토큰을 외부로 전송하지 않으므로 추가 부여로 인한 실질적 노출 면 확장은 없다.
 - 그 외 권한은 자동 리뷰 범위에서 불필요하며, 토큰 유출 시 영향을 줄이는 보안 기본 원칙(least privilege)을 따른다.
+
+**대안 고려**:
+
+- *`id-token: write` 제외*: spec 초안의 입장이었으나, 공식 예제와의 차이로 액션 업데이트 시 동작 변경에 노출될 위험이 있고 실익(공격 표면 축소)이 미미해 채택하지 않았다.
 
 ### Decision 7: 토큰 만료·발급 절차는 README 또는 운영 문서에 명시한다
 
