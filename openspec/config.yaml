@@ -1,0 +1,62 @@
+schema: spec-driven
+
+context: |
+  프로젝트: Nomat — 노래 맞히기 게임 애플리케이션
+  모노레포 구조: back/ (Kotlin/Spring Boot API), front/ (React SPA), infra/ (Docker Swarm·Nginx·Prometheus·Kibana 등)
+  메인 브랜치: develop
+
+  출력 언어:
+  - 모든 아티팩트 본문은 한국어로 작성
+  - 커밋 메시지는 한국어 Conventional Commits (feat:, fix: 등)
+  - UI 텍스트·에러 메시지는 한국어
+
+  기술 스택:
+  - 백엔드: Kotlin 1.9 / Spring Boot 3.4 / Java 17 / Gradle
+  - 프론트엔드: React 19 / React Router v7 (SPA) / Vite 5 / TypeScript / Tailwind CSS v4 / Zustand
+  - 데이터: MySQL 8 + Flyway, Elasticsearch 9 (Nori 한국어 분석기), Redis, Kafka
+  - 인증: Discord OAuth2 + JWT
+  - CDC: Debezium 임베디드 (MySQL → Kafka → Elasticsearch 플레이리스트 동기화)
+  - 배포: Docker Swarm (백엔드, EC2), Netlify (프론트엔드)
+
+  백엔드 아키텍처 — 헥사고날:
+  - 기본 패키지 ilpak.nomat. 도메인 모듈: playlist, room, player, favoriteplaylist, auth
+  - 모듈 구조: module/in (인바운드 어댑터), module/out (아웃바운드 어댑터), module/application/{domain,dto,*Service.kt}
+  - 컨트롤러와 저장소 구현체는 `private class` — 패키지 외부 참조 불가
+  - 도메인 이벤트는 AbstractAggregateRoot + @TransactionalEventListener(AFTER_COMMIT) 패턴
+  - 횡단 관심사는 infrastructure/ 패키지 (security, web, redis, cdc, container, jpa, elasticsearch)
+
+  프론트엔드 아키텍처:
+  - 라우트는 app/routes.ts에서 수동 정의, `~/`는 ./app/ 별칭
+  - SVG는 ?react 접미사로 컴포넌트 임포트
+  - API 호출은 app/utils/api.ts의 Axios 클라이언트로 중앙 관리
+  - 다크 테마 — Tailwind zinc 팔레트, cyan-400 액센트
+
+  프로파일:
+  - local/test: Testcontainers로 외부 의존성 자동 구성 (자격 증명 불필요)
+  - dev: 환경 변수로 외부 서비스 연결
+
+  세부 가이드는 back/CLAUDE.md, front/CLAUDE.md 참조.
+
+rules:
+  proposal:
+    - Impact 섹션에 영향 받는 서브프로젝트(back/front/infra)와 도메인 모듈(playlist/room/player/favoriteplaylist/auth)을 명시할 것
+    - 백엔드 변경이 있다면 어떤 헥사고날 계층(in/out/application)에 영향을 주는지 표기할 것
+    - DB 스키마·ES 매핑·Kafka 토픽·Redis 키 영향이 있으면 Impact에 별도 항목으로 분리해 적을 것
+
+  specs:
+    - "capability 이름은 도메인 모듈명과 일관된 kebab-case로 작성할 것 (예: playlist-search, room-session)"
+    - Requirement 본문과 Scenario 설명은 한국어로 작성하되 WHEN/THEN 등 키워드는 영문 그대로 유지할 것
+    - 외부 시스템(MySQL/ES/Redis/Kafka/Discord OAuth)에 의존하는 시나리오는 어떤 시스템과 상호작용하는지 명시할 것
+
+  design:
+    - DB 스키마 변경 시 Flyway 마이그레이션 버전 번호와 무중단 배포 영향(롤백 가능 여부 포함)을 명시할 것
+    - Elasticsearch 매핑·Debezium CDC 흐름에 영향을 주는 변경은 별도 섹션으로 분리해 영향 범위를 적을 것
+    - Redis Pub/Sub 채널·Kafka 토픽 추가/변경은 토픽명, 메시지 스키마, consumer/producer 위치를 명시할 것
+    - 새로운 도메인 모듈을 추가하면 헥사고날 패키지 배치(in/out/application)와 포트 인터페이스를 다이어그램 또는 클래스 목록으로 보일 것
+
+  tasks:
+    - 작업 그룹은 back/front/infra 단위로 분리할 것
+    - 백엔드 작업 그룹은 마지막에 `./gradlew test` 및 `./gradlew detekt` 실행 태스크를 포함할 것
+    - 프론트엔드 작업 그룹은 마지막에 `npm run typecheck` 및 `npm run build` 실행 태스크를 포함할 것
+    - 백엔드 테스트는 Testcontainers 기반 기존 패턴(local/test 프로파일)을 따를 것 — 새 mock 인프라를 도입하지 말 것
+    - 컨트롤러·저장소 구현체를 추가하는 태스크에는 `private class` 가시성을 유지한다는 점을 명시할 것
