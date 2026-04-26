@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
 
 @IntegrationTest

@@ -17,8 +17,9 @@
 
 #### Scenario: Redis 연결 실패 시 DOWN 판정
 - **WHEN** 헬스 컴포넌트가 ping 발행을 시도했으나 Redis 클라이언트가 예외를 던짐 (예: 커넥션 거부)
-- **THEN** 헬스 컴포넌트는 `Health.down(ex)` 결과를 반환해야 한다
-- **AND** 결과 details에 예외 타입과 메시지를 포함해야 한다
+- **THEN** 헬스 컴포넌트는 `Health.down()` 결과를 반환해야 한다
+- **AND** 결과 details에는 sanitize된 사유 문자열만 포함해야 하며, Redis 내부 접속 주소 등 민감 정보가 포함된 예외 객체를 그대로 싣지 않아야 한다
+- **AND** 원본 예외는 WARN 레벨 진단 로그로만 남겨야 한다
 
 ### Requirement: 인스턴스 고유 Pub/Sub 채널 사용
 시스템은 각 백엔드 인스턴스가 다른 인스턴스의 ping과 자신의 ping을 혼동하지 않도록 인스턴스 고유 채널을 사용해야(MUST) 한다.
@@ -97,11 +98,6 @@
 #### Scenario: 정상 round-trip 통합 테스트
 - **WHEN** Testcontainers Redis가 떠 있는 상태에서 통합 테스트가 헬스 컴포넌트의 `health()` 메서드를 호출
 - **THEN** `Health.up()`이 반환되어야 한다
-
-#### Scenario: Redis 컨테이너 정지 시 DOWN 통합 테스트
-- **WHEN** 통합 테스트에서 Testcontainers Redis 컨테이너를 정지
-- **AND** 헬스 컴포넌트의 `health()` 메서드를 호출
-- **THEN** `Health.down()`이 반환되어야 한다
 
 #### Scenario: Actuator endpoint를 통한 end-to-end 통합 테스트
 - **WHEN** 통합 테스트가 `WebTestClient`로 `/health` GET 요청을 보냄

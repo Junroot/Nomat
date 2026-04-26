@@ -56,15 +56,15 @@ private class RedisPubSubHealthIndicator(
                 .withDetail("channel", channel)
                 .withDetail("timeoutMs", properties.timeoutMs)
                 .withDetail("reason", "expected ping not received")
-                .withException(ex)
         } catch (ex: Exception) {
             log.warn(
                 "Redis pub/sub round-trip failed (channel={}): {}",
                 channel,
                 ex.message,
             )
-            builder.down(ex)
+            builder.down()
                 .withDetail("channel", channel)
+                .withDetail("reason", "publish or subscribe failure")
         } finally {
             pendingPings.remove(payload)
         }
