@@ -9,7 +9,7 @@ management:
   endpoint:
     health:
       show-components: always
-      show-details: always
+      show-details: when-authorized
       cache:
         time-to-live: 10s
 app:

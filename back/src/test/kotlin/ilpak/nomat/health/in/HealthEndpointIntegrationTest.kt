@@ -11,14 +11,13 @@ class HealthEndpointIntegrationTest(
 ) {
 
     @Test
-    fun `health_정상 시 200과 redisPubSub 컴포넌트 상태를 노출한다`() {
+    fun `health_익명 호출 시 200과 컴포넌트 status는 노출하되 details는 숨긴다`() {
         webTestClient.get().uri("/health")
             .exchange()
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.status").isEqualTo("UP")
             .jsonPath("$.components.redisPubSub.status").isEqualTo("UP")
-            .jsonPath("$.components.redisPubSub.details.channel").exists()
-            .jsonPath("$.components.redisPubSub.details.latencyMs").exists()
+            .jsonPath("$.components.redisPubSub.details").doesNotExist()
     }
 }

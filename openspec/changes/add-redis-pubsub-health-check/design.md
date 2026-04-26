@@ -65,7 +65,7 @@
 **`/health` 엔드포인트 이전:**
 - 기존 `back/src/main/kotlin/ilpak/nomat/health/in/HealthController.kt`의 더미 컨트롤러는 **삭제**한다 (의미 없는 always-ok 응답으로 사일런트 페일을 방치한 원인 중 하나).
 - Swarm healthcheck(`infra/app/compose.yml:17`)가 호출하는 경로 `/health`를 **유지**하기 위해 `management.endpoints.web.base-path: /` + `management.endpoints.web.path-mapping.health: health` 설정을 application.yml에 추가하여 Actuator의 health endpoint가 `/health`로 노출되게 한다. (대안: Swarm compose.yml의 healthcheck URL을 `/actuator/health`로 변경하는 것도 가능 — 운영 변경 표면적은 작지만 외부 호출자가 더 있을 가능성이 있어 endpoint 경로를 보존하는 쪽을 우선)
-- `application.yml`에 `management.endpoint.health.show-components: always` 와 `show-details: always`를 둔다. `redisPubSub` 컴포넌트 상태와 details(`channel`, `latencyMs`, `timeoutMs`, `reason`)가 응답 본문에 노출된다. Redis 내부 접속 주소 노출을 막기 위해 `RedisPubSubHealthIndicator`는 예외 객체를 `Health.Builder.withException(ex)` / `down(ex)`로 그대로 싣지 않고, sanitize된 `reason` 필드만 details에 담는다. 원본 예외는 내부 로그로만 남긴다. (`show-details: when-authorized`는 `/health/**` permitAll + `management.endpoint.health.roles` 미설정 조합에서 익명 호출자에게도 details가 노출되어 의미가 없으므로 채택하지 않는다.)
+- `application.yml`에 `management.endpoint.health.show-components: always` 와 `show-details: when-authorized`를 둔다. Actuator의 `Show.WHEN_AUTHORIZED` 평가는 Spring Security의 `SecurityContextHolderAwareRequestWrapper`가 익명 인증을 null로 걸러주는 덕분에 `/health/**` `permitAll()`과 무관하게 익명 호출자에 대해서는 details를 숨겨준다. 다만 인증된 일반 사용자에게 노출되는 details(예: 우리 `redisPubSub`의 예외 메시지에 포함될 수 있는 Redis 내부 접속 주소)까지 막기 위해 `RedisPubSubHealthIndicator`는 예외 객체를 `Health.Builder.withException(ex)` / `down(ex)`로 그대로 싣지 않고, sanitize된 `channel`/`reason`/`timeoutMs`만 details에 담는다. 원본 예외는 내부 로그로만 남긴다 — defense-in-depth.
 - `SecurityConfiguration.kt:52`의 `/health/**` permit 규칙은 그대로 두면 신규 endpoint도 자동 적용됨.
 
 **대안 검토:**
@@ -105,6 +105,6 @@
 
 ## Open Questions
 
-- ~~`management.endpoint.health.show-components: always`로 응답에 컴포넌트 세부 사항을 노출해도 보안상 문제없는지 확인 필요.~~ → 결정: `show-components: always` + `show-details: always`. Redis 내부 접속 주소 등 민감 정보는 `RedisPubSubHealthIndicator` 코드에서 예외 객체를 details에 싣지 않고 sanitize된 `reason` 필드만 담는 방식으로 차단한다 (`builder.down(ex)`/`withException(ex)` 미사용). `show-details: when-authorized`는 `/health/**` permitAll + roles 미설정 조합에서 익명 호출자도 통과하므로 보안 효과가 없어 기각.
+- ~~`management.endpoint.health.show-components: always`로 응답에 컴포넌트 세부 사항을 노출해도 보안상 문제없는지 확인 필요.~~ → 결정: `show-components: always` + `show-details: when-authorized`. Actuator의 `Show.WHEN_AUTHORIZED`는 Spring Security `SecurityContextHolderAwareRequestWrapper`가 익명 인증을 null로 걸러주기 때문에 `/health/**` `permitAll()`과 무관하게 익명 호출자에게는 details(우리 `redisPubSub` 뿐 아니라 기본 `diskSpace`/`redis` 인디케이터의 details까지)를 숨겨준다. 추가로 인증된 일반 사용자에 대해서도 Redis 내부 접속 주소가 새지 않도록 `RedisPubSubHealthIndicator` 코드에서 예외 객체를 details에 싣지 않고 sanitize된 `channel`/`reason`/`timeoutMs`만 담는다 — defense-in-depth.
 - 기존 `HealthResponse`(`HealthController.kt:17`)를 참조하는 외부 호출자가 정말 없는지 grep 외에 운영팀 확인 필요. 있다면 응답 스키마 변경 안내 필요.
 - 신규 application.yml 설정값이 dev 프로파일에만 들어가도 충분한지(local/test에서는 검증 컴포넌트가 어떻게 동작해야 하는지) — 통합 테스트가 검증 컴포넌트를 직접 부팅하므로 모든 프로파일에서 활성화하는 쪽이 안전. 기본값은 모든 프로파일에서 동일하게 적용.
