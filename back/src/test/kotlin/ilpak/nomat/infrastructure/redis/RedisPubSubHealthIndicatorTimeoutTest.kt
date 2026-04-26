@@ -11,7 +11,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
 
 @IntegrationTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestPropertySource(properties = ["app.health.pubsub.timeout-ms=0"])
 class RedisPubSubHealthIndicatorTimeoutTest(
     @Autowired @Qualifier("redisPubSubHealthIndicator")

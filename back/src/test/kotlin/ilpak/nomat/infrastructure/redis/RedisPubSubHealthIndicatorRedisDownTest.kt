@@ -12,7 +12,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 
 @IntegrationTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class RedisPubSubHealthIndicatorRedisDownTest(
     @Autowired @Qualifier("redisPubSubHealthIndicator")
     private val healthIndicator: HealthIndicator,

@@ -65,7 +65,7 @@
 **`/health` 엔드포인트 이전:**
 - 기존 `back/src/main/kotlin/ilpak/nomat/health/in/HealthController.kt`의 더미 컨트롤러는 **삭제**한다 (의미 없는 always-ok 응답으로 사일런트 페일을 방치한 원인 중 하나).
 - Swarm healthcheck(`infra/app/compose.yml:17`)가 호출하는 경로 `/health`를 **유지**하기 위해 `management.endpoints.web.base-path: /` + `management.endpoints.web.path-mapping.health: health` 설정을 application.yml에 추가하여 Actuator의 health endpoint가 `/health`로 노출되게 한다. (대안: Swarm compose.yml의 healthcheck URL을 `/actuator/health`로 변경하는 것도 가능 — 운영 변경 표면적은 작지만 외부 호출자가 더 있을 가능성이 있어 endpoint 경로를 보존하는 쪽을 우선)
-- `application.yml`에 `management.endpoint.health.show-components: always` (또는 `when-authorized` + 인증) 설정을 두어 `redisPubSub` 컴포넌트 상태가 응답 본문에 노출되도록 한다.
+- `application.yml`에 `management.endpoint.health.show-components: always` 설정을 두어 `redisPubSub` 컴포넌트 상태가 응답 본문에 노출되도록 한다. 다만 `show-details`는 **`when-authorized`로 제한**한다 — `Health.Builder.down(ex)`가 `withException(ex)` → `withDetail("error", ...)`로 예외 메시지를 응답에 싣는데, Lettuce의 `RedisConnectionFailureException` 메시지는 일반적으로 `"Unable to connect to <host>:<port>"`를 포함해 인증 없는 `/health` 호출자에게 Redis 내부 접속 주소가 노출된다. Swarm healthcheck(`curl -f`)는 HTTP 상태 코드만 보므로 details 노출 수준을 낮춰도 운영 동작에 영향이 없다.
 - `SecurityConfiguration.kt:52`의 `/health/**` permit 규칙은 그대로 두면 신규 endpoint도 자동 적용됨.
 
 **대안 검토:**
@@ -105,6 +105,6 @@
 
 ## Open Questions
 
-- `management.endpoint.health.show-components: always`로 응답에 컴포넌트 세부 사항을 노출해도 보안상 문제없는지 확인 필요. (현재 `/health/**`가 permit 상태이므로 인증 없이 외부에 노출됨. 컴포넌트 이름 자체는 민감 정보가 아니라 무방하다고 판단하나, 운영 정책 검토 필요.)
+- ~~`management.endpoint.health.show-components: always`로 응답에 컴포넌트 세부 사항을 노출해도 보안상 문제없는지 확인 필요.~~ → 결정: `show-components: always` (컴포넌트 이름·status는 민감 정보가 아니므로 노출 무방), `show-details: when-authorized` (예외 메시지에 Redis 내부 접속 주소가 포함될 수 있어 인증된 호출자에게만 노출). Swarm healthcheck는 HTTP 상태 코드만 보므로 영향 없음.
 - 기존 `HealthResponse`(`HealthController.kt:17`)를 참조하는 외부 호출자가 정말 없는지 grep 외에 운영팀 확인 필요. 있다면 응답 스키마 변경 안내 필요.
 - 신규 application.yml 설정값이 dev 프로파일에만 들어가도 충분한지(local/test에서는 검증 컴포넌트가 어떻게 동작해야 하는지) — 통합 테스트가 검증 컴포넌트를 직접 부팅하므로 모든 프로파일에서 활성화하는 쪽이 안전. 기본값은 모든 프로파일에서 동일하게 적용.
