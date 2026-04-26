@@ -1,3 +1,23 @@
+management:
+  endpoints:
+    web:
+      base-path: /
+      path-mapping:
+        health: health
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-components: always
+      show-details: always
+      cache:
+        time-to-live: 10s
+app:
+  health:
+    pubsub:
+      timeout-ms: 2000
+      channel-prefix: health:pubsub
+---
 server:
   forward-headers-strategy: framework
 spring:

@@ -53,7 +53,7 @@ module/
 횡단 관심사는 `infrastructure/`에 위치:
 - `security/` — OAuth2 설정, JWT 토큰 필터 (`@Profile("!test")`)
 - `web/` — CORS 설정, 전역 예외 처리, MDC 로깅 필터, WebSocket/STOMP 설정 (`/ws` 엔드포인트, `/topic` 브로커, STOMP CONNECT 시 JWT 인증 + 방 입장 인터셉터)
-- `redis/` — 분산 락 (`RedisDistributedLockExecutor`)
+- `redis/` — 분산 락 (`RedisDistributedLockExecutor`), 공용 `RedisMessageListenerContainer` 빈, pub/sub round-trip 헬스 컴포넌트 (`/health` 응답에 `components.redisPubSub`로 노출됨)
 - `cdc/` — MySQL → Elasticsearch 동기화를 위한 Debezium 임베디드 엔진
 - `container/` — local/test용 Testcontainers 빈 (MySQL, ES, Kafka, Redis)
 - `jpa/` — JPA auditing 설정 (`AuditorAwareImpl`이 SecurityContext에서 `createdBy` 설정)

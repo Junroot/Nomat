@@ -3,12 +3,10 @@ package ilpak.nomat.room.`in`
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import ilpak.nomat.room.application.dto.RoomEventMessage
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.Message
 import org.springframework.data.redis.connection.MessageListener
-import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.listener.PatternTopic
 import org.springframework.data.redis.listener.RedisMessageListenerContainer
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -20,7 +18,13 @@ private val log = LoggerFactory.getLogger(RoomEventRedisSubscriber::class.java)
 private class RoomEventRedisSubscriber(
     private val messagingTemplate: SimpMessagingTemplate,
     private val objectMapper: ObjectMapper,
+    private val listenerContainer: RedisMessageListenerContainer,
 ) : MessageListener {
+
+    @PostConstruct
+    fun registerListener() {
+        listenerContainer.addMessageListener(this, PatternTopic(RoomEventMessage.CHANNEL_PATTERN))
+    }
 
     override fun onMessage(message: Message, pattern: ByteArray?) {
         val body = String(message.body)
@@ -30,20 +34,5 @@ private class RoomEventRedisSubscriber(
         log.info("[DIAG] Broadcasting to STOMP destination={}", destination)
         messagingTemplate.convertAndSend(destination, event)
         log.info("[DIAG] STOMP broadcast DONE")
-    }
-}
-
-@Configuration
-private class RoomEventRedisSubscriberConfiguration {
-
-    @Bean
-    fun roomEventRedisMessageListenerContainer(
-        connectionFactory: RedisConnectionFactory,
-        roomEventRedisSubscriber: MessageListener,
-    ): RedisMessageListenerContainer {
-        val container = RedisMessageListenerContainer()
-        container.setConnectionFactory(connectionFactory)
-        container.addMessageListener(roomEventRedisSubscriber, PatternTopic(RoomEventMessage.CHANNEL_PATTERN))
-        return container
     }
 }
