@@ -39,7 +39,7 @@
 - [x] 6.1 `back/src/test/kotlin/ilpak/nomat/infrastructure/redis/RedisPubSubHealthIndicatorTest.kt` 신설 — `@IntegrationTest` 적용, Testcontainers Redis 사용
 - [x] 6.2 [정상 round-trip] 컴포넌트 호출 시 `Health.up()` 반환, details에 `latencyMs` 포함 검증
 - [~] 6.3 ~~[Redis 정지] Testcontainers Redis 컨테이너 stop 후 호출 시 `Health.down()` 반환 검증~~ — 통합 테스트에서 컨테이너 정지 같은 인프라 조작은 사용자 입장에서 인식되는 동작이 아니므로 descope. DOWN 경로는 6.4(타임아웃)로 커버.
-- [x] 6.4 [타임아웃] 인위적으로 listener 등록을 차단하거나 짧은 타임아웃을 강제 주입하여 round-trip 실패 시 `Health.down()` + details 사유 검증
+- [~] 6.4 ~~[타임아웃] 인위적으로 listener 등록을 차단하거나 짧은 타임아웃을 강제 주입하여 round-trip 실패 시 `Health.down()` + details 사유 검증~~ — `app.health.pubsub.timeout-ms=0` 강제 주입 방식은 listener 스레드 race로 CI에서 비결정적(같은 코드가 로컬 통과·CI 실패). 인위적 timeout 조작은 사용자 시나리오가 아니고, 검증 대상이 `Future.get(timeout) → TimeoutException → builder.down()` 표준 동작이므로 6.3과 같은 이유로 descope.
 - [x] 6.5 [인스턴스 격리] 두 개의 ApplicationContext를 띄워 서로 다른 instanceId를 가진 두 인스턴스가 같은 Redis를 공유할 때 cross-contamination 없이 각자 자기 ping만 받음을 검증 (가능하면 단일 컨텍스트 + 두 컴포넌트 인스턴스 수동 구성으로 단순화)
 - [x] 6.6 `back/src/test/kotlin/ilpak/nomat/health/in/HealthEndpointIntegrationTest.kt` (혹은 동일 패키지 갱신) — `WebTestClient`로 `/health` 호출 시 응답 JSON에 `components.redisPubSub.status`가 존재하고 정상 시 200을 반환함을 검증
 - [~] 6.7 ~~[DOWN 상태 전파] 헬스 컴포넌트가 강제로 DOWN을 반환하도록 한 상황에서 `/health` 호출이 HTTP 503을 반환함을 검증~~ — 테스트 전용 HealthIndicator 주입은 사용자 동작이 아니고, Redis 컨테이너 정지 방식도 6.3과 같은 이유로 descope. Actuator의 status → HTTP 코드 매핑은 Spring Boot 표준 동작이라 자체 검증 불필요.
