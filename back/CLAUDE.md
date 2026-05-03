@@ -48,13 +48,22 @@ module/
 - 도메인 엔티티는 JPA auditing을 통해 `createdBy`/`createdDate`를 위한 `@Embedded AuditMetadata` 사용
 - 커스텀 예외는 `AbstractNomatException(message, HttpStatus)`을 상속 — `GlobalControllerAdvice`에서 처리
 - `NotFoundException`은 `NotFoundResource` enum 값을 인자로 받음
-- **도메인 이벤트**: `AbstractAggregateRoot` 상속 + `registerEvent()`로 도메인 이벤트 등록, `repository.save()` 호출 시 발행. `in/`의 `@TransactionalEventListener(AFTER_COMMIT)` 리스너가 후처리 (예: Redis Pub/Sub 브로드캐스트)
+- **도메인 이벤트**: `AbstractAggregateRoot` 상속 + `registerEvent()`로 도메인 이벤트 등록, `repository.save()`/`delete()` 호출 시 발행. 두 가지 리스너 패턴을 용도에 맞게 사용한다:
+    - `@TransactionalEventListener(AFTER_COMMIT)` — **ephemeral broadcast**. 실패가 도메인 일관성에 영향이 없고 한 번 놓쳐도 무방한 신호용. 대표 사례: Redis Pub/Sub 브로드캐스트(`RoomEventListener`의 채팅·입퇴장 알림). outbox 영속화·재시도 없음, 같은 스레드/in-memory 처리.
+    - `@ApplicationModuleListener(id = "<명시적-식별자>")` — **정합성 사이드 이펙트**. 핸들러가 실패해도 결국 처리되어야 하는 작업용. 대표 사례: ES 인덱스 동기화(`EsPlaylistSyncHandler`), 고아 데이터 정리(`PlaylistDeletedHandler`). Spring Modulith Event Publication Registry가 `event_publication` 테이블에 비즈니스 트랜잭션과 원자적으로 publication entry를 INSERT, AFTER_COMMIT 직후 별도 스레드(`spring.task.execution.pool`)·별도 트랜잭션(`REQUIRES_NEW`)에서 디스패치. 실패 시 `completion_date` NULL로 남고 `EventPublicationRetryScheduler`가 30초 주기로 5분 이상 미완료 항목을 재제출(ShedLock으로 단일 인스턴스만 실행). 핸들러는 멱등하게 작성한다.
+- **이벤트 클래스 직렬화 안정성**: Modulith는 `event_publication.event_type`에 FQCN, `serialized_event`에 Jackson JSON을 저장한다. 누적된 미완료 이벤트의 deserialization 실패가 부팅을 깨뜨릴 수 있어 다음 규칙을 따른다:
+    - 이벤트 클래스는 `<domain>/application/domain/` 패키지에 둔다 (안정된 위치).
+    - `@ApplicationModuleListener(id = "...")`로 listener id를 명시한다 (메서드 위치 이동에 강건).
+    - 필드 추가는 nullable 또는 default 값으로 (옛 미완료 이벤트의 deserialization 호환).
+    - 필드 삭제·이름 변경·타입 변경은 `event_publication WHERE completion_date IS NULL` 0건인 시점에서만 수행한다.
+    - 핸들러는 `SecurityContext`/`MDC`/`RequestContext` 등 호출자 스레드 컨텍스트를 참조하지 않고 동작 가능하도록 페이로드에 필요한 정보를 모두 담는다 (`@Async + REQUIRES_NEW` 환경에서 컨텍스트가 자동 전파되지 않음).
 
 횡단 관심사는 `infrastructure/`에 위치:
 - `security/` — OAuth2 설정, JWT 토큰 필터 (`@Profile("!test")`)
 - `web/` — CORS 설정, 전역 예외 처리, MDC 로깅 필터, WebSocket/STOMP 설정 (`/ws` 엔드포인트, `/topic` 브로커, STOMP CONNECT 시 JWT 인증 + 방 입장 인터셉터)
 - `redis/` — 분산 락 (`RedisDistributedLockExecutor`), 공용 `RedisMessageListenerContainer` 빈, pub/sub round-trip 헬스 컴포넌트 (`/health` 응답에 `components.redisPubSub`로 노출됨)
-- `cdc/` — MySQL → Elasticsearch 동기화를 위한 Debezium 임베디드 엔진
+- `cdc/` — Phase A dual-write 단계의 Debezium 임베디드 엔진 (Phase B에서 제거 예정)
+- `events/` — Spring Modulith outbox 인프라: 미완료 publication 재시도 스케줄러(`EventPublicationRetryScheduler`)와 ShedLock Redis lock provider 구성(`ShedLockConfiguration`)
 - `container/` — local/test용 Testcontainers 빈 (MySQL, ES, Kafka, Redis)
 - `jpa/` — JPA auditing 설정 (`AuditorAwareImpl`이 SecurityContext에서 `createdBy` 설정)
 

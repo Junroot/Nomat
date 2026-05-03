@@ -48,8 +48,8 @@ class PlaylistService(
             throw ForbiddenException("본인의 플레이리스트만 수정할 수 있습니다.")
         }
 
-        playlist.title = request.title
-        playlist.description = request.description
+        playlist.update(request.title, request.description)
+        playlistRepository.save(playlist)
 
         trackRepository.deleteByPlaylist(playlist)
         val tracks = request.tracks.map { it.toDomain(playlist) }
@@ -68,6 +68,7 @@ class PlaylistService(
             throw ForbiddenException("본인의 플레이리스트만 삭제할 수 있습니다.")
         }
 
+        playlist.markDeleted()
         trackRepository.deleteByPlaylist(playlist)
         playlistRepository.delete(playlist)
     }

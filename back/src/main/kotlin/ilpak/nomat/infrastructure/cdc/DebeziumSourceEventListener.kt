@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.module.kotlin.treeToValue
-import ilpak.nomat.favoriteplaylist.application.FavoritePlaylistService
 import ilpak.nomat.playlist.out.document.PlaylistDocument
 import io.debezium.config.Configuration
 import io.debezium.data.Envelope
@@ -25,7 +24,6 @@ private val logger = KotlinLogging.logger {}
 class DebeziumSourceEventListener(
     configuration: Configuration,
     private val operations: ElasticsearchOperations,
-    private val favoritePlaylistService: FavoritePlaylistService,
 ) {
     private val objectMapper = ObjectMapper()
         .findAndRegisterModules()
@@ -92,7 +90,6 @@ class DebeziumSourceEventListener(
     }
 
     private fun delete(id: Long) {
-        favoritePlaylistService.deleteByPlaylistId(id)
         operations.delete(id.toString(), PlaylistDocument::class.java)
     }
 
@@ -103,5 +100,3 @@ class DebeziumSourceEventListener(
         indexOps.refresh()
     }
 }
-
-
