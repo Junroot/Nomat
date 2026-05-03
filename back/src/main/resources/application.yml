@@ -17,6 +17,20 @@ app:
     pubsub:
       timeout-ms: 2000
       channel-prefix: health:pubsub
+spring:
+  modulith:
+    events:
+      completion-mode: DELETE
+      republish-outstanding-events-on-restart: false
+      jdbc:
+        schema-initialization:
+          enabled: false
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 16
+        queue-capacity: 1000
 ---
 server:
   forward-headers-strategy: framework

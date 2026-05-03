@@ -49,9 +49,13 @@ dependencies {
 	implementation("ch.qos.logback.access:logback-access-common:2.0.6")
 	implementation("ch.qos.logback.access:logback-access-tomcat:2.0.6")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
+	// Phase A dual-write: Debezium/Kafka 의존성은 후속 PR(Phase B)에서 제거
 	implementation("io.debezium:debezium-api:3.2.0.Final")
 	implementation("io.debezium:debezium-embedded:3.2.0.Final")
 	implementation("io.debezium:debezium-connector-mysql:3.2.0.Final")
+	implementation("org.springframework.modulith:spring-modulith-starter-jpa:1.3.11")
+	implementation("net.javacrumbs.shedlock:shedlock-spring:5.16.0")
+	implementation("net.javacrumbs.shedlock:shedlock-provider-redis-spring:5.16.0")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

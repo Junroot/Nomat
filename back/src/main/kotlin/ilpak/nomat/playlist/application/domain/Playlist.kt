@@ -7,7 +7,9 @@ import jakarta.persistence.EntityListeners
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.PostPersist
 import jakarta.persistence.TableGenerator
+import org.springframework.data.domain.AbstractAggregateRoot
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
@@ -27,9 +29,26 @@ class Playlist(
         allocationSize = 1000,
     )
     val id: Long = 0L,
-) {
+) : AbstractAggregateRoot<Playlist>() {
+
     val masterId: Long
         get() = auditMetadata.createdBy
+
+    fun update(title: String, description: String) {
+        this.title = title
+        this.description = description
+        registerEvent(PlaylistUpserted.from(this))
+    }
+
+    fun markDeleted() {
+        registerEvent(PlaylistDeleted(id))
+    }
+
+    @PostPersist
+    @Suppress("unused")
+    protected fun registerUpsertedOnPersist() {
+        registerEvent(PlaylistUpserted.from(this))
+    }
 
     companion object {
         const val MAX_TITLE_LENGTH = 100
