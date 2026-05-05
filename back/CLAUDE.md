@@ -20,8 +20,7 @@
 - Kotlin 1.9 / Spring Boot 3.4 / Java 17
 - Spring Data JPA + Flyway 마이그레이션
 - Elasticsearch (한국어 검색을 위한 Nori 분석기)
-- Debezium 임베디드 CDC (MySQL → Kafka → Elasticsearch)
-- local/test 프로파일에서 Testcontainers를 통한 Redis, Kafka
+- local/test 프로파일에서 Testcontainers를 통한 Redis
 - Kotest assertions, WebTestClient를 사용한 통합 테스트
 
 ## 아키텍처 (헥사고날)
@@ -62,21 +61,20 @@ module/
 - `security/` — OAuth2 설정, JWT 토큰 필터 (`@Profile("!test")`)
 - `web/` — CORS 설정, 전역 예외 처리, MDC 로깅 필터, WebSocket/STOMP 설정 (`/ws` 엔드포인트, `/topic` 브로커, STOMP CONNECT 시 JWT 인증 + 방 입장 인터셉터)
 - `redis/` — 분산 락 (`RedisDistributedLockExecutor`), 공용 `RedisMessageListenerContainer` 빈, pub/sub round-trip 헬스 컴포넌트 (`/health` 응답에 `components.redisPubSub`로 노출됨)
-- `cdc/` — Phase A dual-write 단계의 Debezium 임베디드 엔진 (Phase B에서 제거 예정)
 - `events/` — Spring Modulith outbox 인프라: 미완료 publication 재시도 스케줄러(`EventPublicationRetryScheduler`)와 ShedLock Redis lock provider 구성(`ShedLockConfiguration`)
-- `container/` — local/test용 Testcontainers 빈 (MySQL, ES, Kafka, Redis)
+- `container/` — local/test용 Testcontainers 빈 (MySQL, ES, Redis)
 - `jpa/` — JPA auditing 설정 (`AuditorAwareImpl`이 SecurityContext에서 `createdBy` 설정)
 
 ## 테스트 패턴
 
 ### 핵심 원칙: No Mocking
 
-MockK, Mockito 등 모킹 라이브러리를 사용하지 않는다. 모든 외부 의존성(MySQL, Redis, Elasticsearch, Kafka)은 Testcontainers로 실제 인스턴스를 제공하여 통합 테스트한다. 서비스 계층의 단위 테스트는 작성하지 않고, Step 클래스를 통한 통합 테스트로 간접 검증한다.
+MockK, Mockito 등 모킹 라이브러리를 사용하지 않는다. 모든 외부 의존성(MySQL, Redis, Elasticsearch)은 Testcontainers로 실제 인스턴스를 제공하여 통합 테스트한다. 서비스 계층의 단위 테스트는 작성하지 않고, Step 클래스를 통한 통합 테스트로 간접 검증한다.
 
 ### 인프라 설정
 
 - 커스텀 `@IntegrationTest` 어노테이션으로 전체 Spring 컨텍스트 부트 (`RANDOM_PORT`, `test` 프로파일)
-- `ContainerConfiguration`을 통해 Testcontainers (MySQL, Elasticsearch, Kafka, Redis) 사용
+- `ContainerConfiguration`을 통해 Testcontainers (MySQL, Elasticsearch, Redis) 사용
 - 각 테스트 인스턴스마다 Flyway `clean()` + `migrate()` + Redis flush 실행 (`IntegrationTestExecutionListener`)
 - OAuth2는 제외하고, `TestAuthenticationFilter`가 `playerId` 헤더를 읽어 인증 시뮬레이션
 

@@ -7,7 +7,7 @@ import jakarta.persistence.EntityListeners
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.PostPersist
+import jakarta.persistence.PrePersist
 import jakarta.persistence.TableGenerator
 import org.springframework.data.domain.AbstractAggregateRoot
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -44,7 +44,7 @@ class Playlist(
         registerEvent(PlaylistDeleted(id))
     }
 
-    @PostPersist
+    @PrePersist
     @Suppress("unused")
     protected fun registerUpsertedOnPersist() {
         registerEvent(PlaylistUpserted.from(this))
