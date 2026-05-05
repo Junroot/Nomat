@@ -1,11 +1,14 @@
 FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /builder
 
+ARG GIT_COMMIT=unknown
+ARG GIT_BRANCH=unknown
+
 COPY build.gradle.kts settings.gradle.kts gradlew ./
 COPY src ./src
 COPY gradle ./gradle
 
-RUN ./gradlew build -x test
+RUN ./gradlew build -x test -PgitCommit=$GIT_COMMIT -PgitBranch=$GIT_BRANCH
 
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app

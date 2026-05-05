@@ -4,8 +4,9 @@ management:
       base-path: /
       path-mapping:
         health: health
+        info: info
       exposure:
-        include: health
+        include: health, info
   endpoint:
     health:
       show-components: always

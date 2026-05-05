@@ -19,6 +19,19 @@ java {
 	sourceCompatibility = JavaVersion.VERSION_17
 }
 
+springBoot {
+	buildInfo {
+		properties {
+			additional.set(
+				mapOf(
+					"commit" to ((project.findProperty("gitCommit") as String?) ?: "unknown"),
+					"branch" to ((project.findProperty("gitBranch") as String?) ?: "unknown"),
+				)
+			)
+		}
+	}
+}
+
 repositories {
 	mavenCentral()
 }

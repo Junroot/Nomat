@@ -200,6 +200,11 @@ await()
     .untilAsserted { /* 검증 */ }
 ```
 
+## 운영 엔드포인트
+
+- `/info` — Spring Boot Actuator. 빌드 시점에 박힌 git 메타(`build.commit`, `build.branch`)와 artifact 정보(`build.artifact`, `build.name`, `build.version`, `build.time`)를 반환. **인증 없음(permitAll)**. 값은 빌드 시 `back/Dockerfile`의 `ARG GIT_COMMIT`/`ARG GIT_BRANCH` → Gradle property → `springBoot.buildInfo.additional`로 jar 안 `META-INF/build-info.properties`에 박히며, 런타임 ENV로 변조 불가. CI(`back-push-develop.yml`)에서 `${{ github.sha }}`/`${{ github.ref_name }}`로 주입. 로컬 빌드는 `unknown` fallback.
+- `/health` — Liveness. components 표시는 익명, 상세는 인증 필요. Redis pub/sub 헬스 컴포넌트 포함.
+
 ## 데이터베이스 마이그레이션
 
 Flyway 마이그레이션 파일은 `src/main/resources/db/migration/`에 위치 (현재 V1~V9). 시작 시 스키마 검증 (`ddl-auto: validate`).

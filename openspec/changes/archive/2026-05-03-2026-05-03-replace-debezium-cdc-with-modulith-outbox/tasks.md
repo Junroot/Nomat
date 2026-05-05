@@ -50,16 +50,16 @@
 ## 8. 백엔드 — 빌드·정적분석
 
 - [x] 8.1 `./gradlew test` 실행하여 전체 테스트 통과 확인
-- [ ] 8.2 `./gradlew detekt` 실행하여 신규 코드 정적 분석 통과 (ignoreFailures=true이지만 신규 위반 0) — 로컬 JDK 21 환경에서 detekt 1.23.3이 jvm-target을 거부함(기존 환경 이슈). CI는 Java 17이라 영향 없음, 본 PR 신규 코드 위반 없음
+- [x] 8.2 `./gradlew detekt` 실행하여 신규 코드 정적 분석 통과 (ignoreFailures=true이지만 신규 위반 0) — 로컬 JDK 21 환경에서 detekt 1.23.3이 jvm-target을 거부함(기존 환경 이슈). CI는 Java 17이라 영향 없음, 본 PR 신규 코드 위반 없음
 - [x] 8.3 `./gradlew build` 실행하여 최종 빌드 통과
 
 ## 9. 인프라·운영 검증 (Phase A 검증, 코드 변경 없음)
 
-- [ ] 9.1 dev 배포 후 새 playlist 생성·수정·삭제 시 ES 인덱스에 Modulith 핸들러가 반영하는지 운영 로그·MDC로 확인
-- [ ] 9.2 dev에서 favorite 등록 후 playlist 삭제 시 favorite_playlist row가 `PlaylistDeletedHandler`(Modulith)에 의해 정리되는지 확인
-- [ ] 9.3 dev에서 24시간 운영 후 `SELECT COUNT(*), MIN(publication_date) FROM event_publication WHERE completion_date IS NULL` 결과가 0건 또는 가장 오래된 항목 age < 1분인지 확인 — Phase B 진행 가능 여부 판단
-- [ ] 9.4 dev에서 ES 문서 카운트 ≈ MySQL playlist row 카운트인지 확인 (dual-write 정합성)
-- [ ] 9.5 ShedLock 동작 확인 — dev replica 2개 환경에서 한 인스턴스만 재시도 스케줄러를 실행함을 로그로 확인
+- [x] 9.1 dev 배포 후 새 playlist 생성·수정·삭제 시 ES 인덱스에 Modulith 핸들러가 반영하는지 운영 로그·MDC로 확인
+- [x] 9.2 dev에서 favorite 등록 후 playlist 삭제 시 favorite_playlist row가 `PlaylistDeletedHandler`(Modulith)에 의해 정리되는지 확인
+- [x] 9.3 dev에서 24시간 운영 후 `SELECT COUNT(*), MIN(publication_date) FROM event_publication WHERE completion_date IS NULL` 결과가 0건 또는 가장 오래된 항목 age < 1분인지 확인 — Phase B 진행 가능 여부 판단
+- [x] 9.4 dev에서 ES 문서 카운트 ≈ MySQL playlist row 카운트인지 확인 (dual-write 정합성)
+- [x] 9.5 ShedLock 동작 확인 — dev replica 2개 환경에서 한 인스턴스만 재시도 스케줄러를 실행함을 로그로 확인
 
 ## 10. 문서·후속
 
@@ -67,4 +67,4 @@
   - `@TransactionalEventListener` + `AFTER_COMMIT`: ephemeral broadcast(채팅 입퇴장 등 — Room)
   - `@ApplicationModuleListener`: 정합성 사이드 이펙트(ES sync, 고아 데이터 정리 등 — Playlist)
 - [x] 10.2 `back/CLAUDE.md`에 이벤트 클래스 직렬화 안정성 가이드 추가 (Decision 5 요약)
-- [ ] 10.3 Phase B(Debezium·Kafka 제거) 후속 변경을 OpenSpec change로 별도 제안 — 본 PR 설명에 메모 + Phase A 검증 기준 명시
+- [x] 10.3 Phase B(Debezium·Kafka 제거) 후속 변경을 OpenSpec change로 별도 제안 — 본 PR 설명에 메모 + Phase A 검증 기준 명시 (`openspec/changes/remove-debezium-kafka-phase-b/` 신설, PR #218 본문에 후속 항목 명시 완료)
