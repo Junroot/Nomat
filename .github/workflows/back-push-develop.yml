@@ -22,6 +22,9 @@ jobs:
           context: ./back
           push: true
           tags: junroot0909/nomat:latest, junroot0909/nomat:${{ github.sha }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            GIT_BRANCH=${{ github.ref_name }}
       - name: deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}

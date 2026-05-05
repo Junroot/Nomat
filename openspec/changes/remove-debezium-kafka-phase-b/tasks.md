@@ -1,0 +1,62 @@
+## 0. Phase A 검증 게이트 (본 PR 머지 전제)
+
+- [ ] 0.1 dev 24시간 운영 후 `SELECT COUNT(*), MIN(publication_date) FROM event_publication WHERE completion_date IS NULL` 결과를 PR 본문에 첨부 — 0건 또는 가장 오래된 항목 age < 1분이어야 함
+- [ ] 0.2 dev에서 ES `playlist*` 인덱스의 도큐먼트 수와 MySQL `playlist` 테이블 row 수가 일치함을 PR 본문에 증거(쿼리 결과)와 함께 첨부
+- [ ] 0.3 dev replica 2개 환경에서 `EventPublicationRetryScheduler`가 한 인스턴스에서만 실행됨을 두 인스턴스의 로그 발췌로 PR 본문에 첨부
+- [ ] 0.4 `SELECT COUNT(*) FROM favorite_playlist fp LEFT JOIN playlist p ON fp.playlist_id = p.id WHERE p.id IS NULL` 결과 0건임을 PR 본문에 첨부
+
+## 1. 백엔드 — 코드 제거
+
+- [ ] 1.1 `back/src/main/kotlin/ilpak/nomat/infrastructure/cdc/CdcConfiguration.kt` 삭제
+- [ ] 1.2 `back/src/main/kotlin/ilpak/nomat/infrastructure/cdc/DebeziumSourceEventListener.kt` 삭제
+- [ ] 1.3 `back/src/main/kotlin/ilpak/nomat/infrastructure/cdc/` 빈 디렉토리 제거 (Git이 빈 디렉토리를 트래킹하지 않으므로 자동)
+- [ ] 1.4 `grep -rn -E "DebeziumSourceEventListener|CdcConfiguration" back/src/`로 잔존 참조가 없음을 확인 (예상: 0건)
+
+## 2. 백엔드 — 의존성·설정 제거
+
+- [ ] 2.1 `back/build.gradle.kts`에서 다음 라인 제거:
+  - `implementation("io.debezium:debezium-api:3.2.0.Final")`
+  - `implementation("io.debezium:debezium-embedded:3.2.0.Final")`
+  - `implementation("io.debezium:debezium-connector-mysql:3.2.0.Final")`
+  - `implementation("org.springframework.kafka:spring-kafka")`
+  - `implementation("org.testcontainers:kafka:1.21.3")`
+- [ ] 2.2 `back/build.gradle.kts`에서 Phase A "dual-write 단계" 명시 주석 제거
+- [ ] 2.3 `back/src/main/resources/application.yml`의 `spring.kafka.{bootstrap-servers, consumer.group-id}` 블록 제거
+- [ ] 2.4 `back/src/main/kotlin/ilpak/nomat/infrastructure/container/ContainerConfiguration.kt`에서 `KafkaContainer` 빈, 관련 import (`org.testcontainers.kafka.KafkaContainer`), 그리고 `KAFKA_BOOTSTRAP_SERVERS` 관련 `DynamicPropertySource`/`@ServiceConnection` 항목 제거
+- [ ] 2.5 `grep -rn -E "kafka|Kafka|debezium|Debezium" back/src/ back/build.gradle.kts back/src/main/resources/`로 잔존 참조가 없음을 확인 (예상: 0건)
+
+## 3. 백엔드 — 문서
+
+- [ ] 3.1 `back/CLAUDE.md`의 "기술 스택" 섹션에서 "Debezium 임베디드 CDC (MySQL → Kafka → Elasticsearch)" 항목 제거
+- [ ] 3.2 `back/CLAUDE.md`의 Testcontainers 라인 ("local/test 프로파일에서 Testcontainers를 통한 Redis, Kafka")에서 Kafka 제거
+- [ ] 3.3 `back/CLAUDE.md`의 `infrastructure/` 설명에서 `cdc/` 항목 제거. 인접한 `events/` 설명은 그대로 유지
+
+## 4. 백엔드 — 빌드·테스트
+
+- [ ] 4.1 `./gradlew test` 실행하여 전체 테스트 통과 — 특히 `PlaylistControllerTest.searchByTitle`, `EsPlaylistSyncHandlerTest`, `PlaylistDualWriteSyncTest` 등 ES 의존 시나리오가 회귀 없이 통과
+- [ ] 4.2 `./gradlew build` 실행하여 최종 빌드 통과 — Debezium·Kafka 의존성 제거 후에도 컴파일 에러 없음
+- [ ] 4.3 `./gradlew detekt` 실행하여 신규 코드 정적 분석 통과 (CI Java 17 환경 기준)
+- [ ] 4.4 백엔드 부팅 시간이 Phase A 대비 단축됨을 로컬 `bootRun` 또는 dev 컨테이너 부팅 로그로 확인 (정량 측정은 PR 본문에 추가)
+
+## 5. 인프라 — Kafka 컨테이너 제거
+
+- [ ] 5.1 `infra/data/compose.yml`에서 `kafka-broker` 서비스(이미지·환경변수·포트·볼륨 마운트 전체) 제거
+- [ ] 5.2 `infra/data/compose.yml`의 `volumes:` 섹션에서 `kafka-data` 볼륨 정의 제거
+- [ ] 5.3 `infra/data/compose.yml`의 다른 서비스에서 `kafka-broker`에 대한 `depends_on`이 있다면 제거 (사전 grep 결과 없을 가능성 높음)
+- [ ] 5.4 `infra/app/compose.yml`에서 백엔드 서비스의 `KAFKA_BOOTSTRAP_SERVERS` 환경변수 주입 제거
+- [ ] 5.5 `infra/app/compose.yml`의 `depends_on`/`healthcheck`에 Kafka 관련 항목이 있다면 제거
+- [ ] 5.6 `infra/CLAUDE.md`의 data stack 설명("MySQL, ES, Kafka, Redis, Logstash")에서 Kafka 제거. data stack 환경변수 가이드("`HOST_IP` (Kafka advertised listener)") 및 app stack 시크릿 가이드("Kafka")에서 Kafka 항목 제거
+- [ ] 5.7 dev `.env` 정리 가이드를 PR 본문에 명시 — `KAFKA_BOOTSTRAP_SERVERS`, `HOST_IP` 항목 제거 (운영자 수동 작업)
+
+## 6. 운영·배포 검증 (코드 변경 없음, 배포 후 확인)
+
+- [ ] 6.1 dev 배포 후 새 playlist 생성·수정·삭제가 ES 인덱스에 정상 반영됨을 운영 로그·MDC로 확인
+- [ ] 6.2 dev 배포 후 favorite 등록 후 playlist 삭제 시 favorite_playlist row가 정리됨을 확인 (`PlaylistDeletedHandler` 단독 동작 확인)
+- [ ] 6.3 dev EC2 데이터 노드에서 `kafka-broker` 컨테이너가 사라졌는지 `docker stack services` / `docker ps`로 확인
+- [ ] 6.4 dev EC2의 메모리·CPU·디스크 사용량이 Phase A 대비 감소함을 모니터링 도구로 확인
+- [ ] 6.5 백엔드 컨테이너 부팅 시간이 Phase A 대비 단축됨을 컨테이너 로그(`Started NomatApplication in ...s`)로 확인
+
+## 7. 후속
+
+- [ ] 7.1 `event_publication` 테이블 운영(파티셔닝, 청소 정책, 부하 모니터링)이 트래픽 증가 시 필요한지 별도 점검 — 본 변경 범위 외, 후속 OpenSpec change 후보
+- [ ] 7.2 사전 점검 grep 패턴(`kafka|Kafka|debezium|Debezium`)을 CI 단계로 등록하여 재유입 방지 검토 — 본 변경 범위 외, 후속 변경 후보
