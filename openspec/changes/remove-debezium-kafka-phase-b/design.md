@@ -90,6 +90,49 @@ Phase A에서 사용된 Kafka 토픽(`nomat_mysql_offset`, `nomat_mysql_schema_h
 
 `event_publication` 테이블은 Phase A 자산이므로 본 PR로 변경되지 않으며 롤백 영향 없음.
 
+### Decision 6: Phase A의 `@PostPersist` 이벤트 등록 버그 함께 수정
+
+Phase A는 `Playlist`의 생성 시 `PlaylistUpserted` 이벤트를 `@PostPersist registerUpsertedOnPersist()`로 등록하지만, 이 이벤트는 실제로 publish되지 않는다. 원인:
+
+- `@Id @GeneratedValue(strategy = GenerationType.TABLE)`을 사용하므로 Hibernate는 INSERT를 flush 시점까지 지연시킨다
+- Spring Data Commons의 `EventPublishingMethodInterceptor`는 `repository.save()` 반환 직후 `entity.andEvents()`로 이벤트를 추출한다
+- `@PostPersist`는 INSERT가 실제로 실행되는 flush 시점에 fire하므로 `save()` 반환 시점의 `domainEvents`는 비어 있다
+- 따라서 등록된 이벤트는 entity의 `domainEvents` 리스트에 남지만 publish되는 일이 없다
+
+**검증** (Phase B 작업 중 디버그 로그로 확인):
+- `@PostPersist registerUpsertedOnPersist()`는 정상 fire (등록 자체는 성공)
+- `PlaylistUpserted`를 받는 `@EventListener`/`@ApplicationModuleListener` 모두 호출되지 않음
+- `event_publication` 테이블에 `PlaylistUpserted` 행이 INSERT되지 않음
+- 반면 `playlist.markDeleted()`로 등록되는 `PlaylistDeleted`는 `repository.delete()` 호출 전에 등록되므로 정상 publish됨 (favorite cleanup·ES 삭제 핸들러 모두 정상 동작)
+
+Phase A에서는 Debezium이 binlog INSERT를 캡처하여 ES에 동기화한 덕분에 사용자 영향이 가려져 있었다. Phase B에서 Debezium을 제거하면 Modulith 단독 경로로 동작해야 하지만 `PlaylistUpserted`가 publish되지 않으므로 ES sync가 깨져 `EsPlaylistSyncHandlerTest`/`PlaylistControllerTest.searchByTitle`이 회귀한다.
+
+**Fix:** `@PostPersist` → `@PrePersist`로 콜백만 변경
+
+JPA 라이프사이클 콜백 순서 (Hibernate, `GenerationType.TABLE`):
+1. `entityManager.persist(entity)` 호출
+2. ID allocator가 ID 할당 → `entity.id = N` (이미 정해짐)
+3. **`@PrePersist` 콜백 fire** ← 이 시점에 `registerEvent` 호출
+4. 엔티티가 persistence context에 등록 (`save()` 동기 흐름 종료, return)
+5. Spring Data `EventPublishingMethodInterceptor`가 `entity.andEvents()` 호출 → 이벤트 추출 → publish ✓
+6. 트랜잭션 commit 시점 flush → INSERT 실행 → `@PostPersist` callback (사용 안 함)
+
+핵심: `@PrePersist`는 `persist()` 동기 흐름 안에서 fire하므로 `save()` 반환 전에 이벤트가 등록된다. `GenerationType.TABLE`은 allocator pre-fetch 방식이라 `@PrePersist` 시점에 이미 ID가 결정되어 있어 `PlaylistUpserted.from(this).id`가 올바른 값을 가진다.
+
+**변경 범위:**
+- `Playlist.kt`: `registerUpsertedOnPersist()` 메서드의 어노테이션을 `@PostPersist` → `@PrePersist`로 교체. import도 `PostPersist` → `PrePersist`로 교체
+- `Playlist.update()`, `Playlist.markDeleted()`, `PlaylistService.save()/update()/delete()`는 변경 없음 — 도메인 객체가 자신의 라이프사이클로 자율 발행하는 `AbstractAggregateRoot` 패턴을 그대로 유지
+
+**대안 검토:**
+- *`markUpserted()` 메서드 추가 + 서비스에서 명시 호출 + 더블 save*: 작동하지만 이벤트 발행을 도메인이 아닌 서비스로 누수시킨다. 이는 `applicationEventPublisher.publishEvent()` 직접 호출과 본질적으로 동일하며 `AbstractAggregateRoot` 패턴의 의미를 잃는다. 또한 더블 save는 의도가 모호하다. 기각
+- *`ApplicationEventPublisher.publishEvent` 직접 호출*: 위와 같은 이유로 기각
+- *Phase A 핫픽스 별도 PR*: dev 검증이 Debezium에 가려진 상태에서 통과한 것이므로 별도 수정 PR이 Phase B 선행되어야 한다. 그러나 dev에서 Modulith 단독 동작 검증을 한 번 더 거쳐야 하므로 Phase A 검증 게이트와 사실상 동등한 작업이 두 번 발생한다. 본 PR에 포함하면 cutover가 atomic하고 검증도 한 번에 끝난다. 기각
+- *`@PostUpdate`까지 함께 활용*: 마찬가지로 flush 시점 fire하므로 동일 문제. 기각
+
+**근거:** Phase B의 검증 기준에 "단일 경로(Modulith) ES sync가 회귀 없이 동작"이 포함되어 있다 (`specs/playlist-search-sync/spec.md`). 이 fix 없이는 검증 기준 자체가 충족되지 않는다.
+
+⚠️ **Phase A 검증 게이트의 재해석**: Phase A 검증 게이트 0.2 (ES 문서 카운트 ≈ MySQL `playlist` row 카운트)가 dev에서 OK로 보이는 것은 Debezium이 망가진 Modulith 생성 경로를 메워주고 있기 때문일 가능성이 있다. 본 PR은 Modulith가 진짜로 단독 동작하도록 만들고, dev 사후 검증(task 6.1)에서 새 playlist 생성 시 ES 인덱싱이 실제로 발생함을 다시 확인한다.
+
 ## Risks / Trade-offs
 
 - **[Risk] Phase A 검증 기준이 미충족인데 본 PR을 머지** → Mitigation: PR 머지 전 운영 로그·MySQL/ES 카운트·MDC 로그를 PR 코멘트에 증거로 첨부. 자동화는 본 PR 범위 외(향후 모니터링 변경에서 정형화)

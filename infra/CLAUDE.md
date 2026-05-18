@@ -14,7 +14,7 @@ app/          — 앱 노드 (Docker Swarm 스택: spring-app, nginx, prometheus
   nginx.conf
   prometheus.yml
   kibana.yml
-data/         — 데이터 노드 (단독 Docker Compose: MySQL, ES, Kafka, Redis, Logstash)
+data/         — 데이터 노드 (단독 Docker Compose: MySQL, ES, Redis, Logstash)
   compose.yml
   elasticsearch.yml
   logstash-config.yml
@@ -52,8 +52,8 @@ Docker Swarm config는 수정 시 키 값을 변경해야 적용된다. `compose
 
 ### 환경변수
 
-- **app 스택**: `.env` 파일을 EC2 홈 디렉토리에서 `infra/` 디렉토리로 복사하여 사용. DB, OAuth2, ES, Kafka, JWT, Redis 등 모든 시크릿을 환경변수로 주입
-- **data 스택**: `HOST_IP` (Kafka advertised listener), `DB_*`, `ELASTIC_PASSWORD` 등 필요
+- **app 스택**: `.env` 파일을 EC2 홈 디렉토리에서 `infra/` 디렉토리로 복사하여 사용. DB, OAuth2, ES, JWT, Redis 등 모든 시크릿을 환경변수로 주입
+- **data 스택**: `DB_*`, `ELASTIC_PASSWORD` 등 필요
 
 ### Spring App 배포 전략
 

@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.testcontainers.containers.MySQLContainer
 import org.testcontainers.elasticsearch.ElasticsearchContainer
-import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 
 @Configuration(proxyBeanMethods = false)
@@ -57,12 +56,6 @@ class ContainerConfiguration {
             override fun getUsername(): String = "elastic"
             override fun getPassword(): String = ELASTICSEARCH_PASSWORD
         }
-    }
-
-    @Bean
-    @ServiceConnection
-    fun kafkaContainer(): KafkaContainer {
-        return KafkaContainer("apache/kafka:3.7.2")
     }
 
     @Bean

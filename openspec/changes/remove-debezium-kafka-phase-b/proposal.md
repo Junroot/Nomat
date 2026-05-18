@@ -13,6 +13,7 @@ Phase A(#218)에서 Spring Modulith Event Publication Registry 기반 outbox 경
 - `back/CLAUDE.md`: 기술 스택 섹션의 "Debezium 임베디드 CDC (MySQL → Kafka → Elasticsearch)" 항목 제거, `infrastructure/` 설명에서 `cdc/` 항목 제거, Testcontainers 목록에서 Kafka 제거
 - `infra/CLAUDE.md`: data stack 설명·환경변수 가이드에서 Kafka 항목 제거
 - `playlist-search-sync` capability에서 "본 PR(Phase A) 동안 Debezium 경로 유지" Requirement REMOVE — Phase B 머지로 Phase A scoping requirement는 종료
+- **Phase A 잠재 버그 수정**: `Playlist`의 `@PostPersist registerUpsertedOnPersist()`로는 `PlaylistUpserted`가 publish되지 않는 문제 해결. `@PostPersist`는 `repository.save()` 반환 후 flush 시점에 fire하지만 Spring Data의 `EventPublishingMethodInterceptor`는 `save()` 직후 이벤트를 추출하므로 등록된 이벤트가 영원히 publish되지 않음. Phase A 동안 Debezium이 binlog INSERT를 캡처해 ES에 동기화한 덕에 가려져 있었음. **`@PostPersist` → `@PrePersist`로 콜백 변경**: `@PrePersist`는 `entityManager.persist()` 동기 흐름에서 fire하고 `GenerationType.TABLE` 사용 시 그 시점에 ID가 이미 할당된 상태이므로 Spring Data interceptor가 `save()` 반환 시 이벤트를 정상 추출함. 도메인 객체가 자신의 라이프사이클로 이벤트를 발행하는 `AbstractAggregateRoot` 패턴을 그대로 유지 — 서비스는 변경 없음
 
 ## Capabilities
 
