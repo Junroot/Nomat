@@ -102,7 +102,7 @@ loki.process "app" {
 
 prometheus.scrape "node_exporter" {
   targets = [
-    {"__address__" = "node-exporter:9100"},
+    {"__address__" = "node-exporter:9100", "instance" = "app"},
   ]
   job_name   = "node-exporter"
   forward_to = [prometheus.remote_write.grafana_cloud.receiver]

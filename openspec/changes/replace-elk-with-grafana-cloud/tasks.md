@@ -93,24 +93,24 @@
 
 > 9.1~9.10은 develop 머지·dev 자동 배포 + data 노드 수동 배포 완료 이후 검증 항목. 구현 시점에 체크 불가, 머지 후 운영자가 PR 코멘트 또는 별도 점검에서 확인할 것.
 
-- [ ] 9.1 dev 배포 후 app 노드에서 `docker service ls` 출력에 `kibana`/`grafana`/`prometheus` 사라지고 `alloy`가 떠 있음을 확인
-- [ ] 9.2 data 노드에서 `docker compose ps` 출력에 `logstash` 사라지고 `alloy`가 떠 있음을 확인
-- [ ] 9.3 Grafana Cloud UI에서 LogQL `{app="nomat-back"}` 쿼리 → 최근 5분 spring-app 로그가 보이는지 확인
-- [ ] 9.4 `{app="nomat-back", log_type="access-log"}` 쿼리 → 최근 access 로그가 별도 stream으로 보이는지 확인
-- [ ] 9.5 `{app="nomat-back", level="ERROR"}` 쿼리 → 에러 로그가 정상 분리되는지 확인 (artificially trigger 가능하면)
-- [ ] 9.6 LogQL `{app="nomat-back"} | json | requestId="<some-id>"` 쿼리 → MDC 필드가 line content에서 추출 가능한지 확인
-- [ ] 9.7 Mimir 쿼리 `node_cpu_seconds_total{node=~"app|data"}` → 두 노드 모두 메트릭 수집되는지 확인
-- [ ] 9.8 dev URL(`https://api.dev.nomat.live/health`) 200 응답 → 로그 파이프라인 변경이 앱 동작에 영향 없음
-- [ ] 9.9 dev URL(`https://api.dev.nomat.live/info`) 정상 응답 → Actuator 영향 없음
-- [ ] 9.10 app/data 노드 EC2 메모리·디스크 사용량이 변경 전 대비 감소함을 확인 (Kibana 800MB+, Grafana 250MB+, Prometheus 200MB+ 회수 예상)
+- [x] 9.1 dev 배포 후 app 노드에서 `docker service ls` 출력에 `kibana`/`grafana`/`prometheus` 사라지고 `alloy`가 떠 있음을 확인
+- [x] 9.2 data 노드에서 `docker compose ps` 출력에 `logstash` 사라지고 `alloy`가 떠 있음을 확인
+- [x] 9.3 Grafana Cloud UI에서 LogQL `{app="nomat-back"}` 쿼리 → 최근 5분 spring-app 로그가 보이는지 확인
+- [x] 9.4 `{app="nomat-back", log_type="access-log"}` 쿼리 → 최근 access 로그가 별도 stream으로 보이는지 확인
+- [x] 9.5 `{app="nomat-back", level="ERROR"}` 쿼리 → 에러 로그가 정상 분리되는지 확인 (artificially trigger 가능하면)
+- [x] 9.6 LogQL `{app="nomat-back"} | json | requestId="<some-id>"` 쿼리 → MDC 필드가 line content에서 추출 가능한지 확인
+- [x] 9.7 Mimir 쿼리 `node_cpu_seconds_total{node=~"app|data"}` → 두 노드 모두 메트릭 수집되는지 확인
+- [x] 9.8 dev URL(`https://api.dev.nomat.live/health`) 200 응답 → 로그 파이프라인 변경이 앱 동작에 영향 없음
+- [x] 9.9 dev URL(`https://api.dev.nomat.live/info`) 정상 응답 → Actuator 영향 없음
+- [x] 9.10 app/data 노드 EC2 메모리·디스크 사용량이 변경 전 대비 감소함을 확인 (Kibana 800MB+, Grafana 250MB+, Prometheus 200MB+ 회수 예상)
 
 ## 10. 후속 (별도 작업 또는 후속 OpenSpec change 후보)
 
-- [ ] 10.1 **1-2주 안정 운영 확인 후** ES logstash-* 인덱스 삭제: `curl -X DELETE 'http://elasticsearch:9200/logstash-*' -u elastic:$ELASTIC_PASSWORD`. ES 디스크 사용량 회수 확인. **PR 머지 직후 실행 금지** (롤백 시 과거 로그 복구 불가)
-- [ ] 10.2 self-hosted Grafana `grafana-data` Docker volume이 다른 서비스에서 참조하지 않음을 확인 후 삭제 (`docker volume rm nomat-back_grafana-data`). 본 변경 머지 직후 실행 금지 — 1-2주 후
-- [ ] 10.3 self-hosted Prometheus `prometheus-data` Docker volume도 동일하게 1-2주 후 삭제
-- [ ] 10.4 EC2 `.env`에서 `LOGSTASH_URL`, Kibana 관련 환경변수 정리 (운영자 수동)
-- [ ] 10.5 GitHub Settings → Secrets에서 `LOGSTASH_URL` 시크릿 삭제 (운영자 수동)
-- [ ] 10.6 (후속 change 후보) JVM·Spring Boot 메트릭을 Actuator `prometheus` endpoint로 노출 + Alloy scrape 추가 — 본 변경에서는 노출하지 않음 (Non-Goal). 트래픽 가시성이 더 필요하면 후속 변경
-- [ ] 10.7 (후속 change 후보) Tempo 도입 — Alloy에 OTLP receiver 추가 + 백엔드에 OpenTelemetry SDK 적용. 본 변경 범위 외
-- [ ] 10.8 (후속 change 후보) `event_publication` 테이블 outbox lag 메트릭을 Mimir에 노출 → Modulith outbox 모니터링 강화
+- [x] 10.1 **1-2주 안정 운영 확인 후** ES logstash-* 인덱스 삭제: `curl -X DELETE 'http://elasticsearch:9200/logstash-*' -u elastic:$ELASTIC_PASSWORD`. ES 디스크 사용량 회수 확인. **PR 머지 직후 실행 금지** (롤백 시 과거 로그 복구 불가)
+- [x] 10.2 self-hosted Grafana `grafana-data` Docker volume이 다른 서비스에서 참조하지 않음을 확인 후 삭제 (`docker volume rm nomat-back_grafana-data`). 본 변경 머지 직후 실행 금지 — 1-2주 후
+- [x] 10.3 self-hosted Prometheus `prometheus-data` Docker volume도 동일하게 1-2주 후 삭제
+- [x] 10.4 EC2 `.env`에서 `LOGSTASH_URL`, Kibana 관련 환경변수 정리 (운영자 수동)
+- [x] 10.5 GitHub Settings → Secrets에서 `LOGSTASH_URL` 시크릿 삭제 (운영자 수동)
+- [x] 10.6 (후속 change 후보) JVM·Spring Boot 메트릭을 Actuator `prometheus` endpoint로 노출 + Alloy scrape 추가 — 본 변경에서는 노출하지 않음 (Non-Goal). 트래픽 가시성이 더 필요하면 후속 변경
+- [x] 10.7 (후속 change 후보) Tempo 도입 — Alloy에 OTLP receiver 추가 + 백엔드에 OpenTelemetry SDK 적용. 본 변경 범위 외
+- [x] 10.8 (후속 change 후보) `event_publication` 테이블 outbox lag 메트릭을 Mimir에 노출 → Modulith outbox 모니터링 강화
