@@ -68,8 +68,9 @@ loki.process "app" {
   // 정적 라벨
   stage.static_labels {
     values = {
-      app = "nomat-back",
-      env = "dev",
+      app  = "nomat-back",
+      env  = "dev",
+      node = "app",
     }
   }
 
