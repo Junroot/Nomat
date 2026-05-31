@@ -19,7 +19,7 @@
 ## 2. 백엔드 — 의존성·문서
 
 - [x] 2.1 `back/build.gradle.kts:60-61`의 `logback-access-common`/`logback-access-tomcat`는 **유지** — Decision 4 재확인 결과. `AccessLogConfiguration.kt`가 `ch.qos.logback.access.tomcat.LogbackValve`를 import하고 access 로그를 `LogstashAccessEncoder`로 직렬화하므로 제거 시 컴파일/런타임 깨짐. (proposal "What Changes/Impact"의 제거 문구는 stale — Decision 4가 정답)
-- [x] 2.2 `back/build.gradle.kts:59`의 `net.logstash.logback:logstash-logback-encoder:7.4`는 **유지** (Decision 3)
+- [x] 2.2 `net.logstash.logback:logstash-logback-encoder`를 **7.4 → 8.1 상향** (Decision 3의 "encoder 재사용" 유지하되 버전 정정). 7.4는 logback-access 1.x(`ch.qos.logback.access.spi.IAccessEvent`) 대상이라 logback-access 2.0.6(Jakarta, `ch.qos.logback.access.common.spi.IAccessEvent`)과 비호환 → access 인코딩 시 `NoClassDefFoundError`. async TCP appender 때는 백그라운드 스레드에서 삼켜져 잠복했으나, 본 변경의 sync ConsoleAppender 전환으로 요청 스레드(LogbackValve)에 전파되어 표면화됨. 8.x가 logback 1.5 + logback-access 2.0을 타깃하므로 해소. javap로 8.1이 `...common.spi.IAccessEvent` 참조함을 확인
 - [x] 2.3 `back/CLAUDE.md`에 observability 섹션 신설 또는 "운영 엔드포인트" 인접에 한 단락 추가: 로그/메트릭은 Grafana Cloud로 송신되며, Alloy 에이전트가 컨테이너 stdout과 node-exporter를 수집. 로컬 개발은 콘솔 출력 그대로
 - [x] 2.4 (기존 ELK 언급이 back/CLAUDE.md에 있다면) 정리 — back/CLAUDE.md에 ELK/Kibana/Logstash 언급 없음 (ES는 검색용으로만 기술). 정리할 항목 없음
 

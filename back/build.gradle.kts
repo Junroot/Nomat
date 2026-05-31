@@ -56,7 +56,7 @@ dependencies {
 	implementation("org.springframework.data:spring-data-elasticsearch")
 	implementation("org.springframework.retry:spring-retry")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
-	implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+	implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 	implementation("ch.qos.logback.access:logback-access-common:2.0.6")
 	implementation("ch.qos.logback.access:logback-access-tomcat:2.0.6")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
