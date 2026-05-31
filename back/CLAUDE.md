@@ -203,6 +203,15 @@ await()
 - `/info` — Spring Boot Actuator. 빌드 시점에 박힌 git 메타(`build.commit`, `build.branch`)와 artifact 정보(`build.artifact`, `build.name`, `build.version`, `build.time`)를 반환. **인증 없음(permitAll)**. 값은 빌드 시 `back/Dockerfile`의 `ARG GIT_COMMIT`/`ARG GIT_BRANCH` → Gradle property → `springBoot.buildInfo.additional`로 jar 안 `META-INF/build-info.properties`에 박히며, 런타임 ENV로 변조 불가. CI(`back-push-develop.yml`)에서 `${{ github.sha }}`/`${{ github.ref_name }}`로 주입. 로컬 빌드는 `unknown` fallback.
 - `/health` — Liveness. components 표시는 익명, 상세는 인증 필요. Redis pub/sub 헬스 컴포넌트 포함.
 
+## Observability (로그·메트릭)
+
+dev 프로파일의 로그는 더 이상 Logstash로 직접 TCP 송신하지 않는다. logback은 **stdout에 JSON 라인**으로 출력하며(`logback-spring.xml`의 `ConsoleAppender` + `LogstashEncoder`, access 로그는 `logback-access-dev.xml`의 `ConsoleAppender` + `LogstashAccessEncoder`), 인프라의 **Grafana Alloy** 에이전트가 Docker socket으로 컨테이너 stdout을 수집해 Grafana Cloud Loki로 전송한다. 시스템 메트릭은 Alloy가 node-exporter를 scrape해 Grafana Cloud Mimir로 push한다. 운영자는 Grafana Cloud의 Grafana UI에서 로그·메트릭을 조회한다 (self-hosted Kibana/Grafana/Prometheus 없음).
+
+- 앱 로그/access 로그는 JSON의 `logType` 필드(`app-log`/`access-log`)로 구분되며 Loki에서 `log_type` 라벨로 승격된다.
+- `requestId`·`requestPlayerId` 같은 MDC 필드는 high-cardinality이므로 라벨로 올리지 않고 JSON 본문에 남긴다 (LogQL `| json | requestId="X"`로 사후 필터).
+- `net.logstash.logback:logstash-logback-encoder`는 TCP appender 대신 JSON encoder로만 재사용한다. access 로그를 logback-access encoder로 직렬화하므로 `logback-access-common`/`logback-access-tomcat` 의존성은 유지한다 (`AccessLogConfiguration`의 `LogbackValve`도 의존).
+- **local/test 프로파일은 변경 없음** — 사람이 읽는 콘솔 패턴 출력 그대로.
+
 ## 데이터베이스 마이그레이션
 
 Flyway 마이그레이션 파일은 `src/main/resources/db/migration/`에 위치 (현재 V1~V9). 시작 시 스키마 검증 (`ddl-auto: validate`).

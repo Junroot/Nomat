@@ -1,0 +1,109 @@
+// Grafana Alloy — app 노드(Swarm) 설정
+// 컨테이너 stdout → Loki, node-exporter scrape → Mimir.
+// 자격증명/엔드포인트는 환경변수로만 주입한다 (저장소에 평문 금지).
+
+// ── Grafana Cloud write endpoints ────────────────────────────────────────────
+
+loki.write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_LOKI_URL")
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_LOKI_USER")
+      password = sys.env("GRAFANA_CLOUD_API_TOKEN")
+    }
+  }
+}
+
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_MIMIR_URL")
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_MIMIR_USER")
+      password = sys.env("GRAFANA_CLOUD_API_TOKEN")
+    }
+  }
+
+  // 모든 메트릭에 노드 식별 라벨 부여 (node_cpu_seconds_total{node=~"app|data"})
+  external_labels = {
+    node = "app",
+  }
+}
+
+// ── 로그 수집: Docker 컨테이너 stdout → Loki ─────────────────────────────────
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// 컨테이너 메타데이터를 low-cardinality 라벨로 변환 (Decision 8)
+discovery.relabel "containers" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/?(.*)"
+    target_label  = "container_name"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_swarm_service_name"]
+    target_label  = "swarm_service"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_stack_image", "__meta_docker_image"]
+    separator     = ";"
+    regex         = "([^;]+);?.*"
+    target_label  = "image"
+  }
+}
+
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.containers.rules
+  forward_to    = [loki.process.app.receiver]
+}
+
+// JSON 본문에서 logType/level만 라벨로 승격, 나머지는 line content로 보존
+loki.process "app" {
+  // 정적 라벨
+  stage.static_labels {
+    values = {
+      app  = "nomat-back",
+      env  = "dev",
+      node = "app",
+    }
+  }
+
+  // spring-app JSON 로그에서 logType/level 추출 (비-JSON 라인은 무시됨)
+  stage.json {
+    expressions = {
+      log_type = "logType",
+      level    = "level",
+    }
+  }
+
+  // 추출된 값만 라벨로 승격
+  stage.labels {
+    values = {
+      log_type = "",
+      level    = "",
+    }
+  }
+
+  // 허용 라벨 화이트리스트 — high-cardinality(requestId 등) 라벨 승격 차단 (Decision 8)
+  stage.label_keep {
+    values = ["app", "env", "node", "log_type", "level", "container_name", "swarm_service", "image"]
+  }
+
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+// ── 메트릭 수집: node-exporter scrape → Mimir ────────────────────────────────
+
+prometheus.scrape "node_exporter" {
+  targets = [
+    {"__address__" = "node-exporter:9100"},
+  ]
+  job_name   = "node-exporter"
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+}

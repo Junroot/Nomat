@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
-    <appender name="Stash" class="net.logstash.logback.appender.LogstashAccessTcpSocketAppender">
-        <destination>${LOGSTASH_URL}</destination>
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashAccessEncoder">
             <customFields>{"logType":"access-log"}</customFields>
             <fieldNames>
                 <requestHeaders>request_headers</requestHeaders>
             </fieldNames>
         </encoder>
-        <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
-    <appender-ref ref="Stash"/>
+    <appender-ref ref="JSON"/>
 </configuration>

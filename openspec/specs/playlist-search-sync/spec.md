@@ -51,18 +51,6 @@ TBD - created by archiving change 2026-05-03-replace-debezium-cdc-with-modulith-
 - **THEN** 페이로드는 ES 인덱싱에 필요한 모든 필드(id, ownerId, title, tracks 등)를 자기충족적으로 포함해야 한다
 - **AND** 핸들러는 ES 인덱싱을 위해 추가 DB 조회를 수행하지 않아야 한다
 
-### Requirement: 본 PR(Phase A) 동안 Debezium 경로 유지
-시스템은 본 변경의 Phase A 단계 동안 기존 Debezium 기반 ES 동기화를 그대로 유지하면서 Modulith 기반 동기화를 함께 수행해야(SHALL) 한다. dual-write 단계는 운영 검증을 위한 안전망이다.
-
-#### Scenario: dual-write 멱등성
-- **WHEN** Phase A 운영 중 Debezium이 binlog로 ES에 쓰는 경로와 `EsPlaylistSyncHandler`가 도메인 이벤트로 ES에 쓰는 경로가 동일 도큐먼트에 동시에 쓰기 발생
-- **THEN** 두 경로 모두 `ElasticsearchOperations.save()` 멱등 호출이므로 데이터 손실이 없어야 한다
-- **AND** 마지막 write가 최종 상태로 반영되어야 한다
-
-#### Scenario: Phase A 단계의 Debezium 책임 축소
-- **WHEN** 코드베이스를 검사
-- **THEN** `DebeziumSourceEventListener.delete()`는 ES 도큐먼트 삭제만 수행하고 favorite 정리는 호출하지 않아야 한다 (favorite 정리는 `PlaylistDeletedHandler`로 완전 이관)
-
 ### Requirement: Testcontainers 기반 통합 테스트
 시스템은 ES 동기화 흐름을 Testcontainers 기반 통합 테스트로 검증해야(MUST) 한다. Mock 사용은 허용되지 않는다.
 
