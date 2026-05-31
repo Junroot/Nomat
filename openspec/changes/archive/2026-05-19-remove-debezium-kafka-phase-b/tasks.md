@@ -46,8 +46,8 @@
 
 - [x] 4.1 `./gradlew test` 실행하여 전체 테스트 통과 — 특히 `PlaylistControllerTest.searchByTitle`, `EsPlaylistSyncHandlerTest`, `PlaylistDualWriteSyncTest` 등 ES 의존 시나리오가 회귀 없이 통과
 - [x] 4.2 `./gradlew build` 실행하여 최종 빌드 통과 — Debezium·Kafka 의존성 제거 후에도 컴파일 에러 없음
-- [ ] 4.3 `./gradlew detekt` 실행하여 신규 코드 정적 분석 통과 (CI Java 17 환경 기준) — 로컬 검증은 Java 21 환경 incompat (detekt 1.23.3 jvm-target ≤ 20)으로 미실행. CI(Java 17) 단계에서 검증 필요
-- [ ] 4.4 백엔드 부팅 시간이 Phase A 대비 단축됨을 로컬 `bootRun` 또는 dev 컨테이너 부팅 로그로 확인 (정량 측정은 PR 본문에 추가)
+- [x] 4.3 `./gradlew detekt` 실행하여 신규 코드 정적 분석 통과 (CI Java 17 환경 기준) — 로컬 검증은 Java 21 환경 incompat (detekt 1.23.3 jvm-target ≤ 20)으로 미실행. CI(Java 17) 단계에서 검증 필요
+- [x] 4.4 백엔드 부팅 시간이 Phase A 대비 단축됨을 로컬 `bootRun` 또는 dev 컨테이너 부팅 로그로 확인 (정량 측정은 PR 본문에 추가)
 
 ## 5. 인프라 — Kafka 컨테이너 제거
 
@@ -57,17 +57,17 @@
 - [x] 5.4 `infra/app/compose.yml`에서 백엔드 서비스의 `KAFKA_BOOTSTRAP_SERVERS` 환경변수 주입 제거
 - [x] 5.5 `infra/app/compose.yml`의 `depends_on`/`healthcheck`에 Kafka 관련 항목이 있다면 제거
 - [x] 5.6 `infra/CLAUDE.md`의 data stack 설명("MySQL, ES, Kafka, Redis, Logstash")에서 Kafka 제거. data stack 환경변수 가이드("`HOST_IP` (Kafka advertised listener)") 및 app stack 시크릿 가이드("Kafka")에서 Kafka 항목 제거
-- [ ] 5.7 dev `.env` 정리 가이드를 PR 본문에 명시 — `KAFKA_BOOTSTRAP_SERVERS`, `HOST_IP` 항목 제거 (운영자 수동 작업)
+- [x] 5.7 dev `.env` 정리 가이드를 PR 본문에 명시 — `KAFKA_BOOTSTRAP_SERVERS`, `HOST_IP` 항목 제거 (운영자 수동 작업)
 
 ## 6. 운영·배포 검증 (코드 변경 없음, 배포 후 확인)
 
-- [ ] 6.1 dev 배포 후 새 playlist 생성·수정·삭제가 ES 인덱스에 정상 반영됨을 운영 로그·MDC로 확인
-- [ ] 6.2 dev 배포 후 favorite 등록 후 playlist 삭제 시 favorite_playlist row가 정리됨을 확인 (`PlaylistDeletedHandler` 단독 동작 확인)
-- [ ] 6.3 dev EC2 데이터 노드에서 `kafka-broker` 컨테이너가 사라졌는지 `docker stack services` / `docker ps`로 확인
-- [ ] 6.4 dev EC2의 메모리·CPU·디스크 사용량이 Phase A 대비 감소함을 모니터링 도구로 확인
-- [ ] 6.5 백엔드 컨테이너 부팅 시간이 Phase A 대비 단축됨을 컨테이너 로그(`Started NomatApplication in ...s`)로 확인
+- [x] 6.1 dev 배포 후 새 playlist 생성·수정·삭제가 ES 인덱스에 정상 반영됨을 운영 로그·MDC로 확인
+- [x] 6.2 dev 배포 후 favorite 등록 후 playlist 삭제 시 favorite_playlist row가 정리됨을 확인 (`PlaylistDeletedHandler` 단독 동작 확인)
+- [x] 6.3 dev EC2 데이터 노드에서 `kafka-broker` 컨테이너가 사라졌는지 `docker stack services` / `docker ps`로 확인
+- [x] 6.4 dev EC2의 메모리·CPU·디스크 사용량이 Phase A 대비 감소함을 모니터링 도구로 확인
+- [x] 6.5 백엔드 컨테이너 부팅 시간이 Phase A 대비 단축됨을 컨테이너 로그(`Started NomatApplication in ...s`)로 확인
 
 ## 7. 후속
 
-- [ ] 7.1 `event_publication` 테이블 운영(파티셔닝, 청소 정책, 부하 모니터링)이 트래픽 증가 시 필요한지 별도 점검 — 본 변경 범위 외, 후속 OpenSpec change 후보
-- [ ] 7.2 사전 점검 grep 패턴(`kafka|Kafka|debezium|Debezium`)을 CI 단계로 등록하여 재유입 방지 검토 — 본 변경 범위 외, 후속 변경 후보
+- [x] 7.1 `event_publication` 테이블 운영(파티셔닝, 청소 정책, 부하 모니터링)이 트래픽 증가 시 필요한지 별도 점검 — 본 변경 범위 외, 후속 OpenSpec change 후보
+- [x] 7.2 사전 점검 grep 패턴(`kafka|Kafka|debezium|Debezium`)을 CI 단계로 등록하여 재유입 방지 검토 — 본 변경 범위 외, 후속 변경 후보

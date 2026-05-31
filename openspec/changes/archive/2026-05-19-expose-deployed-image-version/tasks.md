@@ -28,10 +28,10 @@
 
 > 5.1~5.4는 develop 머지·dev 배포 완료 이후 수동 검증 항목. 구현 시점에 체크 불가, 머지 후 운영자가 PR 코멘트 또는 별도 점검에서 확인할 것.
 
-- [ ] 5.1 develop 머지 → dev 자동 배포 후 `curl https://api.dev.nomat.live/info | jq` 실행. `build.commit`이 머지된 commit SHA와 정확히 일치, `build.branch`가 `develop`임을 확인
-- [ ] 5.2 `replicas: 2`인 점을 고려하여 여러 번 호출(또는 nginx upstream 우회)하여 두 인스턴스 모두 같은 SHA를 반환하는지 확인. 롤링 배포 직후 일시적 분기는 정상 — 30초~1분 이내에 동일해져야 함
-- [ ] 5.3 인증 없이 외부 네트워크에서 호출 가능한지 확인 (브라우저 시크릿 모드 또는 다른 머신에서 curl)
-- [ ] 5.4 응답에 의도하지 않은 민감 정보(스택 트레이스, 내부 IP, DB 접속 문자열 등)가 노출되지 않는지 육안 검토
+- [x] 5.1 develop 머지 → dev 자동 배포 후 `curl https://api.dev.nomat.live/info | jq` 실행. `build.commit`이 머지된 commit SHA와 정확히 일치, `build.branch`가 `develop`임을 확인
+- [x] 5.2 `replicas: 2`인 점을 고려하여 여러 번 호출(또는 nginx upstream 우회)하여 두 인스턴스 모두 같은 SHA를 반환하는지 확인. 롤링 배포 직후 일시적 분기는 정상 — 30초~1분 이내에 동일해져야 함
+- [x] 5.3 인증 없이 외부 네트워크에서 호출 가능한지 확인 (브라우저 시크릿 모드 또는 다른 머신에서 curl)
+- [x] 5.4 응답에 의도하지 않은 민감 정보(스택 트레이스, 내부 IP, DB 접속 문자열 등)가 노출되지 않는지 육안 검토
 
 ## 6. 문서
 

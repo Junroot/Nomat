@@ -26,33 +26,34 @@ services:
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data:Z
       - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
-    networks:
-      - elk
     restart: unless-stopped
-  logstash:
-    image: docker.elastic.co/logstash/logstash:9.0.4
-    container_name: logstash
-    ports:
-      - "5044:5044"
-      - "50000:50000/tcp"
-      - "50000:50000/udp"
-      - "9600:9600"
+  alloy:
+    image: grafana/alloy:v1.10.0
+    container_name: alloy
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
     environment:
-      LS_JAVA_OPTS: -Xms256m -Xmx256m
-      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      GRAFANA_CLOUD_LOKI_URL: ${GRAFANA_CLOUD_LOKI_URL}
+      GRAFANA_CLOUD_LOKI_USER: ${GRAFANA_CLOUD_LOKI_USER}
+      GRAFANA_CLOUD_MIMIR_URL: ${GRAFANA_CLOUD_MIMIR_URL}
+      GRAFANA_CLOUD_MIMIR_USER: ${GRAFANA_CLOUD_MIMIR_USER}
+      GRAFANA_CLOUD_API_TOKEN: ${GRAFANA_CLOUD_API_TOKEN}
     volumes:
-      - ./logstash-config.yml:/usr/share/logstash/config/logstash.yml:ro,Z
-      - ./logstash-pipeline.conf:/usr/share/logstash/pipeline/logstash.conf:ro,Z
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
     networks:
-      - elk
-    depends_on:
-      - elasticsearch
+      - observability
     restart: unless-stopped
   node-exporter:
     image: prom/node-exporter:v1.9.1
     container_name: node-exporter
     ports:
       - "9100:9100"
+    networks:
+      - observability
   redis:
     image: redis:7.4.7
     container_name: redis
@@ -62,6 +63,5 @@ volumes:
   db-data:
   elasticsearch-data:
 networks:
-  elk:
+  observability:
     driver: bridge
-

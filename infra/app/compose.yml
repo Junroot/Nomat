@@ -30,7 +30,6 @@ services:
       ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME}
       ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
       JWT_KEY: ${JWT_KEY}
-      LOGSTASH_URL: ${LOGSTASH_URL}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     networks:
@@ -46,52 +45,42 @@ services:
     configs:
       - source: nginx_conf-4
         target: /etc/nginx/nginx.conf
-  prometheus:
-    image: junroot0909/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+  alloy:
+    image: grafana/alloy:v1.10.0
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    deploy:
+      mode: global
     environment:
-      - DATA_NODE_IP=${DATA_NODE_IP:-}
+      GRAFANA_CLOUD_LOKI_URL: ${GRAFANA_CLOUD_LOKI_URL}
+      GRAFANA_CLOUD_LOKI_USER: ${GRAFANA_CLOUD_LOKI_USER}
+      GRAFANA_CLOUD_MIMIR_URL: ${GRAFANA_CLOUD_MIMIR_URL}
+      GRAFANA_CLOUD_MIMIR_USER: ${GRAFANA_CLOUD_MIMIR_USER}
+      GRAFANA_CLOUD_API_TOKEN: ${GRAFANA_CLOUD_API_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    configs:
+      - source: alloy_config-1
+        target: /etc/alloy/config.alloy
     networks:
-      - local-prometheus
-    restart: unless-stopped
+      - observability
   node-exporter:
     image: prom/node-exporter:latest
     networks:
-      - local-prometheus
-  grafana:
-    image: grafana/grafana-oss:12.1.0
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana-data:/var/lib/grafana
-    networks:
-      - local-prometheus
-  kibana:
-    image: docker.elastic.co/kibana/kibana:9.0.4
-    ports:
-      - "5601:5601"
-    environment:
-      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-http://elasticsearch:9200}
-      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-}
-    volumes:
-      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
-    restart: unless-stopped
+      - observability
 networks:
   backend:
     name: backend
     driver: overlay
     attachable: true
-  local-prometheus:
+  observability:
     driver: overlay
 configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
   nginx_conf-4:
     file: ./nginx.conf
-volumes:
-  prometheus-data:
-  grafana-data:
+  alloy_config-1:
+    file: ./alloy-config.alloy
