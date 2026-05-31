@@ -63,7 +63,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     configs:
-      - source: alloy_config-1
+      - source: alloy_config-2
         target: /etc/alloy/config.alloy
     networks:
       - observability
@@ -82,5 +82,5 @@ configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
   nginx_conf-4:
     file: ./nginx.conf
-  alloy_config-1:
+  alloy_config-2:
     file: ./alloy-config.alloy
