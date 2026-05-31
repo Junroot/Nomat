@@ -41,5 +41,5 @@ jobs:
           cd infra
 
           export $(xargs < .env)
-          docker stack config -c compose.yml | sudo docker stack deploy -c - nomat-back
+          docker stack config -c compose.yml | sudo docker stack deploy --prune -c - nomat-back
           '

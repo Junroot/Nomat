@@ -56,5 +56,5 @@ jobs:
           cd infra
           
           export $(xargs < .env)
-          NOMAT_TAG=${{ github.sha }} docker stack config -c compose.yml | sudo docker stack deploy -c - nomat-back
+          NOMAT_TAG=${{ github.sha }} docker stack config -c compose.yml | sudo docker stack deploy --prune -c - nomat-back
           '
