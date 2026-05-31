@@ -57,4 +57,31 @@ jobs:
           
           export $(xargs < .env)
           NOMAT_TAG=${{ github.sha }} docker stack config -c compose.yml | sudo docker stack deploy --prune -c - nomat-back
+
+          echo "Waiting for spring-app deployment to converge..."
+          sleep 10
+          CONVERGED=0
+          for i in $(seq 1 60); do
+          STATE=$(sudo docker service inspect nomat-back_spring-app --format "{{if .UpdateStatus}}{{.UpdateStatus.State}}{{end}}")
+          REPLICAS=$(sudo docker service ls --filter name=nomat-back_spring-app --format "{{.Replicas}}")
+          echo "attempt $i: UpdateStatus=[$STATE] replicas=[$REPLICAS]"
+          case "$STATE" in
+          paused|rollback_started|rollback_paused|rollback_completed)
+          echo "Deployment FAILED (state: $STATE) - spring-app rolled back or paused."
+          exit 1
+          ;;
+          esac
+          RUNNING=${REPLICAS%%/*}
+          DESIRED=${REPLICAS##*/}
+          if { [ "$STATE" = completed ] || [ -z "$STATE" ]; } && [ -n "$RUNNING" ] && [ "$RUNNING" = "$DESIRED" ]; then
+          echo "Deployment converged ($REPLICAS)."
+          CONVERGED=1
+          break
+          fi
+          sleep 5
+          done
+          if [ "$CONVERGED" -ne 1 ]; then
+          echo "Timed out waiting for spring-app to converge."
+          exit 1
+          fi
           '
