@@ -65,6 +65,7 @@ dependencies {
 	implementation("net.javacrumbs.shedlock:shedlock-provider-redis-spring:5.16.0")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.23")
 	testImplementation("io.kotest:kotest-assertions-core:5.8.1")

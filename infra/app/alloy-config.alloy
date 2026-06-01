@@ -107,3 +107,61 @@ prometheus.scrape "node_exporter" {
   job_name   = "node-exporter"
   forward_to = [prometheus.remote_write.grafana_cloud.receiver]
 }
+
+// ── 앱 메트릭: spring-app(replicas) scrape → allow-list → Mimir ───────────────
+// alloy는 backend 네트워크에도 합류해 있어(compose) spring-app 컨테이너에 도달 가능.
+// discovery.docker(로그 수집과 공유)로 로컬 노드 컨테이너를 열거하고, swarm service
+// 라벨로 spring-app만 keep → replica별 타깃(per-replica instance)으로 8081/prometheus를 scrape.
+
+discovery.relabel "spring_app" {
+  targets = discovery.docker.containers.targets
+
+  // nomat-back_spring-app 컨테이너만 선택
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_swarm_service_name"]
+    regex         = "nomat-back_spring-app"
+    action        = "keep"
+  }
+  // backend 오버레이 네트워크의 타깃만 유지(네트워크당 1개 타깃으로 중복 제거, 도달 가능 IP)
+  rule {
+    source_labels = ["__meta_docker_network_name"]
+    regex         = "backend"
+    action        = "keep"
+  }
+  // 컨테이너 IP + 관리 포트(8081)로 scrape 주소 합성 (컨테이너는 포트를 publish하지 않음)
+  rule {
+    source_labels = ["__meta_docker_network_ip"]
+    regex         = "(.+)"
+    replacement   = "$1:8081"
+    target_label  = "__address__"
+  }
+  // replica별 식별: 컨테이너 이름을 instance 라벨로 (앞 슬래시 제거)
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/?(.*)"
+    target_label  = "instance"
+  }
+  // actuator prometheus endpoint 경로
+  rule {
+    target_label = "__metrics_path__"
+    replacement  = "/prometheus"
+  }
+}
+
+prometheus.scrape "spring_app" {
+  targets    = discovery.relabel.spring_app.output
+  job_name   = "spring-app"
+  forward_to = [prometheus.relabel.app_allowlist.receiver]
+}
+
+// 카디널리티 하드캡: __name__ 화이트리스트로 송신 메트릭 제한 (Decision 5).
+// 앱에서 히스토그램을 켜거나 URI가 새도 Mimir 입구에서 차단되어 10k 예산 방어.
+prometheus.relabel "app_allowlist" {
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+
+  rule {
+    source_labels = ["__name__"]
+    regex         = "(jvm|process|system|hikaricp|logback_events|tomcat)_.*|http_server_requests.*|up"
+    action        = "keep"
+  }
+}

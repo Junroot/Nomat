@@ -1,11 +1,13 @@
 package ilpak.nomat.infrastructure.integration
 
 import ilpak.nomat.infrastructure.security.SecurityConfiguration
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Lazy
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -25,6 +27,19 @@ class TestConfiguration {
     @Bean
     fun authenticationFilter(): OncePerRequestFilter {
         return TestAuthenticationFilter()
+    }
+
+    // test 프로파일은 actuator를 메인 포트에 유지한다(포트 분리 없음).
+    // 운영의 ManagementSecurityConfiguration(@Profile("!test"))과 동일하게
+    // actuator endpoint를 permitAll하여 /health·/info·/prometheus를 무인증 접근 가능하게 한다.
+    @Bean
+    @Order(1)
+    fun managementFilterChain(http: HttpSecurity): SecurityFilterChain {
+        return http.securityMatcher(EndpointRequest.toAnyEndpoint())
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .csrf { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .build()
     }
 
     @Bean

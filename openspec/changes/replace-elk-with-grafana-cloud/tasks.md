@@ -111,6 +111,6 @@
 - [x] 10.3 self-hosted Prometheus `prometheus-data` Docker volume도 동일하게 1-2주 후 삭제
 - [x] 10.4 EC2 `.env`에서 `LOGSTASH_URL`, Kibana 관련 환경변수 정리 (운영자 수동)
 - [x] 10.5 GitHub Settings → Secrets에서 `LOGSTASH_URL` 시크릿 삭제 (운영자 수동)
-- [x] 10.6 (후속 change 후보) JVM·Spring Boot 메트릭을 Actuator `prometheus` endpoint로 노출 + Alloy scrape 추가 — 본 변경에서는 노출하지 않음 (Non-Goal). 트래픽 가시성이 더 필요하면 후속 변경
-- [x] 10.7 (후속 change 후보) Tempo 도입 — Alloy에 OTLP receiver 추가 + 백엔드에 OpenTelemetry SDK 적용. 본 변경 범위 외
-- [x] 10.8 (후속 change 후보) `event_publication` 테이블 outbox lag 메트릭을 Mimir에 노출 → Modulith outbox 모니터링 강화
+- [] 10.6 (후속 change 후보) JVM·Spring Boot 메트릭을 Actuator `prometheus` endpoint로 노출 + Alloy scrape 추가 — 본 변경에서는 노출하지 않음 (Non-Goal). 트래픽 가시성이 더 필요하면 후속 변경
+- [] 10.7 (후속 change 후보) Tempo 도입 — Alloy에 OTLP receiver 추가 + 백엔드에 OpenTelemetry SDK 적용. 본 변경 범위 외
+- [] 10.8 (후속 change 후보) `event_publication` 테이블 outbox lag 메트릭을 Mimir에 노출 → Modulith outbox 모니터링 강화
