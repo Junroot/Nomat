@@ -19,7 +19,7 @@ data/         — 데이터 노드 (단독 Docker Compose: MySQL, ES, Redis, all
   alloy-config.alloy
 ```
 
-로그·메트릭은 self-hosted 백엔드(Kibana/Logstash/Prometheus/Grafana) 없이 **Grafana Cloud**로 전송한다. 각 노드의 **Grafana Alloy** 에이전트가 Docker socket으로 컨테이너 stdout을 수집해 Loki로, node-exporter를 scrape해 Mimir로 push한다. 운영자는 Grafana Cloud의 Grafana UI에서 조회한다.
+로그·메트릭은 self-hosted 백엔드(Kibana/Logstash/Prometheus/Grafana) 없이 **Grafana Cloud**로 전송한다. 각 노드의 **Grafana Alloy** 에이전트가 Docker socket으로 컨테이너 stdout을 수집해 Loki로, node-exporter를 scrape해 Mimir로 push한다. app 노드에서는 Alloy가 추가로 `spring-app`을 backend 네트워크에서 replica별로 scrape해 앱(JVM/Spring) 메트릭도 Mimir로 push한다. 운영자는 Grafana Cloud의 Grafana UI에서 조회한다.
 
 ## 배포
 
@@ -31,13 +31,14 @@ data/         — 데이터 노드 (단독 Docker Compose: MySQL, ES, Redis, all
 
 ### 네트워크
 
-- **app 스택**: `backend` overlay 네트워크로 spring-app ↔ nginx 연결. `observability` overlay로 alloy ↔ node-exporter scrape 격리
+- **app 스택**: `backend` overlay 네트워크로 spring-app ↔ nginx 연결. `observability` overlay로 alloy ↔ node-exporter scrape. 앱 메트릭 scrape를 위해 **alloy를 `backend`에도 합류**시켜 격벽을 **Alloy 한 방향으로 부분 개방**한다(`alloy.networks = [observability, backend]`). `spring-app`은 `observability`를 알지 못하므로 역방향 격리는 유지된다(앱 컨테이너가 침해돼도 관측망 도달 불가)
 - **data 스택**: `observability` bridge 네트워크로 alloy ↔ node-exporter 연결. Elasticsearch 등 나머지 서비스는 포트 매핑으로 외부 노출
 
 ### Nginx
 
 - `nomat-back_spring-app:8080`으로 리버스 프록시 (Swarm 서비스 디스커버리 사용)
 - `/ws` 경로는 WebSocket 업그레이드 헤더 추가
+- **actuator 관리 포트(8081) allow-list**: dev에서 actuator는 전용 관리 포트(8081)로 분리된다. nginx는 `upstream backend_mgmt`(`:8081`)로 `location = /info`만 공개 reverse proxy한다(버전 확인 통로). `/health`는 컨테이너 내부 healthcheck(`localhost:8081`) 전용, `/prometheus`는 Alloy scrape 전용 — 둘 다 nginx 미프록시이므로 공개 도달 불가(default-closed)
 
 ### Swarm config 업데이트 (Nginx / Alloy)
 
@@ -49,6 +50,7 @@ Docker Swarm config는 수정 시 키 값을 변경해야 적용된다. app 스�
 
 - 각 노드의 **Alloy** 에이전트가 Docker socket(`/var/run/docker.sock:ro`)으로 컨테이너 stdout을 tail → Grafana Cloud **Loki**로 전송. `discovery.docker`로 컨테이너 메타를 라벨링하고, spring-app JSON 로그의 `logType`/`level`만 라벨로 승격한다 (`requestId` 등 high-cardinality는 line content로 보존).
 - Alloy가 같은 노드의 `node-exporter:9100`을 scrape → Grafana Cloud **Mimir**로 remote_write. 메트릭에는 `node=app|data` external label이 붙는다.
+- **app 노드 앱 메트릭**: Alloy가 `backend` 네트워크에서 `discovery.docker`로 로컬 컨테이너를 열거하고 swarm service 라벨(`nomat-back_spring-app`)로 keep → replica별 타깃(컨테이너 이름을 `instance` 라벨로)으로 `<ip>:8081/prometheus`를 scrape. `prometheus.relabel "app_allowlist"`가 `__name__` 화이트리스트(`jvm_*`·`process_*`·`system_*`·`http_server_requests*`·`hikaricp_*`·`logback_events*`·`tomcat_*`)로 송신을 제한해 Mimir 10k active series 예산을 하드캡한다. replica별 `instance`로 두 replica를 개별 식별한다(`jvm_memory_used_bytes{node="app"}`).
 - app 노드 Alloy는 `deploy.mode: global`(Swarm 노드당 1개), data 노드 Alloy는 단독 compose 컨테이너.
 
 ### 환경변수
@@ -60,4 +62,4 @@ Docker Swarm config는 수정 시 키 값을 변경해야 적용된다. app 스�
 ### Spring App 배포 전략
 
 - 2 replicas, rolling update (parallelism: 1, start-first) — 무중단 배포
-- 헬스체크: `http://localhost:8080/health` (30초 간격, 60초 시작 대기)
+- 헬스체크: `http://localhost:8081/health` (관리 포트, 컨테이너 내부 직접 호출 — nginx 우회. 30초 간격, 60초 시작 대기)

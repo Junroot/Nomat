@@ -14,7 +14,7 @@ services:
         failure_action: rollback
         order: start-first
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -43,7 +43,7 @@ services:
     networks:
       - backend
     configs:
-      - source: nginx_conf-4
+      - source: nginx_conf-5
         target: /etc/nginx/nginx.conf
   alloy:
     image: grafana/alloy:v1.10.0
@@ -63,10 +63,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     configs:
-      - source: alloy_config-2
+      - source: alloy_config-3
         target: /etc/alloy/config.alloy
     networks:
       - observability
+      - backend
   node-exporter:
     image: prom/node-exporter:latest
     networks:
@@ -80,7 +81,7 @@ networks:
     driver: overlay
 configs:
   # config 파일은 수정이 필요하면, config key 값을 변경해야 적용 됨
-  nginx_conf-4:
+  nginx_conf-5:
     file: ./nginx.conf
-  alloy_config-2:
+  alloy_config-3:
     file: ./alloy-config.alloy

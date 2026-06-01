@@ -6,13 +6,17 @@ management:
         health: health
         info: info
       exposure:
-        include: health, info
+        include: health, info, prometheus
   endpoint:
     health:
       show-components: always
       show-details: when-authorized
       cache:
         time-to-live: 10s
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: false
 app:
   health:
     pubsub:
@@ -96,6 +100,9 @@ logging:
 ---
 server:
   forward-headers-strategy: framework
+management:
+  server:
+    port: 8081
 spring:
   config:
     activate:

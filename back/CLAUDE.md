@@ -200,12 +200,23 @@ await()
 
 ## 운영 엔드포인트
 
-- `/info` — Spring Boot Actuator. 빌드 시점에 박힌 git 메타(`build.commit`, `build.branch`)와 artifact 정보(`build.artifact`, `build.name`, `build.version`, `build.time`)를 반환. **인증 없음(permitAll)**. 값은 빌드 시 `back/Dockerfile`의 `ARG GIT_COMMIT`/`ARG GIT_BRANCH` → Gradle property → `springBoot.buildInfo.additional`로 jar 안 `META-INF/build-info.properties`에 박히며, 런타임 ENV로 변조 불가. CI(`back-push-develop.yml`)에서 `${{ github.sha }}`/`${{ github.ref_name }}`로 주입. 로컬 빌드는 `unknown` fallback.
-- `/health` — Liveness. components 표시는 익명, 상세는 인증 필요. Redis pub/sub 헬스 컴포넌트 포함.
+### 관리 포트 분리 (dev 프로파일)
+
+dev 프로파일에서 actuator 전체는 `management.server.port: 8081` 전용 관리 포트로 분리된다(`local`/`test`는 메인 8080 포트 유지 — 기존 테스트·로컬 동작 보존). 관리 포트는 **내부 전용**이며 인증을 요구하지 않는다 — 메인 보안 체인(OAuth2/STATELESS/`Http403ForbiddenEntryPoint`)이 적용되면 Alloy가 403을 맞으므로, `EndpointRequest.toAnyEndpoint()`를 매칭하는 별도 `permitAll` 체인(`ManagementSecurityConfiguration`, `@Order(1)`, `@Profile("!test")`)을 둔다. 메인 `SecurityConfiguration.permittedUrls`에서는 actuator가 더 이상 메인 포트에 없으므로 `/health/**`·`/info/**`를 제거했다.
+
+공개 노출은 nginx가 `/info` 하나만 관리 포트로 reverse proxy한다(allow-list, default-closed). `/health`는 컨테이너 내부 healthcheck(`localhost:8081/health`) 전용, `/prometheus`는 내부 Alloy scrape 전용 — 둘 다 공개 ingress로 도달 불가.
+
+### 엔드포인트
+
+- `/info` — Spring Boot Actuator. 빌드 시점에 박힌 git 메타(`build.commit`, `build.branch`)와 artifact 정보(`build.artifact`, `build.name`, `build.version`, `build.time`)를 반환. **인증 없음(관리 체인 permitAll)**. 값은 빌드 시 `back/Dockerfile`의 `ARG GIT_COMMIT`/`ARG GIT_BRANCH` → Gradle property → `springBoot.buildInfo.additional`로 jar 안 `META-INF/build-info.properties`에 박히며, 런타임 ENV로 변조 불가. CI(`back-push-develop.yml`)에서 `${{ github.sha }}`/`${{ github.ref_name }}`로 주입. 로컬 빌드는 `unknown` fallback. dev에서는 관리 포트(8081)·공개는 nginx 경유.
+- `/health` — Liveness. components 표시는 익명, 상세는 인증 필요. Redis pub/sub 헬스 컴포넌트 포함. dev에서는 관리 포트(8081)에서 제공, 공개 미노출.
+- `/prometheus` — Micrometer/Actuator Prometheus exposition. `io.micrometer:micrometer-registry-prometheus`(runtimeOnly)로 활성화하고 `management.endpoints.web.exposure.include`에 `prometheus` 포함. JVM(heap/GC/스레드)·HTTP 요청·HikariCP·logback·tomcat 등 기본 Micrometer 메트릭을 노출하며, 내부 네트워크의 Alloy만 scrape한다(공개 미노출). 카디널리티 가드로 `management.metrics.distribution.percentiles-histogram.http.server.requests: false`를 명시(히스토그램 `_bucket` 미생성). **신규 엔드포인트의 URI는 반드시 템플릿화**(`@PathVariable`)하고 path에 UUID/이메일 등 unbounded 값을 직접 박지 않는다 — `http_server_requests`의 `uri` 라벨 카디널리티 무한 증식 방지.
+
+> 테스트에서 prometheus endpoint를 검증할 때는 `@AutoConfigureObservability`를 붙여야 한다 — `@SpringBootTest`는 기본적으로 metrics export를 끈다(`management.defaults.metrics.export.enabled=false`).
 
 ## Observability (로그·메트릭)
 
-dev 프로파일의 로그는 더 이상 Logstash로 직접 TCP 송신하지 않는다. logback은 **stdout에 JSON 라인**으로 출력하며(`logback-spring.xml`의 `ConsoleAppender` + `LogstashEncoder`, access 로그는 `logback-access-dev.xml`의 `ConsoleAppender` + `LogstashAccessEncoder`), 인프라의 **Grafana Alloy** 에이전트가 Docker socket으로 컨테이너 stdout을 수집해 Grafana Cloud Loki로 전송한다. 시스템 메트릭은 Alloy가 node-exporter를 scrape해 Grafana Cloud Mimir로 push한다. 운영자는 Grafana Cloud의 Grafana UI에서 로그·메트릭을 조회한다 (self-hosted Kibana/Grafana/Prometheus 없음).
+dev 프로파일의 로그는 더 이상 Logstash로 직접 TCP 송신하지 않는다. logback은 **stdout에 JSON 라인**으로 출력하며(`logback-spring.xml`의 `ConsoleAppender` + `LogstashEncoder`, access 로그는 `logback-access-dev.xml`의 `ConsoleAppender` + `LogstashAccessEncoder`), 인프라의 **Grafana Alloy** 에이전트가 Docker socket으로 컨테이너 stdout을 수집해 Grafana Cloud Loki로 전송한다. 시스템 메트릭은 Alloy가 node-exporter를 scrape해 Grafana Cloud Mimir로 push한다. **앱 레벨 메트릭**(JVM/Spring)은 Alloy가 `spring-app` replica별 `8081/prometheus`를 scrape → allow-list relabel → Mimir로 push한다(아래 `/prometheus` 참조). 운영자는 Grafana Cloud의 Grafana UI에서 로그·메트릭을 조회한다 (self-hosted Kibana/Grafana/Prometheus 없음).
 
 - 앱 로그/access 로그는 JSON의 `logType` 필드(`app-log`/`access-log`)로 구분되며 Loki에서 `log_type` 라벨로 승격된다.
 - `requestId`·`requestPlayerId` 같은 MDC 필드는 high-cardinality이므로 라벨로 올리지 않고 JSON 본문에 남긴다 (LogQL `| json | requestId="X"`로 사후 필터).
