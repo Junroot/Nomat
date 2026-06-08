@@ -50,7 +50,6 @@ alerting/     — 알림 규칙 그룹 export (UI에서 만든 뒤 export)
 | GC 과부하 | GC pressure | `rate(jvm_gc_pause_seconds_sum[5m]) > 0.15` | 10m |
 | CPU 높음 | Process CPU | `process_cpu_usage > 0.85` | 15m |
 | 최대 응답시간 | Max latency by URI | `max by(uri)(http_server_requests_seconds_max) > 2` | 10m |
-| Tomcat 포화 | Tomcat threads | `busy/config_max > 0.85` | 5m |
 | 노드 메모리 | Memory | `MemAvailable/MemTotal < 0.10` | 10m |
 | 노드 CPU | CPU Busy | `(1 - rate(node_cpu_seconds_total{mode="idle"}[5m])) > 0.9` | 15m |
 | app 노드 디스크 | Filesystem Used | `avail/size{node="app"} < 0.15` | 10m |

@@ -48,9 +48,9 @@
                   {
                     "evaluator": {
                       "params": [
-                        1
+                        0
                       ],
-                      "type": "lt"
+                      "type": "eq"
                     },
                     "operator": {
                       "type": "and"
