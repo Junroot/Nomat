@@ -36,7 +36,6 @@ alerting/     — 알림 규칙 그룹 export (UI에서 만든 뒤 export)
 | 알림 | 대응 패널 | 조건 | for | NoData |
 |------|-----------|------|-----|--------|
 | 앱 완전 다운 | Up / replicas | `sum(up{job="spring-app"}) == 0` | 2m | **Alerting** |
-| 관측 두절 | Up / replicas | `absent(up{job="spring-app"})` (+ node-exporter) | 5m | **Alerting** |
 | Hikari timeout | Pending & timeouts | `sum by(instance)(rate(hikaricp_connections_timeout_total[5m])) > 0` | 1m | OK |
 | 5xx 비율 | Error ratio (5xx) | ratio `> 0.05` AND 전체 rate `> 0.1`(트래픽 가드) | 5m | OK |
 | data 노드 디스크 | Filesystem Available | `avail/size{node="data"} < 0.10` | 10m | OK |
