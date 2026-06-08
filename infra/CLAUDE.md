@@ -17,7 +17,13 @@ data/         — 데이터 노드 (단독 Docker Compose: MySQL, ES, Redis, all
   compose.yml
   elasticsearch.yml
   alloy-config.alloy
+grafana/      — Grafana Cloud 관측 자산 export 스냅샷 (UI가 원천, git은 스냅샷)
+  dashboards/   spring-app·node-exporter·로그 대시보드 JSON
+  alerting/     알림 규칙 그룹 export
+  README.md     관측 자산 컨벤션 + 알림 카탈로그(규칙↔패널 미러링)
 ```
+
+로그·메트릭은 Grafana Cloud로 보내고(아래 참조), 운영자는 Grafana UI에서 조회한다. 알림은 대시보드 패널을 미러링해 구성하며, 대시보드·알림 규칙은 `grafana/`에 export 스냅샷으로 버전 관리한다. 자세한 컨벤션·알림 카탈로그는 `grafana/README.md` 참조.
 
 로그·메트릭은 self-hosted 백엔드(Kibana/Logstash/Prometheus/Grafana) 없이 **Grafana Cloud**로 전송한다. 각 노드의 **Grafana Alloy** 에이전트가 Docker socket으로 컨테이너 stdout을 수집해 Loki로, node-exporter를 scrape해 Mimir로 push한다. app 노드에서는 Alloy가 추가로 `spring-app`을 backend 네트워크에서 replica별로 scrape해 앱(JVM/Spring) 메트릭도 Mimir로 push한다. 운영자는 Grafana Cloud의 Grafana UI에서 조회한다.
 
