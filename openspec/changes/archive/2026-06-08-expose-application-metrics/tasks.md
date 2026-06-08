@@ -42,10 +42,10 @@
 
 ## 7. 운영 검증 (배포 후 — 코드 변경 외)
 
-- [ ] 7.1 app 노드 `docker service ls`에서 `spring-app`·`nginx`·`alloy` 정상, 컨테이너 수 변화 없음 확인
-- [ ] 7.2 Alloy 컨테이너에서 `spring-app` replica 2개가 scrape 타깃으로 발견되는지 확인 (Alloy `/metrics` 또는 디버그 UI)
-- [ ] 7.3 Grafana Cloud Explore에서 `jvm_memory_used_bytes{node="app"}` 쿼리 → 두 replica가 서로 다른 `instance` 라벨로 조회되는지 확인
-- [ ] 7.4 공개 `curl https://api.dev.nomat.live/info` → `build.commit`/`build.branch` 정상 반환(버전 확인 통로 보존) 확인
-- [ ] 7.5 공개 `curl https://api.dev.nomat.live/prometheus` 및 `.../health` → 둘 다 도달 불가(404/차단) 확인 (공개 표면에는 `/info`만 노출)
-- [ ] 7.6 컨테이너 내부 healthcheck(`localhost:8081/health`)가 Actuator 헬스 결과(`components.redisPubSub`)를 반환하고 Swarm이 컨테이너를 healthy로 유지하는지 확인 (공개 노출 없이 내부 동작 정상)
-- [ ] 7.7 Grafana Cloud Mimir active series 사용량이 예산(앱 ≈ 1k) 내인지, 히스토그램 `_bucket` 시계열이 생성되지 않았는지 확인
+- [x] 7.1 app 노드 `docker service ls`에서 `spring-app`·`nginx`·`alloy` 정상, 컨테이너 수 변화 없음 확인
+- [x] 7.2 Alloy 컨테이너에서 `spring-app` replica 2개가 scrape 타깃으로 발견되는지 확인 (Alloy `/metrics` 또는 디버그 UI)
+- [x] 7.3 Grafana Cloud Explore에서 `jvm_memory_used_bytes{node="app"}` 쿼리 → 두 replica가 서로 다른 `instance` 라벨로 조회되는지 확인
+- [x] 7.4 공개 `curl https://api.dev.nomat.live/info` → `build.commit`/`build.branch` 정상 반환(버전 확인 통로 보존) 확인
+- [x] 7.5 공개 `curl https://api.dev.nomat.live/prometheus` 및 `.../health` → 둘 다 도달 불가(404/차단) 확인 (공개 표면에는 `/info`만 노출)
+- [x] 7.6 컨테이너 내부 healthcheck(`localhost:8081/health`)가 Actuator 헬스 결과(`components.redisPubSub`)를 반환하고 Swarm이 컨테이너를 healthy로 유지하는지 확인 (공개 노출 없이 내부 동작 정상)
+- [x] 7.7 Grafana Cloud Mimir active series 사용량이 예산(앱 ≈ 1k) 내인지, 히스토그램 `_bucket` 시계열이 생성되지 않았는지 확인
