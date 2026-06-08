@@ -655,7 +655,7 @@
               }
             }
           ],
-          "noDataState": "NoData",
+          "noDataState": "OK",
           "execErrState": "Error",
           "labels": {
             "severity": "warning"
@@ -729,7 +729,7 @@
               }
             }
           ],
-          "noDataState": "NoData",
+          "noDataState": "OK",
           "execErrState": "Error",
           "for": "10m",
           "labels": {
@@ -804,7 +804,7 @@
               }
             }
           ],
-          "noDataState": "NoData",
+          "noDataState": "OK",
           "execErrState": "Error",
           "for": "15m",
           "labels": {
@@ -879,7 +879,7 @@
               }
             }
           ],
-          "noDataState": "NoData",
+          "noDataState": "OK",
           "execErrState": "Error",
           "for": "10m",
           "labels": {
@@ -954,7 +954,7 @@
               }
             }
           ],
-          "noDataState": "NoData",
+          "noDataState": "OK",
           "execErrState": "Error",
           "for": "10m",
           "labels": {
@@ -1029,7 +1029,7 @@
               }
             }
           ],
-          "noDataState": "NoData",
+          "noDataState": "OK",
           "execErrState": "Error",
           "for": "15m",
           "labels": {
@@ -1104,7 +1104,7 @@
               }
             }
           ],
-          "noDataState": "NoData",
+          "noDataState": "OK",
           "execErrState": "Error",
           "for": "10m",
           "labels": {
