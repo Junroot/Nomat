@@ -132,4 +132,24 @@ class RoomService(
             }
         }
     }
+
+    fun start(roomId: Long, playerId: Long) {
+        distributedLockExecutor.withLock("room:$roomId:lock") {
+            writeTransactionTemplate.executeWithoutResult {
+                val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
+                room.start(playerId)
+                roomRepository.save(room)
+            }
+        }
+    }
+
+    fun end(roomId: Long, playerId: Long) {
+        distributedLockExecutor.withLock("room:$roomId:lock") {
+            writeTransactionTemplate.executeWithoutResult {
+                val room = roomRepository.findById(roomId) ?: throw NotFoundException(NotFoundResource.ROOM)
+                room.end(playerId)
+                roomRepository.save(room)
+            }
+        }
+    }
 }

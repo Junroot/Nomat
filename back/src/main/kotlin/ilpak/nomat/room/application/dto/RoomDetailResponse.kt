@@ -1,12 +1,14 @@
 package ilpak.nomat.room.application.dto
 
 import ilpak.nomat.room.application.domain.Room
+import ilpak.nomat.room.application.domain.RoomStatus
 
 data class RoomDetailResponse(
     val id: Long,
     val title: String,
     val playlist: PlaylistDetailResponse,
-    val players: List<RoomMemberResponse>
+    val players: List<RoomMemberResponse>,
+    val status: RoomStatus,
 ) {
     companion object {
         fun of(
@@ -27,7 +29,8 @@ data class RoomDetailResponse(
                         index == 0,
                         roomEntry.playerId,
                     )
-                }
+                },
+                room.status,
             )
         }
     }

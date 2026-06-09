@@ -256,4 +256,149 @@ class RoomTest {
         room.leave(2)
         assertThat(room.isEmpty).isTrue()
     }
+
+    @Test
+    fun `start_방장이 ACTIVE 상태에서 게임을 시작하면 PLAYING으로 전이된다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+
+        room.start(1)
+
+        assertThat(room.status).isEqualTo(RoomStatus.PLAYING)
+    }
+
+    @Test
+    fun `start_방장이 아닌 멤버가 시작하면 예외 발생`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.join(2)
+
+        assertThatThrownBy { room.start(2) }
+            .isExactlyInstanceOf(ForbiddenException::class.java)
+        assertThat(room.status).isEqualTo(RoomStatus.ACTIVE)
+    }
+
+    @Test
+    fun `start_이미 PLAYING 상태이면 예외 발생`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.start(1)
+
+        assertThatThrownBy { room.start(1) }
+            .isExactlyInstanceOf(ConflictException::class.java)
+        assertThat(room.status).isEqualTo(RoomStatus.PLAYING)
+    }
+
+    @Test
+    fun `end_방장이 PLAYING 상태에서 게임을 종료하면 ACTIVE로 전이된다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.start(1)
+
+        room.end(1)
+
+        assertThat(room.status).isEqualTo(RoomStatus.ACTIVE)
+    }
+
+    @Test
+    fun `end_방장이 아닌 멤버가 종료하면 예외 발생`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.join(2)
+        room.start(1)
+
+        assertThatThrownBy { room.end(2) }
+            .isExactlyInstanceOf(ForbiddenException::class.java)
+        assertThat(room.status).isEqualTo(RoomStatus.PLAYING)
+    }
+
+    @Test
+    fun `end_PLAYING 상태가 아니면 예외 발생`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+
+        assertThatThrownBy { room.end(1) }
+            .isExactlyInstanceOf(ConflictException::class.java)
+        assertThat(room.status).isEqualTo(RoomStatus.ACTIVE)
+    }
+
+    @Test
+    fun `join_게임 중인 방에는 입장할 수 없다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.start(1)
+
+        assertThatThrownBy { room.join(2) }
+            .isExactlyInstanceOf(ConflictException::class.java)
+    }
 }

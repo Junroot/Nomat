@@ -31,6 +31,18 @@ private class RoomStompController(
         roomService.leave(session.roomId, session.playerId)
     }
 
+    @MessageMapping("/rooms/start")
+    fun start(headerAccessor: SimpMessageHeaderAccessor) {
+        val session = headerAccessor.roomSession() ?: return
+        roomService.start(session.roomId, session.playerId)
+    }
+
+    @MessageMapping("/rooms/end")
+    fun end(headerAccessor: SimpMessageHeaderAccessor) {
+        val session = headerAccessor.roomSession() ?: return
+        roomService.end(session.roomId, session.playerId)
+    }
+
     @MessageMapping("/rooms/chat")
     fun chat(@Valid @Payload request: RoomChatRequest, headerAccessor: SimpMessageHeaderAccessor) {
         val session = headerAccessor.roomSession() ?: return

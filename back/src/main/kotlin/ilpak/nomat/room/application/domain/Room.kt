@@ -81,6 +81,9 @@ class Room(
     }
 
     fun join(playerId: Long) {
+        if (status == RoomStatus.PLAYING) {
+            throw ConflictException("게임 중에는 입장할 수 없습니다.")
+        }
         if (entries.size >= maxEntriesCount) {
             throw ConflictException("방의 정원이 초과되었습니다.")
         }
@@ -91,6 +94,28 @@ class Room(
         _sortedEntries = null
         status = RoomStatus.ACTIVE
         registerEvent(RoomJoinedEvent(id, playerId))
+    }
+
+    fun start(playerId: Long) {
+        if (master?.playerId != playerId) {
+            throw ForbiddenException("방장만 게임을 시작할 수 있습니다.")
+        }
+        if (status != RoomStatus.ACTIVE) {
+            throw ConflictException("시작할 수 없는 방 상태입니다.")
+        }
+        status = RoomStatus.PLAYING
+        registerEvent(GameStartedEvent(id, playerId))
+    }
+
+    fun end(playerId: Long) {
+        if (master?.playerId != playerId) {
+            throw ForbiddenException("방장만 게임을 종료할 수 있습니다.")
+        }
+        if (status != RoomStatus.PLAYING) {
+            throw ConflictException("종료할 수 없는 방 상태입니다.")
+        }
+        status = RoomStatus.ACTIVE
+        registerEvent(GameEndedEvent(id, playerId))
     }
 
     fun leave(playerId: Long) {

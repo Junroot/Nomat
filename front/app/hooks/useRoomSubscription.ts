@@ -4,7 +4,7 @@ import useRoomConnectionStore from "~/stores/RoomConnectionStore";
 import useMeStore from "~/stores/MeStore";
 import { fetchRoomDetail } from "~/utils/api";
 import type RoomDetailResponse from "~/utils/RoomDetailResponse";
-import type { RoomMemberResponse } from "~/utils/RoomDetailResponse";
+import type { RoomMemberResponse, RoomStatus } from "~/utils/RoomDetailResponse";
 import type RoomChatMessage from "~/utils/ChatMessage";
 import type { StompSubscription } from "@stomp/stompjs";
 
@@ -28,15 +28,22 @@ interface RoomChatEvent extends RoomEventBase {
     timestamp: string;
 }
 
-type RoomEventMessage = RoomJoinedLeftEvent | RoomSessionReplacedEvent | RoomChatEvent;
+interface RoomGameEvent extends RoomEventBase {
+    type: "STARTED" | "ENDED";
+}
+
+type RoomEventMessage = RoomJoinedLeftEvent | RoomSessionReplacedEvent | RoomChatEvent | RoomGameEvent;
 
 interface UseRoomSubscriptionResult {
     roomDetail: RoomDetailResponse | null;
     players: RoomMemberResponse[];
     messages: RoomChatMessage[];
+    status: RoomStatus;
     isLoading: boolean;
     isDeactivated: boolean;
     sendMessage: (content: string) => void;
+    startGame: () => void;
+    endGame: () => void;
     leaveRoom: () => void;
 }
 
@@ -50,6 +57,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     const [roomDetail, setRoomDetail] = useState<RoomDetailResponse | null>(null);
     const [players, setPlayers] = useState<RoomMemberResponse[]>([]);
     const [messages, setMessages] = useState<RoomChatMessage[]>([]);
+    const [status, setStatus] = useState<RoomStatus>("ACTIVE");
     const [isLoading, setIsLoading] = useState(true);
     const [isDeactivated, setIsDeactivated] = useState(false);
 
@@ -115,6 +123,18 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                 ...prev,
                 { type: "message", senderId: event.playerId, senderNickname: event.nickname, content: event.content, timestamp: event.timestamp },
             ]);
+        } else if (event.type === "STARTED") {
+            setStatus("PLAYING");
+            setMessages((prev) => [
+                ...prev,
+                { type: "system", eventType: "start", targetNickname: event.nickname, timestamp: new Date().toISOString() },
+            ]);
+        } else if (event.type === "ENDED") {
+            setStatus("ACTIVE");
+            setMessages((prev) => [
+                ...prev,
+                { type: "system", eventType: "end", targetNickname: event.nickname, timestamp: new Date().toISOString() },
+            ]);
         }
     };
 
@@ -122,6 +142,18 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     sendMessageRef.current = (content: string) => {
         if (!client?.connected) return;
         client.publish({ destination: "/app/rooms/chat", body: JSON.stringify({ content }) });
+    };
+
+    const startGameRef = useRef<() => void>(() => {});
+    startGameRef.current = () => {
+        if (!client?.connected) return;
+        client.publish({ destination: "/app/rooms/start" });
+    };
+
+    const endGameRef = useRef<() => void>(() => {});
+    endGameRef.current = () => {
+        if (!client?.connected) return;
+        client.publish({ destination: "/app/rooms/end" });
     };
 
     const leaveRoomRef = useRef<() => void>(() => {});
@@ -158,6 +190,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                 .then((detail) => {
                     setRoomDetail(detail);
                     setPlayers(detail.players);
+                    setStatus(detail.status);
                 })
                 .finally(() => setIsLoading(false));
         }
@@ -178,15 +211,20 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     }, [client, storeRoomId, roomId, navigate, clear]);
 
     const sendMessage = useCallback((content: string) => sendMessageRef.current(content), []);
+    const startGame = useCallback(() => startGameRef.current(), []);
+    const endGame = useCallback(() => endGameRef.current(), []);
     const leaveRoom = useCallback(() => leaveRoomRef.current(), []);
 
     return {
         roomDetail,
         players,
         messages,
+        status,
         isLoading,
         isDeactivated,
         sendMessage,
+        startGame,
+        endGame,
         leaveRoom,
     };
 }

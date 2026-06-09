@@ -12,9 +12,12 @@ export interface PlaylistDetailResponse {
     description: string;
 }
 
+export type RoomStatus = "PENDING" | "ACTIVE" | "PLAYING";
+
 export default interface RoomDetailResponse {
     id: number;
     title: string;
     playlist: PlaylistDetailResponse;
     players: RoomMemberResponse[];
+    status: RoomStatus;
 }

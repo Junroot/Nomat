@@ -10,6 +10,7 @@ import ilpak.nomat.infrastructure.integration.step.dummyRoomRequest
 import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
+import ilpak.nomat.room.application.domain.RoomStatus
 import ilpak.nomat.room.application.dto.PlaylistDetailResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomRequest
@@ -67,7 +68,8 @@ class RoomControllerTest(
                                 master = player.nickname,
                                 description = playlist.description,
                             ),
-                            players = emptyList()
+                            players = emptyList(),
+                            status = RoomStatus.PENDING,
                         )
                     )
             }
@@ -115,6 +117,53 @@ class RoomControllerTest(
             .auth(nonMember)
             .exchange()
             .expectStatus().isForbidden()
+    }
+
+    @Test
+    fun `getDetail_응답에 현재 방 상태가 포함된다`() {
+        val room = roomStep.save(player, dummyRoomRequest(playlist.id))
+        roomStep.join(player.id, room.id, "password")
+
+        client.get().uri("/rooms/{roomId}", room.id)
+            .auth(player)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody<RoomDetailResponse>()
+            .value {
+                assertThat(it.status).isEqualTo(RoomStatus.ACTIVE)
+            }
+    }
+
+    @Test
+    fun `getDetail_게임 중인 방의 상태는 PLAYING이다`() {
+        val room = roomStep.save(player, dummyRoomRequest(playlist.id))
+        roomStep.join(player.id, room.id, "password")
+        roomStep.start(player.id, room.id)
+
+        client.get().uri("/rooms/{roomId}", room.id)
+            .auth(player)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody<RoomDetailResponse>()
+            .value {
+                assertThat(it.status).isEqualTo(RoomStatus.PLAYING)
+            }
+    }
+
+    @Test
+    fun `get_PLAYING 상태인 방은 목록에서 제외된다`() {
+        val room = roomStep.save(player, dummyRoomRequest(playlist.id))
+        roomStep.join(player.id, room.id, "password")
+        roomStep.start(player.id, room.id)
+
+        client.get().uri("/rooms")
+            .auth(player)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody<List<RoomResponse>>()
+            .value {
+                assertThat(it).isEmpty()
+            }
     }
 
     @Test
