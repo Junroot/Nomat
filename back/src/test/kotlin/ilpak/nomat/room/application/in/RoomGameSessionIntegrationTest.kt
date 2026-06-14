@@ -16,6 +16,7 @@ import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.dto.GameStartedEventMessage
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomEventMessage
+import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.awaitility.Awaitility.await
@@ -29,6 +30,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import java.lang.reflect.Type
 import java.time.Duration
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.LinkedBlockingQueue
 
 @IntegrationTest
@@ -57,17 +59,25 @@ class RoomGameSessionIntegrationTest(
         val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
 
         val sessionA = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
-        val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
 
         val receivedEvents = LinkedBlockingQueue<RoomEventMessage>()
-        sessionB.subscribe("/topic/rooms/${room.id}", object : StompFrameHandler {
+        sessionA.subscribe("/topic/rooms/${room.id}", object : StompFrameHandler {
             override fun getPayloadType(headers: StompHeaders): Type = RoomEventMessage::class.java
             override fun handleFrame(headers: StompHeaders, payload: Any?) {
                 receivedEvents.add(payload as RoomEventMessage)
             }
         })
 
-        Thread.sleep(500)
+        // 구독이 등록되기 전에 게임을 시작하면 STARTED를 놓친다. joiner 입장 시 브로드캐스트되는
+        // JOINED를 받는 것으로 구독 등록을 확인해, 고정 sleep 없이 CI 부하와 무관하게 동기화한다.
+        val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
+        await()
+            .pollInterval(Duration.ofMillis(100))
+            .atMost(Duration.ofSeconds(5))
+            .untilAsserted {
+                assertThat(receivedEvents.filterIsInstance<RoomJoinedEventMessage>()).isNotEmpty
+            }
+        receivedEvents.clear()
 
         sessionA.send("/app/rooms/start", emptyMap<String, Any>())
 
@@ -97,7 +107,7 @@ class RoomGameSessionIntegrationTest(
 
         assertThatThrownBy {
             connectStomp(objectMapper, tokenService, port, newcomer, room.id, "password")
-        }
+        }.isInstanceOf(ExecutionException::class.java)
 
         val detail = getRoomDetail(room.id)
         assertThat(detail?.players?.map { it.id }).doesNotContain(newcomer.id)
