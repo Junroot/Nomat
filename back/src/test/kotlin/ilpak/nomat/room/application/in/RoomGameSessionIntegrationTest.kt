@@ -13,6 +13,7 @@ import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.infrastructure.integration.util.connectStomp
 import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
+import ilpak.nomat.room.application.dto.GameEndedEventMessage
 import ilpak.nomat.room.application.dto.GameStartedEventMessage
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomEventMessage
@@ -98,6 +99,52 @@ class RoomGameSessionIntegrationTest(
     }
 
     @Test
+    fun `방장이 게임을 종료하면 구독자에게 ENDED 이벤트가 전달된다`() {
+        val room = roomStep.save(player, dummyRoomRequest(playlist.id))
+        val joiner = playerStep.save(dummyPlayerRequest(nickname = "joiner", registrationId = "joinerId"))
+
+        val sessionA = connectStomp(objectMapper, tokenService, port, player, room.id, "password")
+
+        val receivedEvents = LinkedBlockingQueue<RoomEventMessage>()
+        sessionA.subscribe("/topic/rooms/${room.id}", object : StompFrameHandler {
+            override fun getPayloadType(headers: StompHeaders): Type = RoomEventMessage::class.java
+            override fun handleFrame(headers: StompHeaders, payload: Any?) {
+                receivedEvents.add(payload as RoomEventMessage)
+            }
+        })
+
+        // 구독이 등록되기 전에 종료하면 ENDED를 놓친다. joiner 입장 시 브로드캐스트되는
+        // JOINED를 받는 것으로 구독 등록을 확인해, 고정 sleep 없이 CI 부하와 무관하게 동기화한다.
+        val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
+        await()
+            .pollInterval(Duration.ofMillis(100))
+            .atMost(Duration.ofSeconds(5))
+            .untilAsserted {
+                assertThat(receivedEvents.filterIsInstance<RoomJoinedEventMessage>()).isNotEmpty
+            }
+        receivedEvents.clear()
+
+        // 종료의 선행 조건인 게임 시작은 동기로 처리하고, 검증 대상인 종료 경로만 STOMP로 발행한다.
+        roomStep.start(player.id, room.id)
+        sessionA.send("/app/rooms/end", emptyMap<String, Any>())
+
+        await()
+            .pollInterval(Duration.ofMillis(100))
+            .atMost(Duration.ofSeconds(5))
+            .untilAsserted {
+                val endedEvents = receivedEvents.filterIsInstance<GameEndedEventMessage>()
+                assertThat(endedEvents).hasSize(1)
+                val event = endedEvents.first()
+                assertThat(event.playerId).isEqualTo(player.id)
+                assertThat(event.nickname).isEqualTo(player.nickname)
+                assertThat(event.roomId).isEqualTo(room.id)
+            }
+
+        sessionA.disconnect()
+        sessionB.disconnect()
+    }
+
+    @Test
     fun `게임 중에는 멤버가 아닌 플레이어의 입장이 거부된다`() {
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
         val newcomer = playerStep.save(dummyPlayerRequest(nickname = "newcomer", registrationId = "newcomerId"))
@@ -124,11 +171,10 @@ class RoomGameSessionIntegrationTest(
         val sessionB = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
         roomStep.start(player.id, room.id)
 
-        // 게임 중 joiner 연결 해제
+        // 게임 중 joiner 연결 해제 후 유예 시간 내 재접속. 기존 멤버는 PLAYING 상태여도
+        // 입장이 거부되지 않으므로 connectStomp가 예외 없이 성공해야 한다.
+        // (멤버가 아닌 플레이어는 connectStomp가 ExecutionException으로 실패 — 위 테스트 참고)
         sessionB.disconnect()
-        Thread.sleep(500)
-
-        // 유예 시간 내 재접속 — PLAYING 상태여도 거부되지 않아야 함
         val sessionB2 = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
 
         val detail = getRoomDetail(room.id)
