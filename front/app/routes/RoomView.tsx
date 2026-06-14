@@ -159,8 +159,7 @@ export default function RoomView() {
                             <p className="text-2xl font-bold text-zinc-100">게임 진행 중</p>
                             <p className="text-sm text-zinc-400">곧 라운드가 시작됩니다. 잠시만 기다려 주세요.</p>
                         </div>
-                    ) : (
-                    <>
+                    ) : (<>
                     <div
                         ref={messagesContainerRef}
                         className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto"
