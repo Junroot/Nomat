@@ -48,7 +48,7 @@ module/
 - 커스텀 예외는 `AbstractNomatException(message, HttpStatus)`을 상속 — `GlobalControllerAdvice`에서 처리
 - `NotFoundException`은 `NotFoundResource` enum 값을 인자로 받음
 - **도메인 이벤트**: `AbstractAggregateRoot` 상속 + `registerEvent()`로 도메인 이벤트 등록, `repository.save()`/`delete()` 호출 시 발행. 두 가지 리스너 패턴을 용도에 맞게 사용한다:
-    - `@TransactionalEventListener(AFTER_COMMIT)` — **ephemeral broadcast**. 실패가 도메인 일관성에 영향이 없고 한 번 놓쳐도 무방한 신호용. 대표 사례: Redis Pub/Sub 브로드캐스트(`RoomEventListener`의 채팅·입퇴장 알림). outbox 영속화·재시도 없음, 같은 스레드/in-memory 처리.
+    - `@TransactionalEventListener(AFTER_COMMIT)` — **ephemeral broadcast**. 실패가 도메인 일관성에 영향이 없고 한 번 놓쳐도 무방한 신호용. 대표 사례: Redis Pub/Sub 브로드캐스트(`RoomEventListener`의 채팅·입퇴장·게임 시작/종료 알림). outbox 영속화·재시도 없음, 같은 스레드/in-memory 처리.
     - `@ApplicationModuleListener(id = "<명시적-식별자>")` — **정합성 사이드 이펙트**. 핸들러가 실패해도 결국 처리되어야 하는 작업용. 대표 사례: ES 인덱스 동기화(`EsPlaylistSyncHandler`), 고아 데이터 정리(`PlaylistDeletedHandler`). Spring Modulith Event Publication Registry가 `event_publication` 테이블에 비즈니스 트랜잭션과 원자적으로 publication entry를 INSERT, AFTER_COMMIT 직후 별도 스레드(`spring.task.execution.pool`)·별도 트랜잭션(`REQUIRES_NEW`)에서 디스패치. 실패 시 `completion_date` NULL로 남고 `EventPublicationRetryScheduler`가 30초 주기로 5분 이상 미완료 항목을 재제출(ShedLock으로 단일 인스턴스만 실행). 핸들러는 멱등하게 작성한다.
 - **이벤트 클래스 직렬화 안정성**: Modulith는 `event_publication.event_type`에 FQCN, `serialized_event`에 Jackson JSON을 저장한다. 누적된 미완료 이벤트의 deserialization 실패가 부팅을 깨뜨릴 수 있어 다음 규칙을 따른다:
     - 이벤트 클래스는 `<domain>/application/domain/` 패키지에 둔다 (안정된 위치).

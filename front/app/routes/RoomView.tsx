@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import AppShell from "~/components/layout/AppShell";
 import PlayIcon from "~/assets/play.svg?react";
+import PauseCircleIcon from "~/assets/pause-circle.svg?react";
 import PlaylistIcon from "~/assets/playlist.svg?react";
 import UsersIcon from "~/assets/users.svg?react";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
@@ -9,6 +10,8 @@ import Column1 from "~/components/layout/Column1";
 import Column2 from "~/components/layout/Column2";
 import useBreakpoint from "~/hooks/useBreakpoint";
 import useRoomSubscription from "~/hooks/useRoomSubscription";
+import useMeStore from "~/stores/MeStore";
+import type { SystemMessage } from "~/utils/ChatMessage";
 
 const NEON_COLORS = [
     "text-neon-cyan",
@@ -16,6 +19,13 @@ const NEON_COLORS = [
     "text-neon-pink",
     "text-neon-green",
 ] as const;
+
+const SYSTEM_MESSAGE_TEXT: Record<SystemMessage["eventType"], string> = {
+    join: "입장했습니다",
+    leave: "퇴장했습니다",
+    start: "게임을 시작했습니다",
+    end: "게임을 종료했습니다",
+};
 
 function nicknameColor(senderId: number): string {
     return NEON_COLORS[senderId % NEON_COLORS.length];
@@ -38,7 +48,16 @@ export default function RoomView() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isNearBottomRef = useRef(true);
 
-    const { roomDetail, players, messages, isLoading, isDeactivated, sendMessage, leaveRoom } = useRoomSubscription(Number(roomId));
+    const { roomDetail, players, messages, status, isLoading, isDeactivated, sendMessage, startGame, endGame, leaveRoom } = useRoomSubscription(Number(roomId));
+    const meId = useMeStore((s) => s.me?.id);
+
+    const isMaster = players.some((p) => p.isMaster && p.id === meId);
+    const isPlaying = status === "PLAYING";
+    const actions = isMaster
+        ? isPlaying
+            ? [{ icon: <PauseCircleIcon />, label: "게임 종료", onClick: endGame }]
+            : [{ icon: <PlayIcon />, label: "시작하기", onClick: startGame }]
+        : [];
 
     useEffect(() => {
         if (isNearBottomRef.current) {
@@ -79,7 +98,7 @@ export default function RoomView() {
             variant="sub"
             title={roomDetail.title}
             onBack={leaveRoom}
-            actions={[{ icon: <PlayIcon />, label: "시작하기", onClick: () => {} }]}
+            actions={actions}
         >
             <ColumnsContainer>
                 {(!isMobile || showInfo) && (
@@ -134,6 +153,13 @@ export default function RoomView() {
                             </svg>
                         </button>
                     )}
+                    {isPlaying ? (
+                        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-6">
+                            <PlayIcon className="size-12 md:size-16 text-neon-cyan" />
+                            <p className="text-2xl font-bold text-zinc-100">게임 진행 중</p>
+                            <p className="text-sm text-zinc-400">곧 라운드가 시작됩니다. 잠시만 기다려 주세요.</p>
+                        </div>
+                    ) : (<>
                     <div
                         ref={messagesContainerRef}
                         className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto"
@@ -148,7 +174,7 @@ export default function RoomView() {
                                 return (
                                     <div key={index} className="flex justify-center py-1.5">
                                         <p className="text-zinc-500 text-sm">
-                                            {msg.targetNickname}님이 {msg.eventType === "join" ? "입장" : "퇴장"}했습니다
+                                            {msg.targetNickname}님이 {SYSTEM_MESSAGE_TEXT[msg.eventType]}
                                         </p>
                                     </div>
                                 );
@@ -197,6 +223,8 @@ export default function RoomView() {
                             </svg>
                         </button>
                     </div>
+                    </>
+                    )}
                 </Column2>
             </ColumnsContainer>
             {isDeactivated && (

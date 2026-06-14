@@ -31,6 +31,10 @@ class RoomStep(
         roomService.join(roomId, playerId, password)
     }
 
+    fun start(playerId: Long, roomId: Long) {
+        roomService.start(roomId, playerId)
+    }
+
     fun save(playerResponse: PlayerResponse, request: RoomRequest): RoomDetailResponse {
         return client.post().uri("/rooms")
             .auth(playerResponse)

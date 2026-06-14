@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = RoomLeftEventMessage::class, name = "LEFT"),
     JsonSubTypes.Type(value = RoomChatEventMessage::class, name = "CHAT"),
     JsonSubTypes.Type(value = SessionReplacedEventMessage::class, name = "SESSION_REPLACED"),
+    JsonSubTypes.Type(value = GameStartedEventMessage::class, name = "STARTED"),
+    JsonSubTypes.Type(value = GameEndedEventMessage::class, name = "ENDED"),
 )
 interface RoomEventMessage {
     val roomId: Long

@@ -11,9 +11,9 @@ export interface ChatMessage extends ChatMessageBase {
 
 export interface SystemMessage extends ChatMessageBase {
     type: 'system';
-    eventType: 'join' | 'leave';
+    eventType: 'join' | 'leave' | 'start' | 'end';
     targetNickname: string;
 }
 
 type RoomChatMessage = ChatMessage | SystemMessage;
-export default RoomChatMessage;
+export type { RoomChatMessage as default };
