@@ -67,7 +67,7 @@ module/
     └── *Service.kt  # 비즈니스 로직
 ```
 
-컨트롤러와 저장소 구현체는 **`private class`** — 패키지 외부에서 직접 참조 불가. 도메인 이벤트는 `AbstractAggregateRoot` + `@TransactionalEventListener(AFTER_COMMIT)` 패턴 사용. 횡단 관심사는 `infrastructure/` 패키지에 위치 (security, web, redis, cdc, container, jpa, elasticsearch).
+컨트롤러, 저장소 구현체, 이벤트 핸들러/리스너는 **`private class`** — 패키지 외부에서 직접 참조 불가. 도메인 이벤트는 `AbstractAggregateRoot` + `@TransactionalEventListener(AFTER_COMMIT)` 패턴 사용. 횡단 관심사는 `infrastructure/` 패키지에 위치 (security, web, redis, cdc, container, jpa, elasticsearch).
 
 ### 프론트엔드 — React SPA
 

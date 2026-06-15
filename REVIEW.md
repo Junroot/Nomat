@@ -128,7 +128,7 @@ PR 전반의 요약·라벨별 카운트·nit cap 초과 시 잘림 표기·🟣
   - `in/` — 인바운드 어댑터 (REST 컨트롤러, 이벤트 리스너, Redis 구독자 등)
   - `out/` — 아웃바운드 어댑터 (저장소 구현체)
   - `application/` — `domain/` (JPA 엔티티 + 저장소 인터페이스/포트 + 도메인 이벤트), `dto/` (Request/Response DTO), `*Service.kt` (비즈니스 로직)
-- **`private class` 강제.** 컨트롤러와 저장소 구현체는 `private class`로 선언한다. 다른 패키지에서 직접 참조하지 않는다 — 패키지 외부 노출이 발견되면 🔴 또는 🟡(상황 의존).
+- **`private class` 강제.** 컨트롤러, 저장소 구현체, 이벤트 핸들러/리스너(`@Component` + `@ApplicationModuleListener`/`@TransactionalEventListener`/`@EventListener`)는 `private class`로 선언한다. 다른 패키지에서 직접 참조하지 않는다 — 패키지 외부 노출이 발견되면 🔴 또는 🟡(상황 의존).
 - **도메인 이벤트 패턴.** `AbstractAggregateRoot` 상속 + `registerEvent()`로 등록, `repository.save()` 호출 시 발행. `in/`의 `@TransactionalEventListener(AFTER_COMMIT)` 리스너에서 후처리(예: Redis Pub/Sub 브로드캐스트). 이 패턴을 우회하거나 발행 채널을 변경하면 🔴.
 - **횡단 관심사는 `infrastructure/` 패키지.** `security/`, `web/`, `redis/`, `cdc/`, `container/`, `jpa/`, `elasticsearch/`. 도메인 모듈 안에 횡단 코드를 넣으면 일관성 위반.
 - **테스트 컨벤션.** 모킹 라이브러리 미사용, Testcontainers로 실제 인스턴스 사용. 새 테스트는 기존 테스트 코드의 구조와 패턴을 먼저 따른다 (`back/CLAUDE.md` 참조).
