@@ -40,7 +40,7 @@ module/
 ```
 
 주요 컨벤션:
-- **컨트롤러와 저장소 구현체는 `private class`** — 다른 패키지에서 직접 참조하지 않음
+- **컨트롤러, 저장소 구현체, 이벤트 핸들러/리스너는 `private class`** — 다른 패키지에서 직접 참조하지 않음 (이벤트 리스너는 `@Component` + `@ApplicationModuleListener`/`@TransactionalEventListener`/`@EventListener` 메서드를 가진 클래스)
 - **저장소 인터페이스**는 `application/domain/` (포트)에, 구현체는 `out/` (어댑터)에 위치
 - 저장소 구현체는 Spring Data `CrudRepository` 인터페이스 (역시 `private`)와 선택적 Elasticsearch document repository를 조합
 - 컨트롤러에서 인증된 사용자 ID를 가져올 때 `@AuthenticationPrincipal playerId: Long` 사용
