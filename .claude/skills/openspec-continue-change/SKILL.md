@@ -1,6 +1,6 @@
 ---
 name: openspec-continue-change
-description: Continue working on an OpenSpec change by creating the next artifact. Use when the user wants to progress their change, create the next artifact, or continue their workflow.
+description: 다음 아티팩트를 생성해 OpenSpec 변경 작업을 이어간다. 사용자가 변경을 진행하거나, 다음 아티팩트를 만들거나, 워크플로를 계속하려 할 때 사용한다.
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,110 +9,110 @@ metadata:
   generatedBy: "1.3.1"
 ---
 
-Continue working on a change by creating the next artifact.
+다음 아티팩트를 생성해 변경 작업을 이어간다.
 
-**Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+**입력**: 변경 이름을 선택적으로 지정한다. 생략하면 대화 맥락에서 추론할 수 있는지 확인한다. 모호하거나 불분명하면 반드시 사용 가능한 변경 목록을 제시해 선택받아야 한다.
 
-**Steps**
+**단계**
 
-1. **If no change name provided, prompt for selection**
+1. **변경 이름이 없으면 선택받기**
 
-   Run `openspec list --json` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to work on.
+   `openspec list --json`을 실행해 최근 수정 순으로 정렬된 변경 목록을 가져온다. 그다음 **AskUserQuestion 도구**로 작업할 변경을 사용자가 고르게 한다.
 
-   Present the top 3-4 most recently modified changes as options, showing:
-   - Change name
-   - Schema (from `schema` field if present, otherwise "spec-driven")
-   - Status (e.g., "0/5 tasks", "complete", "no tasks")
-   - How recently it was modified (from `lastModified` field)
+   최근 수정된 변경 상위 3~4개를 선택지로 제시하고, 다음을 보여준다:
+   - 변경 이름
+   - 스키마 (`schema` 필드가 있으면 그 값, 없으면 "spec-driven")
+   - 상태 (예: "0/5 tasks", "complete", "no tasks")
+   - 마지막 수정 시점 (`lastModified` 필드)
 
-   Mark the most recently modified change as "(Recommended)" since it's likely what the user wants to continue.
+   가장 최근에 수정된 변경은 사용자가 이어가려는 것일 가능성이 높으므로 "(추천)"으로 표시한다.
 
-   **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
+   **중요**: 변경을 추측하거나 자동 선택하지 마라. 항상 사용자가 고르게 하라.
 
-2. **Check current status**
+2. **현재 상태 확인**
    ```bash
    openspec status --change "<name>" --json
    ```
-   Parse the JSON to understand current state. The response includes:
-   - `schemaName`: The workflow schema being used (e.g., "spec-driven")
-   - `artifacts`: Array of artifacts with their status ("done", "ready", "blocked")
-   - `isComplete`: Boolean indicating if all artifacts are complete
+   JSON을 파싱해 현재 상태를 파악한다. 응답에는 다음이 포함된다:
+   - `schemaName`: 사용 중인 워크플로 스키마 (예: "spec-driven")
+   - `artifacts`: 각 아티팩트와 그 상태("done", "ready", "blocked")의 배열
+   - `isComplete`: 모든 아티팩트가 완료되었는지를 나타내는 불리언
 
-3. **Act based on status**:
-
-   ---
-
-   **If all artifacts are complete (`isComplete: true`)**:
-   - Congratulate the user
-   - Show final status including the schema used
-   - Suggest: "All artifacts created! You can now implement this change or archive it."
-   - STOP
+3. **상태에 따라 행동**:
 
    ---
 
-   **If artifacts are ready to create** (status shows artifacts with `status: "ready"`):
-   - Pick the FIRST artifact with `status: "ready"` from the status output
-   - Get its instructions:
+   **모든 아티팩트가 완료된 경우(`isComplete: true`)**:
+   - 사용자를 축하한다
+   - 사용한 스키마를 포함해 최종 상태를 보여준다
+   - 다음을 제안한다: "모든 아티팩트가 생성되었습니다! 이제 이 변경을 구현하거나 아카이브할 수 있습니다."
+   - 멈춘다
+
+   ---
+
+   **생성할 준비가 된 아티팩트가 있는 경우**(상태에 `status: "ready"`인 아티팩트가 표시됨):
+   - 상태 출력에서 `status: "ready"`인 첫 번째 아티팩트를 고른다
+   - 해당 지시문을 가져온다:
      ```bash
      openspec instructions <artifact-id> --change "<name>" --json
      ```
-   - Parse the JSON. The key fields are:
-     - `context`: Project background (constraints for you - do NOT include in output)
-     - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
-     - `template`: The structure to use for your output file
-     - `instruction`: Schema-specific guidance
-     - `outputPath`: Where to write the artifact
-     - `dependencies`: Completed artifacts to read for context
-   - **Create the artifact file**:
-     - Read any completed dependency files for context
-     - Use `template` as the structure - fill in its sections
-     - Apply `context` and `rules` as constraints when writing - but do NOT copy them into the file
-     - Write to the output path specified in instructions
-   - Show what was created and what's now unlocked
-   - STOP after creating ONE artifact
+   - JSON을 파싱한다. 핵심 필드는 다음과 같다:
+     - `context`: 프로젝트 배경 (네게 적용되는 제약 - 출력에 포함하지 마라)
+     - `rules`: 아티팩트별 규칙 (네게 적용되는 제약 - 출력에 포함하지 마라)
+     - `template`: 출력 파일에 사용할 구조
+     - `instruction`: 스키마별 지침
+     - `outputPath`: 아티팩트를 쓸 위치
+     - `dependencies`: 맥락을 위해 읽어야 할 완료된 아티팩트
+   - **아티팩트 파일 생성**:
+     - 맥락을 위해 완료된 의존 파일을 모두 읽는다
+     - `template`을 구조로 삼아 각 섹션을 채운다
+     - `context`와 `rules`를 작성 시 제약으로 적용하되, 파일에 복사하지 마라
+     - 지시문에 명시된 출력 경로에 쓴다
+   - 무엇을 생성했고 이제 무엇이 풀렸는지 보여준다
+   - 아티팩트를 하나 생성한 뒤 멈춘다
 
    ---
 
-   **If no artifacts are ready (all blocked)**:
-   - This shouldn't happen with a valid schema
-   - Show status and suggest checking for issues
+   **준비된 아티팩트가 없는 경우(모두 blocked)**:
+   - 유효한 스키마에서는 일어나지 않아야 한다
+   - 상태를 보여주고 문제를 점검하라고 제안한다
 
-4. **After creating an artifact, show progress**
+4. **아티팩트를 생성한 뒤 진행 상황 보여주기**
    ```bash
    openspec status --change "<name>"
    ```
 
-**Output**
+**출력**
 
-After each invocation, show:
-- Which artifact was created
-- Schema workflow being used
-- Current progress (N/M complete)
-- What artifacts are now unlocked
-- Prompt: "Want to continue? Just ask me to continue or tell me what to do next."
+매 호출 후 다음을 보여준다:
+- 어떤 아티팩트가 생성되었는지
+- 사용 중인 스키마 워크플로
+- 현재 진행 상황 (N/M 완료)
+- 이제 풀린 아티팩트
+- 안내: "계속하시겠어요? 계속하라고 하거나 다음에 무엇을 할지 알려주세요."
 
-**Artifact Creation Guidelines**
+**아티팩트 생성 지침**
 
-The artifact types and their purpose depend on the schema. Use the `instruction` field from the instructions output to understand what to create.
+아티팩트 종류와 목적은 스키마에 따라 다르다. 무엇을 생성할지 파악하려면 지시문 출력의 `instruction` 필드를 사용하라.
 
-Common artifact patterns:
+흔한 아티팩트 패턴:
 
-**spec-driven schema** (proposal → specs → design → tasks):
-- **proposal.md**: Ask user about the change if not clear. Fill in Why, What Changes, Capabilities, Impact.
-  - The Capabilities section is critical - each capability listed will need a spec file.
-- **specs/<capability>/spec.md**: Create one spec per capability listed in the proposal's Capabilities section (use the capability name, not the change name).
-- **design.md**: Document technical decisions, architecture, and implementation approach.
-- **tasks.md**: Break down implementation into checkboxed tasks.
+**spec-driven 스키마** (proposal → specs → design → tasks):
+- **proposal.md**: 변경이 분명하지 않으면 사용자에게 묻는다. Why, What Changes, Capabilities, Impact를 채운다.
+  - Capabilities 섹션이 핵심이다 - 나열된 각 capability마다 spec 파일이 필요하다.
+- **specs/<capability>/spec.md**: proposal의 Capabilities 섹션에 나열된 capability마다 spec을 하나씩 생성한다(변경 이름이 아니라 capability 이름을 사용).
+- **design.md**: 기술적 결정, 아키텍처, 구현 방식을 문서화한다.
+- **tasks.md**: 구현을 체크박스 작업으로 분해한다.
 
-For other schemas, follow the `instruction` field from the CLI output.
+다른 스키마는 CLI 출력의 `instruction` 필드를 따른다.
 
-**Guardrails**
-- Create ONE artifact per invocation
-- Always read dependency artifacts before creating a new one
-- Never skip artifacts or create out of order
-- If context is unclear, ask the user before creating
-- Verify the artifact file exists after writing before marking progress
-- Use the schema's artifact sequence, don't assume specific artifact names
-- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
-  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
-  - These guide what you write, but should never appear in the output
+**가드레일**
+- 호출당 아티팩트는 하나만 생성한다
+- 새 아티팩트를 생성하기 전에 항상 의존 아티팩트를 읽는다
+- 아티팩트를 건너뛰거나 순서를 어기지 않는다
+- 맥락이 불분명하면 생성하기 전에 사용자에게 묻는다
+- 진행 상황을 표시하기 전에 쓰기 후 아티팩트 파일이 존재하는지 확인한다
+- 스키마의 아티팩트 순서를 사용하고, 특정 아티팩트 이름을 가정하지 않는다
+- **중요**: `context`와 `rules`는 너에게 적용되는 제약이지 파일에 들어갈 내용이 아니다
+  - `<context>`, `<rules>`, `<project_context>` 블록을 아티팩트에 복사하지 마라
+  - 이들은 네가 무엇을 쓸지 안내할 뿐, 출력에 절대 나타나선 안 된다
