@@ -39,11 +39,13 @@ OpenSpec CLI는 epic을 모른다 — epic은 `openspec/epic/`에 두는 마크�
    ```bash
    openspec new change "<epic-name>-1-..."
    ```
-   합의한 수만큼 만든다. 아티팩트는 아직 만들지 않는다.
+   합의한 수만큼 만든다. 아티팩트는 다음 단계에서 change별 서브에이전트가 작성한다.
 
-5. **양방향 링크를 건다.** epic 표(완료) + 각 proposal 첫머리 `**Epic**: [<epic-name>](../../epic/<epic-name>.md)` 라인(proposal 작성 시 들어가도록 안내 — `config.yaml` proposal 규칙이 요구).
+5. **change마다 별도 서브에이전트를 띄워 산출물을 설계하라.** change 하나당 서브에이전트 하나를 Agent tool(`subagent_type: general-purpose`)로 실행한다 — 메인 컨텍스트는 결과 요약만 받는다. 의존 없는 change는 한 메시지에서 병렬로, 의존 있는 change는 선행이 끝난 뒤 그 산출물 경로를 넘겨 순차로 띄운다. 각 프롬프트에 담을 것: 대상 change 이름·디렉터리·소속 epic, "openspec-ff-change 워크플로로 모든 아티팩트를 작성하라(`openspec status`/`openspec instructions`로 순서·템플릿을 받아 적용)", proposal 첫머리에 `**Epic**: [<epic-name>](../../epic/<epic-name>.md)` 역참조 라인, (의존 시) 선행 산출물을 읽을 것, 반환은 아티팩트 목록과 설계 요약(본문 전체 금지).
 
-6. **출력**: epic 문서 경로·구성 change 목록·순서를 보이고, "첫 change부터 `/opsx:ff` 또는 `/opsx:propose`로 작성하세요. 각 change가 archive되면 `/opsx:epic`으로 와 상태를 갱신하세요."로 안내한다.
+6. **양방향 링크·상태 정리.** epic 표와 각 proposal의 `Epic:` 라인이 어긋나지 않는지 확인하고, 산출물이 생긴 change는 표 상태를 `⬜ draft → 📝 설계됨`으로 갱신한다.
+
+7. **출력**: epic 경로와 change별 설계 요약을 보이고, "각 change를 `/openspec-change-review`로 검토 후 `/opsx:apply`로 구현하세요. archive되면 `/opsx:epic`으로 와 상태를 갱신하세요."로 안내.
 
 ---
 
@@ -51,8 +53,8 @@ OpenSpec CLI는 epic을 모른다 — epic은 `openspec/epic/`에 두는 마크�
 
 1. 대상 `openspec/epic/<epic-name>.md`를 읽는다(없으면 `archive/`도 본다).
 2. 요청에 맞춰 갱신한다.
-   - **상태 변경**: 표의 상태를 `⬜ draft → 🔨 구현 중 → ✅ archived`로. archive 여부는 `openspec/changes/archive/`에 디렉터리가 있는지로 확인.
-   - **change 추가**: 표에 추가하고 4번처럼 스캐폴드.
+   - **상태 변경**: 표의 상태를 `⬜ draft → 📝 설계됨 → 🔨 구현 중 → ✅ archived`로. archive 여부는 `openspec/changes/archive/`에 디렉터리가 있는지로 확인.
+   - **change 추가**: 표에 추가하고 4번처럼 스캐폴드한 뒤 5번처럼 전용 서브에이전트로 설계.
    - **범위 변경**: 목표·분리 이유·완료 기준 갱신.
 3. **완료 처리**: 구성 change가 모두 `✅ archived`이고 완료 기준이 충족되면 epic 문서를 `openspec/epic/archive/<epic-name>.md`로 옮긴다(`git mv`). 이동 사실을 알린다.
 4. 진행 상태 요약(완료 N / 전체 M).
@@ -63,6 +65,6 @@ OpenSpec CLI는 epic을 모른다 — epic은 `openspec/epic/`에 두는 마크�
 
 - **README가 source of truth** — 템플릿·명명·생명주기는 `openspec/epic/README.md`를 따른다.
 - **분해안은 동의 후 진행** — 합의 없이 change 디렉터리를 만들지 마라.
-- **아티팩트는 위임** — epic 문서와 change 스캐폴드·상태만 다룬다.
+- **아티팩트 설계는 change별 서브에이전트에 위임** — epic 문서·스캐폴드·상태와 서브에이전트 오케스트레이션만 한다. 각 change 본문은 change마다 띄운 서브에이전트가 ff 워크플로로 작성한다.
 - **양방향 링크 유지** — epic 표와 각 proposal의 `Epic:` 라인이 어긋나지 않게 한다.
 - **완료 시 archive 이동** — 모든 구성 change가 archived면 epic도 `openspec/epic/archive/`로 옮긴다.

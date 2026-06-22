@@ -49,7 +49,7 @@ CLI가 추적하지 않으므로 링크는 사람과 에이전트가 유지한�
 | 1 | `<epic-name>-1-...` | ... | - | ⬜ draft |
 | 2 | `<epic-name>-2-...` | ... | 1 | ⬜ draft |
 
-상태 표기: ⬜ draft · 🔨 구현 중 · ✅ archived
+상태 표기: ⬜ draft(스캐폴드만) · 📝 설계됨(아티팩트 작성, 구현 전) · 🔨 구현 중 · ✅ archived
 
 ## 전체 완료 기준 (Definition of Done)
 
