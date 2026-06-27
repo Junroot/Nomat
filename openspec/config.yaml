@@ -42,10 +42,6 @@ rules:
     - Impact 섹션에 영향 받는 서브프로젝트(back/front/infra)와 도메인 모듈(playlist/room/player/favoriteplaylist/auth)을 명시할 것
     - 백엔드 변경이 있다면 어떤 헥사고날 계층(in/out/application)에 영향을 주는지 표기할 것
     - DB 스키마·ES 매핑·Kafka 토픽·Redis 키 영향이 있으면 Impact에 별도 항목으로 분리해 적을 것
-    - "범위 가드 — proposal 초안을 쓰기 전에 다음 분리 신호를 점검할 것. (1) 독립 배포 가능한 서브프로젝트(back/front/infra)를 2개 이상 동시 변경 (2) 추가·수정하는 capability(spec)가 3개 이상 (3) 예상 tasks 최상위 그룹이 3개 초과 또는 태스크 총 15개 초과 (4) 서로 독립적으로 출시·롤백 가능한 사용자 기능이 2개 이상 (5) 무관한 기능 작업과 DB 마이그레이션·인프라 변경이 한 change에 혼재. 신호가 2개 이상 걸리면, 이 change를 응집된 수직 슬라이스(독립 PR·독립 롤백 가능한 end-to-end capability) 하나로 좁히고 나머지는 후속 change로 분리할 것을 사용자에게 제안한 뒤 동의를 받고 진행할 것 — 동의 없이 한 change에 전부 욱여넣지 말 것"
-    - 분리할 때는 계층별 수평 분할(백엔드 전부 / 프론트 전부)이 아니라 수직 슬라이스를 기본으로 하되, 계층이 실제로 따로 배포되는 경우에만 수평 분할을 쓸 것
-    - 분리에 동의하면 `/opsx:epic`(openspec-epic 스킬)으로 그룹을 총괄하는 epic 문서(`openspec/epic/<name>.md`)를 먼저 만든 뒤 각 change를 스캐폴드할 것. 규약은 `openspec/epic/README.md`를 따른다
-    - "epic에 속한 change면 proposal 첫머리에 `**Epic**: [<epic-name>](../../epic/<epic-name>.md)` 라인을 두어 change → epic 역참조를 유지할 것(epic 문서의 구성 change 표와 양방향)"
 
   specs:
     - "capability 이름은 도메인 모듈명과 일관된 kebab-case로 작성할 것 (예: playlist-search, room-session)"
@@ -64,4 +60,3 @@ rules:
     - 프론트엔드 작업 그룹은 마지막에 `npm run typecheck` 및 `npm run build` 실행 태스크를 포함할 것
     - 백엔드 테스트는 Testcontainers 기반 기존 패턴(local/test 프로파일)을 따를 것 — 새 mock 인프라를 도입하지 말 것
     - 컨트롤러·저장소 구현체를 추가하는 태스크에는 `private class` 가시성을 유지한다는 점을 명시할 것
-    - 최상위 작업 그룹이 3개를 초과하거나 태스크가 총 15개를 넘으면 change 범위가 과대하다는 신호다. tasks를 더 잘게 쪼개기 전에, proposal 범위 가드 기준으로 change 자체를 분리할지 사용자에게 먼저 확인할 것

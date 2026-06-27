@@ -1,6 +1,6 @@
 ---
 name: openspec-archive-change
-description: 실험적 워크플로에서 완료된 변경을 아카이브한다. 구현이 끝난 뒤 변경을 마무리하고 아카이브하고 싶을 때 사용한다.
+description: Archive a completed change in the experimental workflow. Use when the user wants to finalize and archive a change after implementation is complete.
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,106 +9,106 @@ metadata:
   generatedBy: "1.3.1"
 ---
 
-실험적 워크플로에서 완료된 변경을 아카이브한다.
+Archive a completed change in the experimental workflow.
 
-**입력**: 변경 이름을 선택적으로 지정한다. 생략하면 대화 맥락에서 추론할 수 있는지 확인한다. 모호하거나 불분명하면 반드시 사용 가능한 변경 목록을 제시해 물어봐야 한다.
+**Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
-**단계**
+**Steps**
 
-1. **변경 이름이 없으면 선택하도록 묻는다**
+1. **If no change name provided, prompt for selection**
 
-   `openspec list --json`을 실행해 사용 가능한 변경을 가져온다. **AskUserQuestion tool**을 사용해 사용자가 선택하게 한다.
+   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
-   활성 변경만 보여준다(이미 아카이브된 것 제외).
-   가능하면 각 변경에 사용된 스키마를 포함한다.
+   Show only active changes (not already archived).
+   Include the schema used for each change if available.
 
-   **중요**: 변경을 추측하거나 자동 선택하지 마라. 항상 사용자가 고르게 한다.
+   **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
 
-2. **아티팩트 완료 상태를 확인한다**
+2. **Check artifact completion status**
 
-   `openspec status --change "<name>" --json`을 실행해 아티팩트 완료 상태를 확인한다.
+   Run `openspec status --change "<name>" --json` to check artifact completion.
 
-   JSON을 파싱해 다음을 파악한다:
-   - `schemaName`: 사용 중인 워크플로
-   - `artifacts`: 상태(`done` 또는 기타)를 포함한 아티팩트 목록
+   Parse the JSON to understand:
+   - `schemaName`: The workflow being used
+   - `artifacts`: List of artifacts with their status (`done` or other)
 
-   **`done`이 아닌 아티팩트가 있으면:**
-   - 미완료 아티팩트를 나열한 경고를 표시한다
-   - **AskUserQuestion tool**을 사용해 진행할지 사용자에게 확인받는다
-   - 사용자가 확인하면 진행한다
+   **If any artifacts are not `done`:**
+   - Display warning listing incomplete artifacts
+   - Use **AskUserQuestion tool** to confirm user wants to proceed
+   - Proceed if user confirms
 
-3. **태스크 완료 상태를 확인한다**
+3. **Check task completion status**
 
-   태스크 파일(보통 `tasks.md`)을 읽어 미완료 태스크를 확인한다.
+   Read the tasks file (typically `tasks.md`) to check for incomplete tasks.
 
-   `- [ ]`(미완료)로 표시된 태스크와 `- [x]`(완료)로 표시된 태스크 수를 센다.
+   Count tasks marked with `- [ ]` (incomplete) vs `- [x]` (complete).
 
-   **미완료 태스크가 있으면:**
-   - 미완료 태스크 수를 보여주는 경고를 표시한다
-   - **AskUserQuestion tool**을 사용해 진행할지 사용자에게 확인받는다
-   - 사용자가 확인하면 진행한다
+   **If incomplete tasks found:**
+   - Display warning showing count of incomplete tasks
+   - Use **AskUserQuestion tool** to confirm user wants to proceed
+   - Proceed if user confirms
 
-   **태스크 파일이 없으면:** 태스크 관련 경고 없이 진행한다.
+   **If no tasks file exists:** Proceed without task-related warning.
 
-4. **델타 스펙 동기화 상태를 평가한다**
+4. **Assess delta spec sync state**
 
-   `openspec/changes/<name>/specs/`에서 델타 스펙을 확인한다. 없으면 동기화 프롬프트 없이 진행한다.
+   Check for delta specs at `openspec/changes/<name>/specs/`. If none exist, proceed without sync prompt.
 
-   **델타 스펙이 있으면:**
-   - 각 델타 스펙을 `openspec/specs/<capability>/spec.md`의 해당 메인 스펙과 비교한다
-   - 어떤 변경이 적용될지 판단한다(추가, 수정, 제거, 이름 변경)
-   - 프롬프트 전에 통합 요약을 보여준다
+   **If delta specs exist:**
+   - Compare each delta spec with its corresponding main spec at `openspec/specs/<capability>/spec.md`
+   - Determine what changes would be applied (adds, modifications, removals, renames)
+   - Show a combined summary before prompting
 
-   **프롬프트 옵션:**
-   - 변경이 필요하면: "지금 동기화(권장)", "동기화 없이 아카이브"
-   - 이미 동기화되었으면: "지금 아카이브", "그래도 동기화", "취소"
+   **Prompt options:**
+   - If changes needed: "Sync now (recommended)", "Archive without syncing"
+   - If already synced: "Archive now", "Sync anyway", "Cancel"
 
-   사용자가 동기화를 선택하면 Task tool을 사용한다(subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <분석한 델타 스펙 요약 포함>"). 선택과 무관하게 아카이브로 진행한다.
+   If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
 
-5. **아카이브를 수행한다**
+5. **Perform the archive**
 
-   아카이브 디렉터리가 없으면 생성한다:
+   Create the archive directory if it doesn't exist:
    ```bash
    mkdir -p openspec/changes/archive
    ```
 
-   현재 날짜로 대상 이름을 생성한다: `YYYY-MM-DD-<change-name>`
+   Generate target name using current date: `YYYY-MM-DD-<change-name>`
 
-   **대상이 이미 존재하는지 확인한다:**
-   - 있으면: 오류로 실패하고, 기존 아카이브 이름을 바꾸거나 다른 날짜를 쓰도록 제안한다
-   - 없으면: 변경 디렉터리를 아카이브로 옮긴다
+   **Check if target already exists:**
+   - If yes: Fail with error, suggest renaming existing archive or using different date
+   - If no: Move the change directory to archive
 
    ```bash
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
-6. **요약을 표시한다**
+6. **Display summary**
 
-   다음을 포함한 아카이브 완료 요약을 보여준다:
-   - 변경 이름
-   - 사용된 스키마
-   - 아카이브 위치
-   - 스펙 동기화 여부(해당하는 경우)
-   - 경고에 대한 안내(미완료 아티팩트/태스크)
+   Show archive completion summary including:
+   - Change name
+   - Schema that was used
+   - Archive location
+   - Whether specs were synced (if applicable)
+   - Note about any warnings (incomplete artifacts/tasks)
 
-**성공 시 출력**
+**Output On Success**
 
 ```
-## 아카이브 완료
+## Archive Complete
 
-**변경:** <change-name>
-**스키마:** <schema-name>
-**아카이브 위치:** openspec/changes/archive/YYYY-MM-DD-<name>/
-**스펙:** ✓ 메인 스펙에 동기화됨 (또는 "델타 스펙 없음" 또는 "동기화 건너뜀")
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Specs:** ✓ Synced to main specs (or "No delta specs" or "Sync skipped")
 
-모든 artifact 완료. 모든 task 완료.
+All artifacts complete. All tasks complete.
 ```
 
-**가드레일**
-- 변경 이름이 없으면 항상 선택하도록 묻는다
-- 완료 여부 확인에는 아티팩트 그래프(openspec status --json)를 사용한다
-- 경고로 아카이브를 막지 마라 - 알리고 확인만 받는다
-- 아카이브로 옮길 때 .openspec.yaml을 보존한다(디렉터리와 함께 이동한다)
-- 무슨 일이 있었는지 명확한 요약을 보여준다
-- 동기화를 요청하면 openspec-sync-specs 방식을 사용한다(에이전트 주도)
-- 델타 스펙이 있으면 항상 동기화 평가를 실행하고 프롬프트 전에 통합 요약을 보여준다
+**Guardrails**
+- Always prompt for change selection if not provided
+- Use artifact graph (openspec status --json) for completion checking
+- Don't block archive on warnings - just inform and confirm
+- Preserve .openspec.yaml when moving to archive (it moves with the directory)
+- Show clear summary of what happened
+- If sync is requested, use openspec-sync-specs approach (agent-driven)
+- If delta specs exist, always run the sync assessment and show the combined summary before prompting

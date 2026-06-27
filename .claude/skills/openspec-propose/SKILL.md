@@ -1,6 +1,6 @@
 ---
 name: openspec-propose
-description: 새 변경을 제안하면서 모든 아티팩트를 한 번에 생성한다. 사용자가 만들고자 하는 내용을 빠르게 설명하고, 구현에 바로 쓸 수 있는 설계·스펙·태스크가 포함된 완성된 제안을 받고자 할 때 사용한다.
+description: Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,102 +9,102 @@ metadata:
   generatedBy: "1.3.1"
 ---
 
-새 변경을 제안한다 - 변경을 만들고 모든 아티팩트를 한 번에 생성한다.
+Propose a new change - create the change and generate all artifacts in one step.
 
-다음 아티팩트와 함께 변경을 만든다.
-- proposal.md (무엇을 & 왜)
-- design.md (어떻게)
-- tasks.md (구현 단계)
+I'll create a change with artifacts:
+- proposal.md (what & why)
+- design.md (how)
+- tasks.md (implementation steps)
 
-구현할 준비가 되면 /opsx:apply를 실행하라.
+When ready to implement, run /opsx:apply
 
 ---
 
-**입력**: 사용자의 요청에는 변경 이름(kebab-case)이나 만들고자 하는 내용에 대한 설명이 담겨 있어야 한다.
+**Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
 
-**단계**
+**Steps**
 
-1. **명확한 입력이 없으면 무엇을 만들지 물어라**
+1. **If no clear input provided, ask what they want to build**
 
-   **AskUserQuestion tool**(선택지 없는 자유 응답)로 다음을 물어라.
-   > "어떤 변경을 작업하고 싶나요? 만들거나 고치고 싶은 내용을 설명해 주세요."
+   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   > "What change do you want to work on? Describe what you want to build or fix."
 
-   설명에서 kebab-case 이름을 도출하라(예: "add user authentication" → `add-user-auth`).
+   From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
 
-   **중요**: 사용자가 무엇을 만들려는지 이해하기 전에는 진행하지 마라.
+   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
 
-2. **변경 디렉터리를 만들어라**
+2. **Create the change directory**
    ```bash
    openspec new change "<name>"
    ```
-   이렇게 하면 `.openspec.yaml`과 함께 `openspec/changes/<name>/`에 변경 스캐폴드가 생성된다.
+   This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
 
-3. **아티팩트 생성 순서를 받아라**
+3. **Get the artifact build order**
    ```bash
    openspec status --change "<name>" --json
    ```
-   JSON을 파싱해 다음을 얻어라.
-   - `applyRequires`: 구현 전에 필요한 아티팩트 ID 배열(예: `["tasks"]`)
-   - `artifacts`: 상태와 의존성이 담긴 전체 아티팩트 목록
+   Parse the JSON to get:
+   - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
+   - `artifacts`: list of all artifacts with their status and dependencies
 
-4. **apply 가능 상태가 될 때까지 순서대로 아티팩트를 만들어라**
+4. **Create artifacts in sequence until apply-ready**
 
-   **TodoWrite tool**로 아티팩트 진행 상황을 추적하라.
+   Use the **TodoWrite tool** to track progress through the artifacts.
 
-   의존성 순서로 아티팩트를 순회하라(미해결 의존성이 없는 아티팩트부터).
+   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
-   a. **`ready` 상태인(의존성이 충족된) 각 아티팩트에 대해**:
-      - 지침을 받아라:
+   a. **For each artifact that is `ready` (dependencies satisfied)**:
+      - Get instructions:
         ```bash
         openspec instructions <artifact-id> --change "<name>" --json
         ```
-      - 지침 JSON에는 다음이 포함된다:
-        - `context`: 프로젝트 배경(당신을 위한 제약 - 출력에 포함하지 마라)
-        - `rules`: 아티팩트별 규칙(당신을 위한 제약 - 출력에 포함하지 마라)
-        - `template`: 출력 파일에 사용할 구조
-        - `instruction`: 이 아티팩트 유형에 대한 스키마별 지침
-        - `outputPath`: 아티팩트를 쓸 위치
-        - `dependencies`: 컨텍스트로 읽어야 할 완료된 아티팩트
-      - 컨텍스트로 쓸 완료된 의존성 파일을 모두 읽어라
-      - `template`을 구조로 삼아 아티팩트 파일을 만들어라
-      - `context`와 `rules`를 제약으로 적용하라 - 단, 파일에 복사하지 마라
-      - 간단한 진행 상황을 보여줘라: "Created <artifact-id>"
+      - The instructions JSON includes:
+        - `context`: Project background (constraints for you - do NOT include in output)
+        - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
+        - `template`: The structure to use for your output file
+        - `instruction`: Schema-specific guidance for this artifact type
+        - `outputPath`: Where to write the artifact
+        - `dependencies`: Completed artifacts to read for context
+      - Read any completed dependency files for context
+      - Create the artifact file using `template` as the structure
+      - Apply `context` and `rules` as constraints - but do NOT copy them into the file
+      - Show brief progress: "Created <artifact-id>"
 
-   b. **`applyRequires`의 모든 아티팩트가 완료될 때까지 계속하라**
-      - 각 아티팩트를 만든 뒤 `openspec status --change "<name>" --json`을 다시 실행하라
-      - `applyRequires`의 모든 아티팩트 ID가 artifacts 배열에서 `status: "done"`인지 확인하라
-      - `applyRequires`의 모든 아티팩트가 done이면 멈춰라
+   b. **Continue until all `applyRequires` artifacts are complete**
+      - After creating each artifact, re-run `openspec status --change "<name>" --json`
+      - Check if every artifact ID in `applyRequires` has `status: "done"` in the artifacts array
+      - Stop when all `applyRequires` artifacts are done
 
-   c. **아티팩트에 사용자 입력이 필요하면**(컨텍스트가 불명확하면):
-      - **AskUserQuestion tool**로 명확히 하라
-      - 그런 다음 생성을 계속하라
+   c. **If an artifact requires user input** (unclear context):
+      - Use **AskUserQuestion tool** to clarify
+      - Then continue with creation
 
-5. **최종 상태를 보여줘라**
+5. **Show final status**
    ```bash
    openspec status --change "<name>"
    ```
 
-**출력**
+**Output**
 
-모든 아티팩트를 완성한 뒤 다음을 요약하라.
-- 변경 이름과 위치
-- 만든 아티팩트 목록과 간단한 설명
-- 준비된 것: "모든 아티팩트가 만들어졌습니다! 구현할 준비가 됐습니다."
-- 안내: "`/opsx:apply`를 실행하거나 구현하라고 말하면 태스크 작업을 시작합니다."
+After completing all artifacts, summarize:
+- Change name and location
+- List of artifacts created with brief descriptions
+- What's ready: "All artifacts created! Ready for implementation."
+- Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
 
-**아티팩트 생성 가이드라인**
+**Artifact Creation Guidelines**
 
-- 각 아티팩트 유형마다 `openspec instructions`의 `instruction` 필드를 따라라
-- 각 아티팩트에 무엇이 담겨야 하는지는 스키마가 정의한다 - 그것을 따라라
-- 새 아티팩트를 만들기 전에 의존성 아티팩트를 컨텍스트로 읽어라
-- `template`을 출력 파일의 구조로 삼아 각 섹션을 채워라
-- **중요**: `context`와 `rules`는 파일 내용이 아니라 당신을 위한 제약이다
-  - `<context>`, `<rules>`, `<project_context>` 블록을 아티팩트에 복사하지 마라
-  - 이것들은 당신이 쓰는 내용을 안내할 뿐, 출력에는 절대 나타나면 안 된다
+- Follow the `instruction` field from `openspec instructions` for each artifact type
+- The schema defines what each artifact should contain - follow it
+- Read dependency artifacts for context before creating new ones
+- Use `template` as the structure for your output file - fill in its sections
+- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
+  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
+  - These guide what you write, but should never appear in the output
 
-**가드레일**
-- 구현에 필요한 모든 아티팩트를 만들어라(스키마의 `apply.requires`가 정의한 대로)
-- 새 아티팩트를 만들기 전에 항상 의존성 아티팩트를 읽어라
-- 컨텍스트가 치명적으로 불명확하면 사용자에게 물어라 - 단, 흐름을 유지하기 위해 합리적인 판단을 우선하라
-- 같은 이름의 변경이 이미 있으면 그것을 이어서 진행할지 새로 만들지 사용자에게 물어라
-- 각 아티팩트 파일을 쓴 뒤 다음으로 넘어가기 전에 파일이 존재하는지 확인하라
+**Guardrails**
+- Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
+- Always read dependency artifacts before creating a new one
+- If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
+- If a change with that name already exists, ask if user wants to continue it or create a new one
+- Verify each artifact file exists after writing before proceeding to next
