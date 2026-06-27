@@ -1,152 +1,152 @@
 ---
 name: "OPSX: Apply"
-description: OpenSpec change의 task를 구현한다 (실험적)
+description: Implement tasks from an OpenSpec change (Experimental)
 category: Workflow
 tags: [workflow, artifacts, experimental]
 ---
 
-OpenSpec change의 task를 구현한다.
+Implement tasks from an OpenSpec change.
 
-**입력**: change 이름을 선택적으로 지정한다(예: `/opsx:apply add-auth`). 생략하면 대화 맥락에서 추론할 수 있는지 확인한다. 모호하거나 불분명하면 반드시 사용 가능한 change 목록을 제시해 선택을 요청해야 한다.
+**Input**: Optionally specify a change name (e.g., `/opsx:apply add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
-**단계**
+**Steps**
 
-1. **change 선택**
+1. **Select the change**
 
-   이름이 주어지면 그것을 사용한다. 그렇지 않으면:
-   - 사용자가 change를 언급했다면 대화 맥락에서 추론한다
-   - 활성 change가 하나뿐이면 자동으로 선택한다
-   - 모호하면 `openspec list --json`을 실행해 사용 가능한 change 목록을 가져오고 **AskUserQuestion tool**로 사용자가 선택하게 한다
+   If a name is provided, use it. Otherwise:
+   - Infer from conversation context if the user mentioned a change
+   - Auto-select if only one active change exists
+   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
 
-   항상 "Using change: <name>"과 재정의 방법(예: `/opsx:apply <other>`)을 알린다.
+   Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
 
-2. **status를 확인해 schema 파악**
+2. **Check status to understand the schema**
    ```bash
    openspec status --change "<name>" --json
    ```
-   JSON을 파싱해 다음을 파악한다:
-   - `schemaName`: 사용 중인 워크플로(예: "spec-driven")
-   - 어떤 artifact에 task가 들어 있는지(spec-driven은 보통 "tasks", 그 외는 status에서 확인)
+   Parse the JSON to understand:
+   - `schemaName`: The workflow being used (e.g., "spec-driven")
+   - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
 
-3. **apply 지침 가져오기**
+3. **Get apply instructions**
 
    ```bash
    openspec instructions apply --change "<name>" --json
    ```
 
-   다음을 반환한다:
-   - `contextFiles`: artifact ID -> 실제 파일 경로 배열(schema에 따라 다름)
-   - 진행 상황(전체, 완료, 남은 수)
-   - 상태가 표시된 task 목록
-   - 현재 상태 기반의 동적 지침
+   This returns:
+   - `contextFiles`: artifact ID -> array of concrete file paths (varies by schema)
+   - Progress (total, complete, remaining)
+   - Task list with status
+   - Dynamic instruction based on current state
 
-   **상태 처리:**
-   - `state: "blocked"`(artifact 누락)이면: 메시지를 보여주고 `/opsx:continue` 사용을 제안한다
-   - `state: "all_done"`이면: 축하하고 archive를 제안한다
-   - 그 외에는: 구현으로 진행한다
+   **Handle states:**
+   - If `state: "blocked"` (missing artifacts): show message, suggest using `/opsx:continue`
+   - If `state: "all_done"`: congratulate, suggest archive
+   - Otherwise: proceed to implementation
 
-4. **컨텍스트 파일 읽기**
+4. **Read context files**
 
-   apply 지침 출력의 `contextFiles`에 나열된 모든 파일 경로를 읽는다.
-   파일은 사용 중인 schema에 따라 다르다:
+   Read every file path listed under `contextFiles` from the apply instructions output.
+   The files depend on the schema being used:
    - **spec-driven**: proposal, specs, design, tasks
-   - 그 외 schema: CLI 출력의 contextFiles를 따른다
+   - Other schemas: follow the contextFiles from CLI output
 
-5. **현재 진행 상황 표시**
+5. **Show current progress**
 
-   다음을 보여준다:
-   - 사용 중인 schema
-   - 진행 상황: "N/M tasks complete"
-   - 남은 task 개요
-   - CLI의 동적 지침
+   Display:
+   - Schema being used
+   - Progress: "N/M tasks complete"
+   - Remaining tasks overview
+   - Dynamic instruction from CLI
 
-6. **task 구현(완료되거나 막힐 때까지 반복)**
+6. **Implement tasks (loop until done or blocked)**
 
-   각 대기 중인 task에 대해:
-   - 어떤 task를 작업 중인지 보여준다
-   - 필요한 코드 변경을 한다
-   - 변경은 최소한으로 집중해서 한다
-   - tasks 파일에서 task를 완료로 표시한다: `- [ ]` → `- [x]`
-   - 다음 task로 넘어간다
+   For each pending task:
+   - Show which task is being worked on
+   - Make the code changes required
+   - Keep changes minimal and focused
+   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
+   - Continue to next task
 
-   **다음의 경우 멈춘다:**
-   - task가 불분명하면 → 설명을 요청한다
-   - 구현 중 설계 문제가 드러나면 → artifact 업데이트를 제안한다
-   - 오류나 차단 요소를 만나면 → 보고하고 안내를 기다린다
-   - 사용자가 중단시키면
+   **Pause if:**
+   - Task is unclear → ask for clarification
+   - Implementation reveals a design issue → suggest updating artifacts
+   - Error or blocker encountered → report and wait for guidance
+   - User interrupts
 
-7. **완료 또는 일시 정지 시 상태 표시**
+7. **On completion or pause, show status**
 
-   다음을 보여준다:
-   - 이번 세션에서 완료한 task
-   - 전체 진행 상황: "N/M tasks complete"
-   - 모두 완료되면: archive를 제안한다
-   - 일시 정지되면: 이유를 설명하고 안내를 기다린다
+   Display:
+   - Tasks completed this session
+   - Overall progress: "N/M tasks complete"
+   - If all done: suggest archive
+   - If paused: explain why and wait for guidance
 
-**구현 중 출력**
-
-```
-## 구현 중: <change-name> (schema: <schema-name>)
-
-작업 진행 중 3/7: <task description>
-[...구현 진행 중...]
-✓ 작업 완료
-
-작업 진행 중 4/7: <task description>
-[...구현 진행 중...]
-✓ 작업 완료
-```
-
-**완료 시 출력**
+**Output During Implementation**
 
 ```
-## 구현 완료
+## Implementing: <change-name> (schema: <schema-name>)
 
-**변경:** <change-name>
-**스키마:** <schema-name>
-**진행:** 작업 7/7 완료 ✓
+Working on task 3/7: <task description>
+[...implementation happening...]
+✓ Task complete
 
-### 이번 세션에서 완료
+Working on task 4/7: <task description>
+[...implementation happening...]
+✓ Task complete
+```
+
+**Output On Completion**
+
+```
+## Implementation Complete
+
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Progress:** 7/7 tasks complete ✓
+
+### Completed This Session
 - [x] Task 1
 - [x] Task 2
 ...
 
-모든 작업 완료! `/opsx:archive`로 이 change를 아카이브할 수 있다.
+All tasks complete! You can archive this change with `/opsx:archive`.
 ```
 
-**일시 정지 시 출력(문제 발생)**
+**Output On Pause (Issue Encountered)**
 
 ```
-## 구현 일시 정지
+## Implementation Paused
 
-**변경:** <change-name>
-**스키마:** <schema-name>
-**진행:** 작업 4/7 완료
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Progress:** 4/7 tasks complete
 
-### 발생한 문제
+### Issue Encountered
 <description of the issue>
 
-**선택지:**
+**Options:**
 1. <option 1>
 2. <option 2>
-3. 다른 접근
+3. Other approach
 
-어떻게 진행할까?
+What would you like to do?
 ```
 
-**가드레일**
-- 완료되거나 막힐 때까지 task를 계속 진행한다
-- 시작 전 항상 컨텍스트 파일을 읽는다(apply 지침 출력에서)
-- task가 모호하면 멈추고 구현 전에 물어본다
-- 구현 중 문제가 드러나면 멈추고 artifact 업데이트를 제안한다
-- 코드 변경은 최소한으로, 각 task 범위에 한정한다
-- 각 task를 완료한 직후 task 체크박스를 업데이트한다
-- 오류, 차단 요소, 불분명한 요구사항을 만나면 멈춘다 - 추측하지 않는다
-- CLI 출력의 contextFiles를 사용하고, 특정 파일 이름을 가정하지 않는다
+**Guardrails**
+- Keep going through tasks until done or blocked
+- Always read context files before starting (from the apply instructions output)
+- If task is ambiguous, pause and ask before implementing
+- If implementation reveals issues, pause and suggest artifact updates
+- Keep code changes minimal and scoped to each task
+- Update task checkbox immediately after completing each task
+- Pause on errors, blockers, or unclear requirements - don't guess
+- Use contextFiles from CLI output, don't assume specific file names
 
-**유연한 워크플로 통합**
+**Fluid Workflow Integration**
 
-이 스킬은 "change에 대한 동작" 모델을 지원한다:
+This skill supports the "actions on a change" model:
 
-- **언제든 호출 가능**: 모든 artifact가 완성되기 전에도(task가 있다면), 부분 구현 후에도, 다른 동작과 섞어서도
-- **artifact 업데이트 허용**: 구현 중 설계 문제가 드러나면 artifact 업데이트를 제안한다 - 단계에 고정되지 않고 유연하게 작업한다
+- **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
+- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
