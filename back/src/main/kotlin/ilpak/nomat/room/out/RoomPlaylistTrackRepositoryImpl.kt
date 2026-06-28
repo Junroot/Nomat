@@ -17,6 +17,10 @@ private class RoomPlaylistTrackRepositoryImpl(
         return roomPlaylistTrackJpaRepository.saveAll(tracks).toList()
     }
 
+    override fun findByRoomId(roomId: Long): List<RoomPlaylistTrack> {
+        return roomPlaylistTrackJpaRepository.findByRoomId(roomId)
+    }
+
     override fun countByRoomId(room: Room): Long {
         return roomPlaylistTrackJpaRepository.countByRoom(room)
     }
@@ -43,6 +47,14 @@ private interface RoomIdEmbedId {
 }
 
 private interface RoomPlaylistTrackJpaRepository : CrudRepository<RoomPlaylistTrack, RoomPlaylistTrackId> {
+
+    @Query(
+        """
+        SELECT rpt FROM RoomPlaylistTrack rpt
+        WHERE rpt.room.id = :roomId
+    """
+    )
+    fun findByRoomId(roomId: Long): List<RoomPlaylistTrack>
 
     fun countByRoom(room: Room): Long
 

@@ -383,6 +383,47 @@ class RoomTest {
     }
 
     @Test
+    fun `endByEngine_PLAYING이면 ACTIVE로 멱등 플립된다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+        room.start(1)
+
+        room.endByEngine()
+
+        assertThat(room.status).isEqualTo(RoomStatus.ACTIVE)
+    }
+
+    @Test
+    fun `endByEngine_PLAYING이 아니면 상태를 바꾸지 않는다`() {
+        val room = Room(
+            title = "room",
+            playlist = RoomPlaylist(
+                id = 1,
+                masterId = 1,
+                title = "playlist",
+                description = "description",
+            ),
+            password = null,
+            maxEntriesCount = 5,
+        )
+        room.join(1)
+
+        room.endByEngine()
+
+        assertThat(room.status).isEqualTo(RoomStatus.ACTIVE)
+    }
+
+    @Test
     fun `join_게임 중인 방에는 입장할 수 없다`() {
         val room = Room(
             title = "room",

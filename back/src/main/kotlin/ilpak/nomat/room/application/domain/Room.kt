@@ -118,6 +118,18 @@ class Room(
         registerEvent(GameEndedEvent(id, playerId))
     }
 
+    /**
+     * 라운드 엔진의 서버 주도 종료. 방장 권한과 무관하게 `PLAYING→ACTIVE`로 멱등 플립하며
+     * 행위자 없는 `GameEndedEvent`를 등록한다. 이미 `PLAYING`이 아니면 아무 일도 하지 않는다(멱등).
+     */
+    fun endByEngine() {
+        if (status != RoomStatus.PLAYING) {
+            return
+        }
+        status = RoomStatus.ACTIVE
+        registerEvent(GameEndedEvent(id, null))
+    }
+
     fun leave(playerId: Long) {
         val removed = entries.removeIf { it.playerId == playerId }
         if (!removed) {
