@@ -59,24 +59,23 @@ class RoundService(
     }
 
     /**
-     * 채팅을 정답으로 판정한다. 정답이면 `OPEN→REVEAL` CAS를 시도하고 채팅 원문 방송을 막도록 true를 반환한다
-     * (정답 누출 차단 — CAS 경쟁에서 졌더라도 정답 일치 메시지는 방송하지 않는다). 오답·비-게임 중이면 false.
+     * 채팅을 정답으로 판정해 정답이면 `OPEN→REVEAL` CAS를 시도하고, 성공 시에만 `ROUND_REVEALED`를 발행한다.
+     * 채팅 원문 방송은 호출자(`RoomStompController`)가 정답 여부와 무관하게 항상 수행하므로 여기서는 전이만 담당한다.
      */
-    fun submitAnswer(roomId: Long, playerId: Long, content: String): Boolean {
-        val snapshot = roundStateStore.snapshot(roomId) ?: return false
+    fun submitAnswer(roomId: Long, playerId: Long, content: String) {
+        val snapshot = roundStateStore.snapshot(roomId) ?: return
         if (snapshot.phase != RoundPhase.OPEN) {
-            return false
+            return
         }
         val track = trackOf(roomPlaylistTrackRepository.findByRoomId(roomId), snapshot.currentTrackId)
-            ?: return false
+            ?: return
         if (!AnswerMatcher.matches(content, track.additionalTitles + track.title)) {
-            return false
+            return
         }
         val transition = roundStateStore.tryAdvanceOnCorrect(roomId, snapshot.roundSeq, playerId)
         if (transition.result == TransitionResult.TRANSITIONED) {
             publishRoundRevealed(roomId, transition, track)
         }
-        return true
     }
 
     /** sweeper가 호출하는 마감 라운드 전이 구동기. 마감 지난 모든 방을 단일 CAS로 다음 단계로 옮긴다. */

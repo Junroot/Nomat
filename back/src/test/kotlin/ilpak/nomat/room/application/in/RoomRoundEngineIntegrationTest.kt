@@ -109,6 +109,12 @@ class RoomRoundEngineIntegrationTest(
         awaitRoundStarted(events)
         sessionB.send("/app/rooms/chat", RoomChatRequest(content = TRACK_TITLE))
 
+        // 정답이어도 채팅 원문은 억제되지 않고 그대로 방송된다.
+        await().pollInterval(Duration.ofMillis(100)).atMost(Duration.ofSeconds(5)).untilAsserted {
+            val chats = events.filterIsInstance<RoomChatEventMessage>()
+            assertThat(chats.map { it.content }).contains(TRACK_TITLE)
+        }
+
         // 단일 트랙이므로 REVEAL(5초) 후 sweeper가 ENDED로 전이하고 방 상태를 ACTIVE로 되돌린다.
         await().pollInterval(Duration.ofMillis(200)).atMost(Duration.ofSeconds(15)).untilAsserted {
             val ended = events.filterIsInstance<GameEndedEventMessage>()
