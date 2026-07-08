@@ -49,11 +49,6 @@ private class RoomStompController(
     fun chat(@Valid @Payload request: RoomChatRequest, headerAccessor: SimpMessageHeaderAccessor) {
         val session = headerAccessor.roomSession() ?: return
 
-        // 게임 중 정답이면 원문을 방송하지 않는다(정답 누출 차단). 라운드 전이·공개는 RoundService가 발행.
-        if (roundService.submitAnswer(session.roomId, session.playerId, request.content)) {
-            return
-        }
-
         val event = RoomChatEventMessage(
             roomId = session.roomId,
             playerId = session.playerId,
@@ -63,6 +58,9 @@ private class RoomStompController(
         )
         val channel = RoomEventMessage.channelFor(session.roomId)
         redisTemplate.convertAndSend(channel, objectMapper.writeValueAsString(event))
+
+        // 정답이면 라운드가 전이되며 정답이 공개되므로 원문 채팅도 그대로 방송한다. 라운드 전이·공개는 RoundService가 발행.
+        roundService.submitAnswer(session.roomId, session.playerId, request.content)
     }
 }
 
