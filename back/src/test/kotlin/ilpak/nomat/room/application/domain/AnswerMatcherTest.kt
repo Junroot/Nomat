@@ -12,6 +12,7 @@ class AnswerMatcherTest {
         assertThat(AnswerMatcher.matches("밤을 달 리다", answers)).isTrue()
         assertThat(AnswerMatcher.matches("밤을     달리다", answers)).isTrue()
         assertThat(AnswerMatcher.matches("밤 을 달리다", answers)).isTrue()
+        assertThat(AnswerMatcher.matches("밤을\t달리다", answers)).isTrue()
         assertThat(AnswerMatcher.matches("밤을달리다", answers)).isTrue()
     }
 
@@ -33,10 +34,5 @@ class AnswerMatcherTest {
     @Test
     fun `matches_공백뿐인 입력은 오답이다`() {
         assertThat(AnswerMatcher.matches("   ", setOf("밤을 달리다"))).isFalse()
-    }
-
-    @Test
-    fun `normalize_모든 공백을 제거하고 소문자로 바꾼다`() {
-        assertThat(AnswerMatcher.normalize("  A b\tC ")).isEqualTo("abc")
     }
 }

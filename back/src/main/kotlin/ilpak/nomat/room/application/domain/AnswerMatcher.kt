@@ -6,7 +6,7 @@ package ilpak.nomat.room.application.domain
  */
 object AnswerMatcher {
 
-    fun normalize(value: String): String = value.filterNot { it.isWhitespace() }.lowercase()
+    private fun normalize(value: String): String = value.filterNot { it.isWhitespace() }.lowercase()
 
     fun matches(input: String, answers: Collection<String>): Boolean {
         val normalizedInput = normalize(input)
