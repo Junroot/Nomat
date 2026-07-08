@@ -37,8 +37,16 @@ class IntegrationTestExecutionListener : AbstractTestExecutionListener() {
         redisTemplate.connectionFactory?.connection?.use { it.serverCommands().flushAll() }
 
         val elasticsearchOperations = applicationContext.getBean(ElasticsearchOperations::class.java)
+        val indexOperations = elasticsearchOperations.indexOps(PlaylistDocument::class.java)
+
+        // delete_by_query는 내부 검색으로 대상 문서를 찾고, 그때 검색 가능(마지막 refresh) 상태의
+        // seqNo를 낙관적 락 조건으로 삭제한다. operations.save()는 즉시 refresh하지 않으므로
+        // 검색 가능 seqNo가 ack된 실제 seqNo보다 뒤처지고, 이 경우 삭제 조건이 어긋나
+        // 409 version conflict가 난다. 삭제 전에 refresh해 모든 ack된 write를 검색 가능 상태로
+        // 맞추면(위 대기로 동시 write는 이미 배제됨) delete가 현재 seqNo를 정확히 보고 삭제한다.
+        indexOperations.refresh()
         elasticsearchOperations.delete(DeleteQuery.builder(Query.findAll()).build(), PlaylistDocument::class.java)
-        elasticsearchOperations.indexOps(PlaylistDocument::class.java).refresh()
+        indexOperations.refresh()
     }
 
     private fun countIncompletePublications(jdbcTemplate: JdbcTemplate): Long =
