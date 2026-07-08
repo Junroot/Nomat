@@ -18,10 +18,12 @@ import org.springframework.stereotype.Repository
  * (`ActiveSessionManager`의 Lua CAS 패턴 확장). 모든 전이 게이트는 `(roundSeq, phase)` CAS,
  * 모든 시각 앵커·비교는 `redis.call('TIME')` 단일 시계, phase HSET과 deadline ZADD/ZREM은 동일 스크립트다.
  *
- * 키:
- * - `room:{id}:round` (Hash): roundSeq·phase·deadlineAt·trackIndex·winnerId·totalRounds·trackOrder·trackDurations
- * - `rounds:deadlines` (전역 ZSET): score=deadlineAt(ms), member=roomId
- * - `room:{id}:scores` (ZSET): member=playerId, score=누적 점수
+ * 키 스킴과 slot 배치는 [RoundRedisKeys] 참조. 한 방의 round Hash·scores ZSET·마감 인덱스 샤드를
+ * 동일 hash tag `{shard}`로 묶어 같은 slot에 두므로, 멀티 키 원자 Lua가 **클러스터 모드에서도**
+ * `CROSSSLOT` 없이 동작한다. 방은 샤드를 넘나들지 않아 per-shard로 단일 시계가 성립한다.
+ * - round(Hash): roundSeq·phase·deadlineAt·trackIndex·winnerId·totalRounds·trackOrder·trackDurations
+ * - deadlines(샤드 ZSET): score=deadlineAt(ms), member=roomId
+ * - scores(ZSET): member=playerId, score=누적 점수
  */
 @Repository
 private class RoundStateStoreImpl(
@@ -32,7 +34,7 @@ private class RoundStateStoreImpl(
     override fun start(roomId: Long, tracks: List<RoundTrackSpec>, playerIds: Set<Long>): RoundTransition {
         val raw = redisTemplate.execute(
             START_SCRIPT,
-            listOf(roundKey(roomId), DEADLINES_KEY, scoresKey(roomId)),
+            listOf(RoundRedisKeys.round(roomId), RoundRedisKeys.deadlines(roomId), RoundRedisKeys.scores(roomId)),
             roomId.toString(),
             objectMapper.writeValueAsString(tracks.map { it.trackId }),
             objectMapper.writeValueAsString(tracks.map { it.openDurationMillis }),
@@ -46,7 +48,7 @@ private class RoundStateStoreImpl(
     override fun tryAdvanceOnDeadline(roomId: Long, expectedSeq: Long): RoundTransition {
         val raw = redisTemplate.execute(
             ADVANCE_ON_DEADLINE_SCRIPT,
-            listOf(roundKey(roomId), DEADLINES_KEY),
+            listOf(RoundRedisKeys.round(roomId), RoundRedisKeys.deadlines(roomId)),
             roomId.toString(),
             expectedSeq.toString(),
             REVEAL_MILLIS.toString(),
@@ -58,7 +60,7 @@ private class RoundStateStoreImpl(
     override fun tryAdvanceOnCorrect(roomId: Long, expectedSeq: Long, winnerId: Long): RoundTransition {
         val raw = redisTemplate.execute(
             ADVANCE_ON_CORRECT_SCRIPT,
-            listOf(roundKey(roomId), DEADLINES_KEY, scoresKey(roomId)),
+            listOf(RoundRedisKeys.round(roomId), RoundRedisKeys.deadlines(roomId), RoundRedisKeys.scores(roomId)),
             roomId.toString(),
             expectedSeq.toString(),
             winnerId.toString(),
@@ -69,7 +71,7 @@ private class RoundStateStoreImpl(
     }
 
     override fun snapshot(roomId: Long): RoundSnapshot? {
-        val hash = redisTemplate.opsForHash<String, String>().entries(roundKey(roomId))
+        val hash = redisTemplate.opsForHash<String, String>().entries(RoundRedisKeys.round(roomId))
         if (hash.isEmpty()) {
             return null
         }
@@ -89,12 +91,19 @@ private class RoundStateStoreImpl(
     }
 
     override fun findDueRoomIds(): List<Long> {
-        val members = redisTemplate.execute(FIND_DUE_SCRIPT, listOf(DEADLINES_KEY)) ?: return emptyList()
-        return members.map { it.toString().toLong() }
+        // 마감 인덱스가 SHARD_COUNT개 샤드로 흩어져 있으므로(클러스터 slot 분산) 전 샤드를 순회해 합친다.
+        // 각 FIND_DUE는 단일 키라 CROSSSLOT 대상이 아니며, 빈 샤드 ZSET 조회는 빈 결과로 즉시 반환된다.
+        val dueRoomIds = mutableListOf<Long>()
+        for (shard in 0 until RoundRedisKeys.SHARD_COUNT) {
+            val members = redisTemplate.execute(FIND_DUE_SCRIPT, listOf(RoundRedisKeys.deadlinesShard(shard)))
+                ?: continue
+            members.forEach { dueRoomIds.add(it.toString().toLong()) }
+        }
+        return dueRoomIds
     }
 
     override fun scoreboard(roomId: Long): List<ScoreEntry> {
-        val entries = redisTemplate.opsForZSet().reverseRangeWithScores(scoresKey(roomId), 0, -1)
+        val entries = redisTemplate.opsForZSet().reverseRangeWithScores(RoundRedisKeys.scores(roomId), 0, -1)
             ?: return emptyList()
         return entries.mapNotNull { tuple ->
             val playerId = tuple.value?.toLong() ?: return@mapNotNull null
@@ -103,13 +112,13 @@ private class RoundStateStoreImpl(
     }
 
     override fun removeScore(roomId: Long, playerId: Long) {
-        redisTemplate.opsForZSet().remove(scoresKey(roomId), playerId.toString())
+        redisTemplate.opsForZSet().remove(RoundRedisKeys.scores(roomId), playerId.toString())
     }
 
     override fun teardown(roomId: Long) {
         redisTemplate.execute(
             TEARDOWN_SCRIPT,
-            listOf(roundKey(roomId), DEADLINES_KEY, scoresKey(roomId)),
+            listOf(RoundRedisKeys.round(roomId), RoundRedisKeys.deadlines(roomId), RoundRedisKeys.scores(roomId)),
             roomId.toString(),
         )
     }
@@ -132,11 +141,7 @@ private class RoundStateStoreImpl(
         )
     }
 
-    private fun roundKey(roomId: Long): String = "room:$roomId:round"
-    private fun scoresKey(roomId: Long): String = "room:$roomId:scores"
-
     companion object {
-        private const val DEADLINES_KEY = "rounds:deadlines"
         private const val REVEAL_MILLIS = 5_000L
         private const val TTL_SECONDS = 86_400L
         private const val IGNORED_CODE = "0"

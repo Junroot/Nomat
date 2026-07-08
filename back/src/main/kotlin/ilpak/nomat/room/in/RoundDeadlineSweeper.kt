@@ -6,8 +6,8 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 /**
- * 타임아웃·정답 공개 전이의 유일 구동기. 단일 replica만(`@SchedulerLock`) `rounds:deadlines` ZSET에서
- * 마감 지난 미전이 라운드를 찾아 `RoundService.tryAdvance`로 전이한다
+ * 타임아웃·정답 공개 전이의 유일 구동기. 단일 replica만(`@SchedulerLock`) 샤드된 `rounds:deadlines:{shard}`
+ * ZSET들(클러스터 slot 분산용)을 전 샤드 순회하며 마감 지난 미전이 라운드를 찾아 `RoundService.tryAdvance`로 전이한다
  * (`EventPublicationRetryScheduler` 패턴). 별도 로컬 타이머가 없어 replica마다 타이머가 중복되지 않는다.
  *
  * 첫 정답(정밀 필요)은 sweeper가 아니라 채팅 메시지가 즉시 처리하므로(이벤트 구동) 폴링 지터와 무관하다.

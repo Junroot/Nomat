@@ -15,6 +15,7 @@ import ilpak.nomat.room.application.domain.RoundStateStore
 import ilpak.nomat.room.application.domain.RoundTrackSpec
 import ilpak.nomat.room.application.domain.RoundTransition
 import ilpak.nomat.room.application.domain.TransitionResult
+import ilpak.nomat.room.out.RoundRedisKeys
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -116,8 +117,8 @@ class RoundStateStoreIntegrationTest(
     fun `tryAdvanceOnCorrect_마감 시각 이후 정답은 거부된다`() {
         roundStateStore.start(roomId, futureSpecs(), setOf(player.id))
         // 마감 시각을 과거로 당기고 sweeper가 닫지 못하도록 ZSET에서 제거해 '마감 후 OPEN 잔여 창'을 재현한다.
-        redisTemplate.opsForHash<String, String>().put("room:$roomId:round", "deadlineAt", "1")
-        redisTemplate.opsForZSet().remove("rounds:deadlines", roomId.toString())
+        redisTemplate.opsForHash<String, String>().put(RoundRedisKeys.round(roomId), "deadlineAt", "1")
+        redisTemplate.opsForZSet().remove(RoundRedisKeys.deadlines(roomId), roomId.toString())
 
         val transition = roundStateStore.tryAdvanceOnCorrect(roomId, 1, player.id)
 
@@ -131,8 +132,8 @@ class RoundStateStoreIntegrationTest(
     fun `sweepDueRounds_마감 라운드를 REVEAL로 구동한다`() {
         roundService.startRound(roomId)
         // 마감을 과거로 당겨(ZSET 점수·Hash 모두) sweeper가 마감 라운드를 전이하도록 만든다.
-        redisTemplate.opsForHash<String, String>().put("room:$roomId:round", "deadlineAt", "1")
-        redisTemplate.opsForZSet().add("rounds:deadlines", roomId.toString(), 1.0)
+        redisTemplate.opsForHash<String, String>().put(RoundRedisKeys.round(roomId), "deadlineAt", "1")
+        redisTemplate.opsForZSet().add(RoundRedisKeys.deadlines(roomId), roomId.toString(), 1.0)
 
         roundService.sweepDueRounds()
 
