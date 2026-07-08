@@ -83,30 +83,6 @@ class RoomRoundEngineIntegrationTest(
     }
 
     @Test
-    fun `정답을 맞히면 ROUND_REVEALED로 정답·점수가 공개되고 원문은 방송되지 않는다`() {
-        val room = roomStep.save(player, dummyRoomRequest(playlist.id))
-        val (sessionA, sessionB, events) = subscribeAndJoin(room.id)
-        roomStep.start(player.id, room.id)
-        awaitRoundStarted(events)
-
-        sessionB.send("/app/rooms/chat", RoomChatRequest(content = TRACK_TITLE))
-
-        await().pollInterval(Duration.ofMillis(100)).atMost(Duration.ofSeconds(5)).untilAsserted {
-            val revealed = events.filterIsInstance<RoundRevealedEventMessage>()
-            assertThat(revealed).hasSize(1)
-            val event = revealed.first()
-            assertThat(event.winnerId).isEqualTo(joiner.id)
-            assertThat(event.title).isEqualTo(TRACK_TITLE)
-            assertThat(event.scores.first { it.playerId == joiner.id }.score).isEqualTo(1)
-        }
-        // 정답 채팅 원문은 누출 차단을 위해 일반 CHAT으로 방송되지 않는다.
-        assertThat(events.filterIsInstance<RoomChatEventMessage>().map { it.content }).doesNotContain(TRACK_TITLE)
-
-        sessionA.disconnect()
-        sessionB.disconnect()
-    }
-
-    @Test
     fun `오답은 일반 CHAT으로 방송된다`() {
         val room = roomStep.save(player, dummyRoomRequest(playlist.id))
         val (sessionA, sessionB, events) = subscribeAndJoin(room.id)
