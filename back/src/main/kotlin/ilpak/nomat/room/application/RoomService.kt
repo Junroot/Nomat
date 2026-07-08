@@ -30,6 +30,7 @@ class RoomService(
     private val roomPlaylistTrackRepository: RoomPlaylistTrackRepository,
     private val playerService: PlayerService,
     private val distributedLockExecutor: DistributedLockExecutor,
+    private val roundService: RoundService,
     transactionManager: PlatformTransactionManager,
 ) {
 
@@ -63,8 +64,9 @@ class RoomService(
         val players = playerService.findByIdIn(room.playerIds + room.playlistMasterId)
         val playerIdToNicknameMap = players.associate { it.id to it.nickname }
         val trackCount = roomPlaylistTrackRepository.countByRoomId(room).toInt()
+        val round = roundService.getSnapshot(roomId)
 
-        return RoomDetailResponse.of(room, trackCount, playerIdToNicknameMap)
+        return RoomDetailResponse.of(room, trackCount, playerIdToNicknameMap, round)
     }
 
     @Transactional
@@ -120,16 +122,21 @@ class RoomService(
     }
 
     fun leave(roomId: Long, playerId: Long) {
+        var roomDeleted = false
         distributedLockExecutor.withLock("room:$roomId:lock") {
             writeTransactionTemplate.executeWithoutResult {
                 val room = roomRepository.findById(roomId) ?: return@executeWithoutResult
                 room.leave(playerId)
                 if (room.isEmpty) {
                     roomRepository.delete(room)
+                    roomDeleted = true
                 } else {
                     roomRepository.save(room)
                 }
             }
+        }
+        if (roomDeleted) {
+            roundService.teardownRound(roomId)
         }
     }
 
@@ -141,6 +148,7 @@ class RoomService(
                 roomRepository.save(room)
             }
         }
+        roundService.startRound(roomId)
     }
 
     fun end(roomId: Long, playerId: Long) {
@@ -151,5 +159,6 @@ class RoomService(
                 roomRepository.save(room)
             }
         }
+        roundService.teardownRound(roomId)
     }
 }

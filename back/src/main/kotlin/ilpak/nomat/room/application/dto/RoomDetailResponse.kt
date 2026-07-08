@@ -9,12 +9,14 @@ data class RoomDetailResponse(
     val playlist: PlaylistDetailResponse,
     val players: List<RoomMemberResponse>,
     val status: RoomStatus,
+    val round: RoundSnapshotResponse? = null,
 ) {
     companion object {
         fun of(
             room: Room,
             trackCount: Int,
             playerIdToNicknameMap: Map<Long, String>,
+            round: RoundSnapshotResponse? = null,
         ): RoomDetailResponse {
             val playlistMasterNickname = playerIdToNicknameMap[room.playlistMasterId]
                 ?: throw IllegalStateException("playlistMasterNickname not found")
@@ -31,6 +33,7 @@ data class RoomDetailResponse(
                     )
                 },
                 room.status,
+                round,
             )
         }
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import ilpak.nomat.infrastructure.web.JwtHandshakeInterceptor
 import ilpak.nomat.infrastructure.web.RoomJoinChannelInterceptor
 import ilpak.nomat.room.application.RoomService
+import ilpak.nomat.room.application.RoundService
 import ilpak.nomat.room.application.dto.RoomChatEventMessage
 import ilpak.nomat.room.application.dto.RoomChatRequest
 import ilpak.nomat.room.application.dto.RoomEventMessage
@@ -21,6 +22,7 @@ private val log = LoggerFactory.getLogger(RoomStompController::class.java)
 @Controller
 private class RoomStompController(
     private val roomService: RoomService,
+    private val roundService: RoundService,
     private val objectMapper: ObjectMapper,
     private val redisTemplate: StringRedisTemplate,
 ) {
@@ -56,6 +58,9 @@ private class RoomStompController(
         )
         val channel = RoomEventMessage.channelFor(session.roomId)
         redisTemplate.convertAndSend(channel, objectMapper.writeValueAsString(event))
+
+        // 정답이면 라운드가 전이되며 정답이 공개되므로 원문 채팅도 그대로 방송한다. 라운드 전이·공개는 RoundService가 발행.
+        roundService.submitAnswer(session.roomId, session.playerId, request.content)
     }
 }
 

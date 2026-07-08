@@ -65,6 +65,18 @@ module/
 - `container/` — local/test용 Testcontainers 빈 (MySQL, ES, Redis)
 - `jpa/` — JPA auditing 설정 (`AuditorAwareImpl`이 SecurityContext에서 `createdBy` 설정)
 
+## 라운드 엔진 (`room` 모듈)
+
+`RoomStatus.PLAYING`은 우산이고, 그 안에서 휘발성 `RoundPhase`(`OPEN`/`REVEAL`/`ENDED`)가 라운드를 구동한다. 라운드 상태·점수판은 전부 Redis(휘발성)에 두고 MySQL에 영속화하지 않는다.
+
+- **전이 게이트는 락이 아니라 Lua CAS** — 이중 전이 방지의 단위는 분산 락(`RedisDistributedLockExecutor`는 TTL·펜싱 한계로 상호배제 미보장)이 아니라 `room:{id}:round` Hash의 `(roundSeq, phase)` 단일 원자 Lua CAS다(`RoundStateStoreImpl`). 라운드 전이 핫패스에서는 `withLock`을 쓰지 않는다(멤버십 임계구역 `join`/`leave`만 락 유지). 종료 시 DB `room.status` 플립만 멤버십 락을 재사용한다.
+- **단일 시계** — 모든 시각 앵커·비교·sweeper 선택은 `redis.call('TIME')`으로 통일한다(앱 시계 스큐를 correctness가 아닌 latency 문제로 강등). 클러스터에서는 한 방의 모든 키가 같은 노드에 있어 **per-shard 단일 시계**로 성립한다(방은 샤드를 넘나들지 않음).
+- **sweeper 단독 구동 타이머** — 타임아웃·`REVEAL` 전이의 유일 구동기는 `RoundDeadlineSweeper`(`@Scheduled` ~1초 + `@SchedulerLock`, 단일 replica). 별도 로컬 타이머가 없어 replica마다 타이머가 중복되지 않는다. sweeper가 주 구동기이므로 `lockAtMostFor`는 `PT1M`이 아니라 폴링의 2~4배(`PT4S`)로 짧게 잡는다. 정밀이 필요한 첫 정답은 sweeper가 아니라 들어온 채팅 메시지가 즉시 처리한다(이벤트 구동). sweeper는 `findDueRoomIds()`에서 `SHARD_COUNT`개 마감 인덱스 샤드를 전부 순회해 마감 방을 모은다.
+- **Redis 키 (클러스터 안전)** — 키 스킴은 `RoundRedisKeys`가 관리한다. 라운드 전이는 방의 round Hash·scores ZSET·마감 인덱스 ZSET을 하나의 원자 Lua로 함께 조작하므로, Redis 클러스터의 멀티 키 `CROSSSLOT` 제약을 피하려면 세 키가 같은 slot에 있어야 한다. 이를 위해 한 방의 모든 키와 그 방이 속한 마감 인덱스 샤드를 **동일 hash tag `{shard}`**로 묶는다(`shard = roomId mod SHARD_COUNT`, 현재 64). `round:{shard}:{roomId}`(Hash: roundSeq·phase·deadlineAt·trackIndex·winnerId·totalRounds·trackOrder·trackDurations) / `scores:{shard}:{roomId}`(ZSET, 멤버 조건부 가점·퇴장 제거) / `rounds:deadlines:{shard}`(샤드 ZSET, score=deadlineAt·member=roomId). 모두 GC 백스톱 TTL(24h) + 명시적 teardown(게임 종료·방 삭제). `SHARD_COUNT`는 노드 간 분산도 ↔ sweeper 팬아웃을 맞바꾸며, 휘발성 배치를 결정하므로 활성 게임이 없을 때만 변경한다. 단일 인스턴스/마스터-레플리카에서는 hash tag가 리터럴이라 동작에 영향이 없다.
+- **정답 비노출** — `OPEN` 동안 정답(`title`·`additionalTitles`)은 클라이언트로 내려가지 않는다. `ROUND_STARTED`·재접속 스냅샷은 answer-stripped 재생 참조만, `ROUND_REVEALED`·`ENDED`에서만 정답을 포함한다. 채팅 정답 판정(`AnswerMatcher`: 모든 공백 제거 + 대소문자 무시)은 서버 전용.
+- **이벤트** — `RoundStartedEvent`·`RoundRevealedEvent`는 `application/domain`에 두고 `@TransactionalEventListener(AFTER_COMMIT, fallbackExecution = true)`로 broadcast(트랜잭션 밖 전이라 fallback 필요). 게임 자연 종료는 기존 `GameEndedEvent`(행위자 옵셔널) 재사용. 모든 전파는 기존 `room:{id}:events` pub/sub → STOMP 경로를 그대로 쓴다.
+- 모든 전이 트리거(sweeper·첫 정답·방장 종료)는 단일 진입점 `RoundService`로 수렴한다.
+
 ## 테스트 패턴
 
 ### 핵심 원칙: No Mocking

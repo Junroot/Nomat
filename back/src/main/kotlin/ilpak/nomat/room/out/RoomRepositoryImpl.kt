@@ -4,6 +4,7 @@ import ilpak.nomat.room.application.domain.Room
 import ilpak.nomat.room.application.domain.RoomRepository
 import ilpak.nomat.room.application.domain.RoomStatus
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
@@ -25,6 +26,10 @@ private class RoomRepositoryImpl(
         return roomJpaRepository.findByIdOrNull(id)
     }
 
+    override fun findPlayerIdsByRoomId(roomId: Long): Set<Long> {
+        return roomJpaRepository.findPlayerIdsByRoomId(roomId).toSet()
+    }
+
     override fun findByIdGreaterThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, size: Int): List<Room> {
         return roomJpaRepository.findByIdGreaterThanAndStatusOrderByIdDesc(id, status, Pageable.ofSize(size))
     }
@@ -34,5 +39,13 @@ private class RoomRepositoryImpl(
 private interface RoomJpaRepository : CrudRepository<Room, Long> {
 
     fun findByIdGreaterThanAndStatusOrderByIdDesc(id: Long, status: RoomStatus, pageable: Pageable): List<Room>
+
+    @Query(
+        """
+        SELECT e.playerId FROM Room r JOIN r.entries e
+        WHERE r.id = :roomId
+    """
+    )
+    fun findPlayerIdsByRoomId(roomId: Long): List<Long>
 }
 
