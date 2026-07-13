@@ -36,8 +36,6 @@ OpenSpec change 산출물을 **구현 전에** 검증→수정→재검증 루�
 
 ### 2. 검증→수정 루프 (최대 3라운드)
 
-`prevGateIds`(직전 라운드의 게이트 결함 지문 집합)를 빈 집합으로 두고 시작한다.
-
 각 라운드:
 
 **2a. 검증** — `Agent` tool로 `subagent_type: "openspec-change-reviewer"`를 실행한다. 프롬프트에 change 이름을 명확히 전달하고, "구조검증(openspec validate --strict)부터 의미·설계·config.yaml 규칙까지 점검하고, 차원별 한국어 리포트와 맨 끝 JSON verdict를 반환하라"고 지시한다.
@@ -48,20 +46,15 @@ OpenSpec change 산출물을 **구현 전에** 검증→수정→재검증 루�
 
 **2d. 결함 분류** — `FAIL`이면 findings를 두 기준으로 본다(서로 독립):
 - **수정 유형**: `fixType=mechanical`(무손실 자동 수정 대상, **severity 무관**) vs `fixType=intent`(사람만 해소).
-- **게이트 여부**: `severity=critical && objective=true`인 finding이 통과를 막는다(= criticalObjective). **루프 종료·진동 가드는 이 게이트 집합만 본다.** 🟡 warning과 🔴-주관은 게이트가 아니다.
+- **게이트 여부**: `severity=critical && objective=true`인 finding이 통과를 막는다(= criticalObjective). **루프 종료(PASS)와 2f의 사람 개입 판정은 이 게이트 집합만 본다.** 🟡 warning과 🔴-주관은 게이트가 아니다.
 
 **2e. 기계적 결함 자동 수정** — `fixType=mechanical`인 finding이 하나라도 있으면(warning이어도) `Agent` tool로 `subagent_type: "openspec-change-fixer"`를 실행한다. 프롬프트에 change 이름·디렉터리와 **mechanical finding 목록만**(id/file/summary/suggestion) 전달한다. intent 결함은 절대 넘기지 않는다. 무손실 교정이므로 severity와 무관하게 이번에 정리한다.
 
 **2f. 의도 개입 결함은 사람에게** — `fixType=intent`인 finding, 특히 **게이트를 막는 intent 결함(criticalObjective 중 fixType=intent)** 이 하나라도 있으면 자동으로는 절대 PASS에 도달할 수 없다(fixer가 intent를 안 고침). 이 결함들을 사용자에게 명확히 제시하고(각각 무엇을·왜·어떤 선택지) **루프를 중단해 사용자 결정을 기다린다**. 사용자가 방향을 주면 당신(메인)이 직접 그 산출물을 고치고(사용자 의도 반영), 이 스킬을 다시 돌려 재검증한다.
 
-**2g. 재검증과 진동 가드** — 게이트를 막는 intent 결함이 없어(criticalObjective가 전부 mechanical이라 2e에서 처리됨) 자동 수렴이 가능한 경우에만 다음 라운드로 넘어간다. 재검증 전 다음 중 하나면 중단하고 남은 결함을 보고한다:
-- fixer가 아무 파일도 안 고쳤다(0 diff) — `git diff --stat`으로 확인.
-- 이번 라운드 criticalObjective 지문 집합에 `prevGateIds`에 없던 **새 🔴-객관 결함(회귀)** 이 생겼다.
-- criticalObjective 수가 직전 라운드 대비 **엄격히 감소하지 않았다**(같거나 늘었다).
+**2g. 재검증** — 게이트를 막는 intent 결함이 없어(criticalObjective가 전부 mechanical이라 2e에서 처리됨) 자동 수렴이 가능한 경우에만 다음 라운드로 넘어간다. 단, **fixer가 아무 파일도 안 고쳤으면(0 diff, `git diff --stat`으로 확인) 재검증해봐야 결과가 같으므로** 중단하고 남은 결함을 보고한다(3으로). 그 외에는 다음 라운드로(2a).
 
-통과하면 현재 criticalObjective 지문을 `prevGateIds`에 저장하고 다음 라운드로(2a).
-
-3라운드를 다 쓰고도 PASS가 아니면 중단하고 남은 결함을 보고한다.
+무한 루프는 최대 3라운드 캡이 막는다. 3라운드를 다 쓰고도 PASS가 아니면 중단하고 남은 결함을 보고한다.
 
 ### 3. 종료
 
