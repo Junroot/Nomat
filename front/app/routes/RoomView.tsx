@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AppShell from "~/components/layout/AppShell";
 import PlayIcon from "~/assets/play.svg?react";
 import PauseCircleIcon from "~/assets/pause-circle.svg?react";
@@ -8,6 +8,12 @@ import UsersIcon from "~/assets/users.svg?react";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import Column1 from "~/components/layout/Column1";
 import Column2 from "~/components/layout/Column2";
+import RoundPanel from "~/components/ui/RoundPanel";
+import RoundAudioPlayer from "~/components/ui/RoundAudioPlayer";
+import type { ClipPlaybackStatus } from "~/hooks/useClipPlayback";
+import AudioGateOverlay from "~/components/ui/AudioGateOverlay";
+import RoundRevealOverlay from "~/components/ui/RoundRevealOverlay";
+import RoundResultOverlay from "~/components/ui/RoundResultOverlay";
 import useBreakpoint from "~/hooks/useBreakpoint";
 import useRoomSubscription from "~/hooks/useRoomSubscription";
 import useMeStore from "~/stores/MeStore";
@@ -48,11 +54,34 @@ export default function RoomView() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isNearBottomRef = useRef(true);
 
-    const { roomDetail, players, messages, status, isLoading, isDeactivated, sendMessage, startGame, endGame, leaveRoom } = useRoomSubscription(Number(roomId));
+    // 오디오 arming(제스처 게이트 통과) — 방 세션 동안 유지되는 UI 상태(라운드 리듀서 밖).
+    const [armed, setArmed] = useState(false);
+    // 결과 오버레이 닫힘 여부 — "방으로"로 닫으면 로비 채팅으로 복귀.
+    const [resultClosed, setResultClosed] = useState(false);
+    // 재생 상태 — 플레이어를 방 화면이 소유하므로 이 상태도 여기서 든다(RoundPanel이 표시만 한다).
+    const [playback, setPlayback] = useState<ClipPlaybackStatus>("idle");
+
+    const { roomDetail, players, messages, status, round, isLoading, isDeactivated, sendMessage, startGame, endGame, leaveRoom } = useRoomSubscription(Number(roomId));
     const meId = useMeStore((s) => s.me?.id);
 
     const isMaster = players.some((p) => p.isMaster && p.id === meId);
     const isPlaying = status === "PLAYING";
+    const showGate = isPlaying && !armed && !isDeactivated;
+    const showReveal = round.phase === "REVEAL" && !showGate;
+    const showResult = round.phase === "ENDED" && !resultClosed;
+
+    // 자동재생이 차단되면 arming이 소실된 것으로 보고 제스처 게이트를 다시 띄운다.
+    const handlePlaybackChange = useCallback((next: ClipPlaybackStatus) => {
+        setPlayback(next);
+        if (next === "blocked") {
+            setArmed(false);
+        }
+    }, []);
+
+    // 새 게임이 시작되면(phase가 ENDED를 벗어나면) 결과 오버레이 닫힘 상태를 리셋.
+    useEffect(() => {
+        if (round.phase !== "ENDED") setResultClosed(false);
+    }, [round.phase]);
     const actions = isMaster
         ? isPlaying
             ? [{ icon: <PauseCircleIcon />, label: "게임 종료", onClick: endGame }]
@@ -153,13 +182,10 @@ export default function RoomView() {
                             </svg>
                         </button>
                     )}
-                    {isPlaying ? (
-                        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-6">
-                            <PlayIcon className="size-12 md:size-16 text-neon-cyan" />
-                            <p className="text-2xl font-bold text-zinc-100">게임 진행 중</p>
-                            <p className="text-sm text-zinc-400">곧 라운드가 시작됩니다. 잠시만 기다려 주세요.</p>
-                        </div>
-                    ) : (<>
+                    {/* PLAYING 중에도 채팅은 계속 노출된다 — 채팅 입력이 곧 정답 추측 채널. */}
+                    {isPlaying && (
+                        <RoundPanel round={round} players={players} playback={playback} />
+                    )}
                     <div
                         ref={messagesContainerRef}
                         className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto"
@@ -223,10 +249,24 @@ export default function RoomView() {
                             </svg>
                         </button>
                     </div>
-                    </>
-                    )}
                 </Column2>
             </ColumnsContainer>
+            {/* 오디오 플레이어는 방 세션 자원이다 — `isPlaying` 밖에 두어 **게임 시작 전에** 만든다.
+                그래야 아이프레임·플레이어 부트스트랩(~460ms)이 대기 중에 끝나 1라운드 재생 지연에서
+                빠진다. 화면에는 정답 공개 구간에만 나타난다. */}
+            <RoundAudioPlayer
+                roundNumber={round.roundNumber}
+                phase={round.phase}
+                track={round.currentTrack}
+                nextTrack={round.nextTrack}
+                armed={armed}
+                onPlaybackChange={handlePlaybackChange}
+            />
+            {showGate && <AudioGateOverlay onArm={() => setArmed(true)} />}
+            {showReveal && <RoundRevealOverlay round={round} players={players} />}
+            {showResult && (
+                <RoundResultOverlay round={round} players={players} onClose={() => setResultClosed(true)} />
+            )}
             {isDeactivated && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-zinc-950/80 backdrop-blur-sm">
                     <p className="text-xl font-bold text-zinc-200">다른 탭에서 사용 중입니다</p>

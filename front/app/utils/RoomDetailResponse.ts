@@ -1,3 +1,5 @@
+import type { RoundSnapshotResponse } from "./RoundEvent";
+
 export interface RoomMemberResponse {
     id: number;
     nickname: string;
@@ -20,4 +22,6 @@ export default interface RoomDetailResponse {
     playlist: PlaylistDetailResponse;
     players: RoomMemberResponse[];
     status: RoomStatus;
+    // 재접속 복원용 라운드 스냅샷. PLAYING 중이 아니면 서버가 생략한다(하위호환).
+    round?: RoundSnapshotResponse;
 }

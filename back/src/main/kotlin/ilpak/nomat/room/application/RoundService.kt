@@ -9,6 +9,7 @@ import ilpak.nomat.room.application.domain.RoundPhase
 import ilpak.nomat.room.application.domain.RoundRevealedEvent
 import ilpak.nomat.room.application.domain.RoundStartedEvent
 import ilpak.nomat.room.application.domain.RoundStateStore
+import ilpak.nomat.room.application.domain.RoundTrackRef
 import ilpak.nomat.room.application.domain.RoundTrackSpec
 import ilpak.nomat.room.application.domain.RoundTransition
 import ilpak.nomat.room.application.domain.TransitionResult
@@ -67,14 +68,14 @@ class RoundService(
         if (snapshot.phase != RoundPhase.OPEN) {
             return
         }
-        val track = trackOf(roomPlaylistTrackRepository.findByRoomId(roomId), snapshot.currentTrackId)
-            ?: return
+        val tracks = roomPlaylistTrackRepository.findByRoomId(roomId)
+        val track = trackOf(tracks, snapshot.currentTrackId) ?: return
         if (!AnswerMatcher.matches(content, track.additionalTitles + track.title)) {
             return
         }
         val transition = roundStateStore.tryAdvanceOnCorrect(roomId, snapshot.roundSeq, playerId)
         if (transition.result == TransitionResult.TRANSITIONED) {
-            publishRoundRevealed(roomId, transition, track)
+            publishRoundRevealed(roomId, transition, track, snapshot.nextTrackId()?.let { trackOf(tracks, it) })
         }
     }
 
@@ -98,23 +99,27 @@ class RoundService(
     /** 재접속 복원용 스냅샷. `OPEN` 중에는 정답을 제외하고 `REVEAL`·`ENDED`에서만 포함한다. */
     fun getSnapshot(roomId: Long): RoundSnapshotResponse? {
         val snapshot = roundStateStore.snapshot(roomId) ?: return null
-        val track = trackOf(roomPlaylistTrackRepository.findByRoomId(roomId), snapshot.currentTrackId)
-            ?: return null
+        val tracks = roomPlaylistTrackRepository.findByRoomId(roomId)
+        val track = trackOf(tracks, snapshot.currentTrackId) ?: return null
         val revealed = snapshot.phase != RoundPhase.OPEN
+        // 다음 트랙은 REVEAL에서만 — 선버퍼링할 구간이 그때뿐이다. `OPEN`에 실으면 다음 라운드
+        // 정답이 라운드 내내 노출되고, `ENDED`에는 이어질 라운드가 없다.
+        val nextTrack = if (snapshot.phase == RoundPhase.REVEAL) {
+            snapshot.nextTrackId()?.let { trackOf(tracks, it) }?.let(RoundTrackRefResponse::of)
+        } else {
+            null
+        }
         return RoundSnapshotResponse(
             phase = snapshot.phase,
             roundSeq = snapshot.roundSeq,
+            roundNumber = snapshot.trackIndex + 1,
             totalRounds = snapshot.totalRounds,
             deadlineAt = snapshot.deadlineAt,
-            currentTrack = RoundTrackRefResponse(
-                track.embedId,
-                track.startTimeSec,
-                track.endTimeSec,
-                track.repeatCount,
-            ),
+            currentTrack = RoundTrackRefResponse.of(track),
             title = if (revealed) track.title else null,
             winnerId = snapshot.winnerId,
             scores = snapshot.scores.map { ScoreEntryResponse(it.playerId, it.score) },
+            nextTrack = nextTrack,
         )
     }
 
@@ -134,9 +139,9 @@ class RoundService(
         }
         when (transition.phase) {
             RoundPhase.REVEAL -> {
-                val track = trackOf(roomPlaylistTrackRepository.findByRoomId(roomId), snapshot.currentTrackId)
-                    ?: return
-                publishRoundRevealed(roomId, transition, track)
+                val tracks = roomPlaylistTrackRepository.findByRoomId(roomId)
+                val track = trackOf(tracks, snapshot.currentTrackId) ?: return
+                publishRoundRevealed(roomId, transition, track, snapshot.nextTrackId()?.let { trackOf(tracks, it) })
             }
 
             RoundPhase.OPEN -> {
@@ -170,6 +175,7 @@ class RoundService(
             RoundStartedEvent(
                 roomId = roomId,
                 roundSeq = transition.roundSeq,
+                roundNumber = transition.trackIndex + 1,
                 totalRounds = totalRounds,
                 deadlineAt = transition.deadlineAt,
                 embedId = track.embedId,
@@ -180,7 +186,12 @@ class RoundService(
         )
     }
 
-    private fun publishRoundRevealed(roomId: Long, transition: RoundTransition, track: RoomPlaylistTrack) {
+    private fun publishRoundRevealed(
+        roomId: Long,
+        transition: RoundTransition,
+        track: RoomPlaylistTrack,
+        nextTrack: RoomPlaylistTrack?,
+    ) {
         eventPublisher.publishEvent(
             RoundRevealedEvent(
                 roomId = roomId,
@@ -188,6 +199,9 @@ class RoundService(
                 winnerId = transition.winnerId,
                 title = track.title,
                 scores = roundStateStore.scoreboard(roomId),
+                nextTrack = nextTrack?.let {
+                    RoundTrackRef(it.embedId, it.startTimeSec, it.endTimeSec, it.repeatCount)
+                },
             )
         )
     }
