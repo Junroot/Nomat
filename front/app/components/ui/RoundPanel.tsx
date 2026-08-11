@@ -68,9 +68,9 @@ export default function RoundPanel({ round, players, playback }: RoundPanelProps
 
             {/* 재생 실패 안내 — 라운드는 서버 권위로 계속되므로 여기서 종료·스킵하지 않는다 */}
             {isOpen && playback === "unplayable" && (
-                <div className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-sm text-amber-200">
+                <div className="px-3 py-2 rounded-xl bg-warning/10 border border-warning/30 text-sm text-warning">
                     이 곡은 재생할 수 없어요. 내 오디오 설정 문제가 아니라 곡 자체가 막혀 있어요.
-                    <span className="text-amber-200/70"> 라운드는 그대로 진행되며 잠시 후 정답이 공개돼요.</span>
+                    <span className="text-warning/70"> 라운드는 그대로 진행되며 잠시 후 정답이 공개돼요.</span>
                 </div>
             )}
             {isOpen && playback === "blocked" && (
