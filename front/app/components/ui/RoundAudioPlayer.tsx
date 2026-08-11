@@ -284,6 +284,17 @@ export default function RoundAudioPlayer({
         }
     };
 
+    const makeOnError = (index: number) => () => {
+        if (index !== activeIndexRef.current) {
+            // 선버퍼링 중인 쪽의 오류는 **다음** 라운드의 문제다. 그대로 판정에 먹이면
+            // 문제없이 재생 중인 이번 라운드가 `unplayable`이 되고, 판정은 라운드 경계에서만
+            // 리셋되므로 잘못된 배너가 다음 라운드 시작까지 남는다.
+            // 그 트랙이 정말 재생 불가라면 담당이 된 뒤 재생 개시 관찰(타임아웃)이 잡아낸다.
+            return;
+        }
+        handleError();
+    };
+
     // 영상은 정답 공개 구간의 **담당 플레이어만** 드러낸다.
     // - `OPEN`에 드러내면 썸네일·제목이 곧 정답이라 게임이 성립하지 않는다
     // - 선버퍼링 중인 상대 플레이어는 다음 곡을 물고 있으므로 REVEAL에도 계속 숨긴다
@@ -295,13 +306,13 @@ export default function RoundAudioPlayer({
                 visible={revealing && activeIndex === 0}
                 onReady={makeOnReady(0)}
                 onStateChange={makeOnStateChange(0)}
-                onError={handleError}
+                onError={makeOnError(0)}
             />
             <ClipPlayer
                 visible={revealing && activeIndex === 1}
                 onReady={makeOnReady(1)}
                 onStateChange={makeOnStateChange(1)}
-                onError={handleError}
+                onError={makeOnError(1)}
             />
         </>
     );
