@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import YouTube from "react-youtube";
+import YouTube, { type YouTubeEvent } from "react-youtube";
+import type { YouTubePlayerHandle } from "~/utils/youtubePlayer";
 
 interface ClipPlayerProps {
     // 영상을 화면에 드러낼지. 정답 공개 구간의 담당 플레이어만 true다.
@@ -7,8 +8,8 @@ interface ClipPlayerProps {
     // ⚠️ 콜백은 react-youtube의 이벤트가 아니라 **재생 메서드를 가진 player 객체**를 받는다.
     // 이벤트 객체에는 `playVideo`·`unMute` 같은 메서드가 없다(`event.target`에 있다).
     // 이 컴포넌트가 그 차이를 흡수해 호출부가 이벤트 형태를 몰라도 되게 한다.
-    onReady: (player: any) => void;
-    onStateChange: (state: number, player: any) => void;
+    onReady: (player: YouTubePlayerHandle) => void;
+    onStateChange: (state: number, player: YouTubePlayerHandle) => void;
     onError?: () => void;
 }
 
@@ -85,8 +86,12 @@ export default function ClipPlayer({ visible, onReady, onStateChange, onError }:
             <YouTube
                 videoId={EMPTY_VIDEO_ID}
                 opts={options}
-                onReady={(event: any) => onReady(event.target)}
-                onStateChange={(event: any) => onStateChange(event.data, event.target)}
+                // `event.target`은 react-youtube의 타입상 `any`다(아래 타입 모듈 주석 참조).
+                // 경계가 여기 한 곳뿐이므로 넘기는 지점에서 우리 타입으로 좁혀 고정한다.
+                onReady={(event: YouTubeEvent) => onReady(event.target as YouTubePlayerHandle)}
+                onStateChange={(event: YouTubeEvent<number>) =>
+                    onStateChange(event.data, event.target as YouTubePlayerHandle)
+                }
                 onError={onError}
             />
         </div>

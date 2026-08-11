@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { YouTubePlayerHandle } from "~/utils/youtubePlayer";
 
 /**
  * 클립 재생 상태.
@@ -21,7 +22,7 @@ const YT_STATE_BUFFERING = 3;
 interface UseClipPlaybackResult {
     status: ClipPlaybackStatus;
     /** YouTube `onReady`의 player(=`event.target`)를 넘긴다. */
-    handleReady: (player: any) => void;
+    handleReady: (player: YouTubePlayerHandle) => void;
     /** YouTube `onStateChange`의 state(=`event.data`)를 넘긴다. */
     handleStateChange: (state: number) => void;
     /** YouTube `onError` 발생 시 호출한다. */
@@ -75,7 +76,7 @@ export default function useClipPlayback(armed: boolean, roundNumber: number): Us
     }, []);
 
     const handleReady = useCallback(
-        (player: any) => {
+        (player: YouTubePlayerHandle) => {
             playerReadyRef.current = true;
             // 자동재생 차단 통지는 youtube-player가 프록시하지 않으므로 실제 플레이어에 직접 건다.
             // IFrame API가 이 이벤트를 지원하지 않는 환경에서는 호출이 실패하거나 영영 발생하지 않으며,
