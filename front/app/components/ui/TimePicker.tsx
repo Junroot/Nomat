@@ -37,27 +37,48 @@ export default function TimePicker({timeSec, setTimeSec}: TimePickerProps) {
         return hh * 3600 + mm * 60 + ss
     }
 
+    // IME(일본어 등)가 켜져 있으면 숫자 키의 e.key가 "0"으로 오지 않는다.
+    // 전각 숫자("０")로 오거나 IME가 키를 소비해 "Process"로 온다.
+    function extractDigit(e: React.KeyboardEvent<HTMLInputElement>) {
+        // 사용자의 키보드 레이아웃을 존중하도록 e.key를 먼저 본다.
+        const normalizedKey = e.key.normalize("NFKC")
+        if (/^[0-9]$/.test(normalizedKey)) return normalizedKey
+
+        // e.key가 IME에 뭉개진 경우에만 물리 키 위치로 폴백한다.
+        // 단축키(Cmd+1 등)와 Shift 조합이 숫자로 새지 않도록 제외한다.
+        if (e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return null
+        return /^(?:Digit|Numpad)([0-9])$/.exec(e.code)?.[1] ?? null
+    }
+
     function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        const isDigitKey = /^[0-9]$/.test(e.key)
-        if (e.key !== "ArrowUp" && e.key !== "ArrowDown" && !isDigitKey) return
+        const digit = extractDigit(e)
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown" && digit === null) return
 
         const input = inputRef.current
         if (!input) return
 
-        var pos = input.selectionStart ?? 0
+        let pos = input.selectionStart ?? 0
 
-        if (isDigitKey) {
+        if (digit !== null) {
             if (pos === 2 || pos === 5) {
                 pos += 1
             }
 
-            const newFormatedTime = formatedTime.slice(0, pos) + e.key + formatedTime.slice(pos + 1)
-            if (isValidFormatedTime(newFormatedTime)) {
+            const newFormatedTime = formatedTime.slice(0, pos) + digit + formatedTime.slice(pos + 1)
+            const isAccepted = isValidFormatedTime(newFormatedTime)
+            if (isAccepted) {
                 setTimeSec(convertToTimeSec(newFormatedTime))
-                requestAnimationFrame(() => {
-                    input.setSelectionRange(pos + 1, pos + 1)
-                })
             }
+
+            const nextPos = isAccepted ? pos + 1 : pos
+            requestAnimationFrame(() => {
+                // 입력이 거부되면 리렌더가 없어, IME가 preventDefault를 무시하고
+                // 삽입한 문자가 화면에 그대로 남는다. DOM 값을 직접 되돌린다.
+                if (!isAccepted && input.value !== formatedTime) {
+                    input.value = formatedTime
+                }
+                input.setSelectionRange(nextPos, nextPos)
+            })
         } else {
             // 커서 위치에 따라 조절 대상 결정
             if (pos >= 0 && pos <= 2) {
