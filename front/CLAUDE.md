@@ -131,7 +131,7 @@ import RoomIcon from "~/assets/room.svg?react";
  createPlayer  ─▶ 플레이어 B ─▶ onReady ─▶ setVolume(50) 반영 ─▶ 🔉 50
 ```
 
-`RoundAudioPlayer`에서 "재생 시작 시 볼륨이 컸다가 작아지는" 증상으로 관측됐다. 볼륨이 변한 것이 아니라 **버려질 플레이어 A가 기본 볼륨으로 잠시 울리다 파괴되고 B로 교체되는** 소리였다. react-youtube가 클래스 컴포넌트라 `componentDidMount → componentWillUnmount → componentDidMount`가 연쇄한 결과다.
+라운드 오디오 플레이어에서 "재생 시작 시 볼륨이 컸다가 작아지는" 증상으로 관측됐다. 볼륨이 변한 것이 아니라 **버려질 플레이어 A가 기본 볼륨으로 잠시 울리다 파괴되고 B로 교체되는** 소리였다. react-youtube가 클래스 컴포넌트라 `componentDidMount → componentWillUnmount → componentDidMount`가 연쇄한 결과다. 위 도식의 `setVolume`/`playVideo`는 `useRoundAudioOrchestrator`(`makeOnReady`·`startActivePlayback`)에 있다 — 명령형 재생 제어는 전부 이 훅이 들고 있고, `RoundAudioPlayer`는 `ClipPlayer` 두 개를 그리기만 한다.
 
 **판별법**: 컴포넌트에 인스턴스 번호를 붙여 마운트/언마운트를 찍어본다. 같은 번호로 `MOUNT → UNMOUNT → MOUNT`가 나오면(ref가 보존된 채 이펙트만 재실행) StrictMode다. 번호가 바뀌면 진짜 리마운트이므로 원인이 다르다.
 
@@ -143,7 +143,7 @@ import RoomIcon from "~/assets/room.svg?react";
 
 따라서 **플레이어 인스턴스를 재사용하려면 이 props를 바꾸면 안 된다.** 부모의 `key`를 걷어내는 것만으로는 부족하다 — props를 계속 갱신하면 리마운트가 그대로 일어난다. 아이프레임·플레이어 부트스트랩은 ~460ms라 이 재생성 비용이 그대로 지연이 된다.
 
-`RoundAudioPlayer`가 쓰는 형태: `videoId`와 `opts`를 **첫 트랙 값으로 고정**하고, 이후 트랙 교체는 전적으로 명령형 호출(`loadVideoById`)로만 한다.
+이 프로젝트가 쓰는 형태(`ClipPlayer.tsx`): `videoId`는 **빈 문자열로 고정**하고(`EMPTY_VIDEO_ID`), `opts`는 `useMemo(..., [])`로 참조를 붙들어 둔다. 곡을 아예 넣지 않고 만드는 것이 핵심이다 — 그래야 어떤 곡이 나올지 알기 전(방 대기 중)에 부트스트랩을 끝낼 수 있고, 그만큼이 첫 라운드 재생 지연에서 빠진다. 트랙 지정과 이후 교체는 전부 `useRoundAudioOrchestrator`의 명령형 호출(`loadVideoById`)이 맡는다.
 
 ### `cueVideoById`는 버퍼를 채우지 않는다
 

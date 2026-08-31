@@ -13,12 +13,12 @@ interface ClipPlayerProps {
     onError?: () => void;
 }
 
-// 곡 없이 생성한다. 어떤 곡을 틀지는 `RoundAudioPlayer`가 `loadVideoById`로 정한다.
+// 곡 없이 생성한다. 어떤 곡을 틀지는 `useRoundAudioOrchestrator`가 `loadVideoById`로 정한다.
 const EMPTY_VIDEO_ID = "";
 
 /**
  * YouTube 플레이어 인스턴스 하나를 감싸는 프리미티브. **상태를 갖지 않고 명령을 받지도 않는다** —
- * 재생 제어는 전적으로 `onReady`로 넘긴 player 객체를 통해 호출부(`RoundAudioPlayer`)가 한다.
+ * 재생 제어는 전적으로 `onReady`로 넘긴 player 객체를 통해 `useRoundAudioOrchestrator`가 한다.
  *
  * **곡을 지정하지 않고 만든다.** 그래야 방에 들어온 시점에 — 어떤 곡이 나올지 알기 전에 —
  * 아이프레임·플레이어 부트스트랩(~460ms)을 미리 끝낼 수 있고, 그 비용이 1라운드 재생 지연에서

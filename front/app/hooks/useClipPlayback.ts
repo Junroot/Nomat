@@ -128,7 +128,7 @@ export default function useClipPlayback(armed: boolean, roundNumber: number): Us
     }, [armed, startWatching]);
 
     // 라운드 경계에서 판정을 새로 세운다 — 이전 트랙의 판정이 새 트랙으로 이월되면 안 된다.
-    // 이 이펙트는 호출부(RoundAudioPlayer)의 트랙 교체 이펙트보다 훅 순서상 먼저 돌므로,
+    // 이 이펙트는 호출부(useRoundAudioOrchestrator)의 트랙 교체 이펙트보다 훅 순서상 먼저 돌므로,
     // 새 트랙이 적재되기 전에 관찰이 재무장된다.
     const watchedRoundRef = useRef(roundNumber);
     useEffect(() => {
