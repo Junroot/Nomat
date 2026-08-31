@@ -1,5 +1,7 @@
 import { useRef } from "react";
 
+const FULLWIDTH_DIGIT_OFFSET = 0xFF10 - 0x30
+
 interface TimePickerProps {
     timeSec: number
     setTimeSec: (value: number) => void
@@ -41,10 +43,18 @@ export default function TimePicker({timeSec, setTimeSec}: TimePickerProps) {
     // 전각 숫자("０")로 오거나 IME가 키를 소비해 "Process"로 온다.
     function extractDigit(e: React.KeyboardEvent<HTMLInputElement>) {
         // 사용자의 키보드 레이아웃을 존중하도록 e.key를 먼저 본다.
-        const normalizedKey = e.key.normalize("NFKC")
-        if (/^[0-9]$/.test(normalizedKey)) return normalizedKey
+        if (/^[0-9]$/.test(e.key)) return e.key
 
-        // e.key가 IME에 뭉개진 경우에만 물리 키 위치로 폴백한다.
+        // 전각 숫자만 좁혀서 변환한다. NFKC 정규화를 쓰면 "²"·"①" 같은
+        // 호환 문자까지 숫자가 되어, AZERTY의 ² 전용 키가 2로 입력된다.
+        if (/^[\uFF10-\uFF19]$/.test(e.key)) {
+            return String.fromCharCode(e.key.charCodeAt(0) - FULLWIDTH_DIGIT_OFFSET)
+        }
+
+        // IME가 키를 통째로 소비했을 때만 물리 키 위치로 폴백한다.
+        // 조건 없이 e.code를 믿으면 Num Lock이 꺼진 넘패드에서 e.key가
+        // "Home"/"End"인데도 e.code가 "Numpad7"이라 숫자로 가로채인다.
+        if (e.key !== "Process" && e.key !== "Unidentified") return null
         // 단축키(Cmd+1 등)와 Shift 조합이 숫자로 새지 않도록 제외한다.
         if (e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return null
         return /^(?:Digit|Numpad)([0-9])$/.exec(e.code)?.[1] ?? null
