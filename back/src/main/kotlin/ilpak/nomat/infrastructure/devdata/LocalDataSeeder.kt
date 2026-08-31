@@ -78,48 +78,48 @@ private class LocalDataSeeder(
                 track(
                     embedId = "by4SYYWlhEs",
                     title = "夜に駆ける",
-                    additionalTitles = setOf("밤을 달리다", "요루니 카케루", "Yoru ni Kakeru", "Racing Into the Night"),
+                    additionalTitles = listOf("밤을 달리다", "요루니 카케루", "Yoru ni Kakeru", "Racing Into the Night"),
                     isRepresentative = true,
                 ),
                 track(
                     embedId = "ZRtdQ81jPUQ",
                     title = "アイドル",
-                    additionalTitles = setOf("아이돌", "아이도루", "Idol"),
+                    additionalTitles = listOf("아이돌", "아이도루", "Idol"),
                 ),
                 track(
                     embedId = "Y4nEEZwckuU",
                     title = "群青",
-                    additionalTitles = setOf("군청", "군조", "Gunjou"),
+                    additionalTitles = listOf("군청", "군조", "Gunjou"),
                 ),
                 track(
                     embedId = "dy90tA3TT1c",
                     title = "怪物",
-                    additionalTitles = setOf("괴물", "카이부츠", "Kaibutsu", "Monster"),
+                    additionalTitles = listOf("괴물", "카이부츠", "Kaibutsu", "Monster"),
                 ),
                 track(
                     embedId = "kzdJkT4kp-A",
                     title = "ハルジオン",
-                    additionalTitles = setOf("하루지온", "Haruzion", "Halzion"),
+                    additionalTitles = listOf("하루지온", "Haruzion", "Halzion"),
                 ),
                 track(
                     embedId = "8iuLXODzL04",
                     title = "たぶん",
-                    additionalTitles = setOf("타분", "Tabun", "Probably"),
+                    additionalTitles = listOf("타분", "Tabun", "Probably"),
                 ),
                 track(
                     embedId = "nhOhFOoURnE",
                     title = "三原色",
-                    additionalTitles = setOf("삼원색", "산겐쇼쿠", "Sangenshoku"),
+                    additionalTitles = listOf("삼원색", "산겐쇼쿠", "Sangenshoku"),
                 ),
                 track(
                     embedId = "3eytpBOkOFA",
                     title = "祝福",
-                    additionalTitles = setOf("축복", "슈쿠후쿠", "Shukufuku", "The Blessing"),
+                    additionalTitles = listOf("축복", "슈쿠후쿠", "Shukufuku", "The Blessing"),
                 ),
                 track(
                     embedId = "VyvhvlYvRnc",
                     title = "優しい彗星",
-                    additionalTitles = setOf("상냥한 혜성", "야사시이 스이세이", "Yasashii Suisei", "Comet"),
+                    additionalTitles = listOf("상냥한 혜성", "야사시이 스이세이", "Yasashii Suisei", "Comet"),
                 ),
             ),
         )
@@ -128,7 +128,7 @@ private class LocalDataSeeder(
     private fun track(
         embedId: String,
         title: String,
-        additionalTitles: Set<String>,
+        additionalTitles: List<String>,
         isRepresentative: Boolean = false,
     ): PlaylistCreationRequestTrack {
         return PlaylistCreationRequestTrack(

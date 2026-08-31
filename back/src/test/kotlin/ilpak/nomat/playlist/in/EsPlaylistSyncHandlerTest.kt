@@ -77,7 +77,7 @@ class EsPlaylistSyncHandlerTest(
                             startTimeSec = 0,
                             endTimeSec = 100,
                             repeatCount = 1,
-                            additionalTitles = setOf(),
+                            additionalTitles = listOf(),
                             isRepresentative = true,
                         )
                     )

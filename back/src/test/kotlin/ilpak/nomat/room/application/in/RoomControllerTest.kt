@@ -9,7 +9,9 @@ import ilpak.nomat.infrastructure.integration.step.dummyPlaylistCreationRequest
 import ilpak.nomat.infrastructure.integration.step.dummyRoomRequest
 import ilpak.nomat.infrastructure.integration.util.auth
 import ilpak.nomat.player.application.dto.PlayerResponse
+import ilpak.nomat.playlist.application.dto.PlaylistCreationRequestTrack
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
+import ilpak.nomat.room.application.domain.RoomPlaylistTrackRepository
 import ilpak.nomat.room.application.domain.RoomStatus
 import ilpak.nomat.room.application.dto.PlaylistDetailResponse
 import ilpak.nomat.room.application.dto.RoomDetailResponse
@@ -29,6 +31,7 @@ class RoomControllerTest(
     @Autowired private val playerStep: PlayerStep,
     @Autowired private val playlistStep: PlaylistStep,
     @Autowired private val roomStep: RoomStep,
+    @Autowired private val roomPlaylistTrackRepository: RoomPlaylistTrackRepository,
 ) {
     private lateinit var player: PlayerResponse
     private lateinit var playlist: PlaylistWithTrackResponse
@@ -212,5 +215,31 @@ class RoomControllerTest(
                         )
                     )
             }
+    }
+
+    @Test
+    fun `save_탁점만 다른 추가 정답이 방 스냅샷에 모두 복사된다`() {
+        val dakutenPlaylist = playlistStep.save(
+            player,
+            dummyPlaylistCreationRequest(
+                title = "탁점 플리",
+                tracks = listOf(
+                    PlaylistCreationRequestTrack(
+                        embedId = "dy90tA3TT1c",
+                        title = "괴물",
+                        startTimeSec = 0,
+                        endTimeSec = 208,
+                        repeatCount = 2,
+                        additionalTitles = listOf("ハハ", "ババ"),
+                        isRepresentative = true,
+                    )
+                )
+            )
+        )
+
+        val room = roomStep.save(player, dummyRoomRequest(dakutenPlaylist.id))
+
+        assertThat(roomPlaylistTrackRepository.findByRoomId(room.id).single().additionalTitles)
+            .containsExactlyInAnyOrder("ハハ", "ババ")
     }
 }
