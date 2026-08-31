@@ -15,6 +15,7 @@ import ilpak.nomat.player.application.dto.PlayerResponse
 import ilpak.nomat.playlist.application.dto.PlaylistCreationRequestTrack
 import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.domain.RoundPhase
+import ilpak.nomat.room.application.dto.RoomChatRequest
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomEventMessage
 import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
@@ -37,13 +38,25 @@ import java.util.concurrent.LinkedBlockingQueue
 
 private const val FIRST_EMBED_ID = "prebufferEmbedA"
 private const val SECOND_EMBED_ID = "prebufferEmbedB"
+private const val FIRST_TITLE = "Prebuffer Track A"
+private const val SECOND_TITLE = "Prebuffer Track B"
+
+// 정답 제출 전에 마감이 지나가지 않도록 넉넉히 잡은 클립 길이(초).
+private const val LONG_CLIP_SEC = 30
 
 /**
  * REVEAL 구간 선버퍼링을 위한 다음 라운드 재생 참조 전달 검증.
  *
- * 클립을 1초로 짧게 잡아(`openDuration = 클립 1초 + 버퍼 2초 = 3초`) 정답 제출 없이 sweeper의
- * 마감 전이만으로 REVEAL에 도달시킨다. 트랙 순서는 게임 시작 시 셔플되므로 **어느 트랙이 1라운드인지
- * 단정하지 않고**, 다음 트랙이 현재 트랙과 다른 나머지 하나라는 관계로 검증한다.
+ * REVEAL 진입 경로는 두 갈래이고 각자 `nextTrack`을 따로 조립하므로(`RoundService`의
+ * `advanceDueRoom`과 `submitAnswer`) 양쪽을 모두 덮는다:
+ *
+ * - **마감 전이(sweeper)** — 클립을 1초로 짧게 잡아(`openDuration = 클립 1초 + 버퍼 2초 = 3초`)
+ *   정답 제출 없이 마감이 지나가게 둔다.
+ * - **정답 제출** — 클립을 30초로 길게 잡아 마감이 오기 전에 정답을 보낸다. sweeper가 먼저 전이해
+ *   테스트가 헛돌지 않도록, 마감 경로에는 없는 `winnerId`로 어느 경로를 탔는지 못박는다.
+ *
+ * 트랙 순서는 게임 시작 시 셔플되므로 **어느 트랙이 1라운드인지 단정하지 않고**, 다음 트랙이
+ * 현재 트랙과 다른 나머지 하나라는 관계로 검증한다.
  */
 @IntegrationTest
 class RoomRoundPrebufferIntegrationTest(
@@ -99,6 +112,37 @@ class RoomRoundPrebufferIntegrationTest(
             val revealed = events.filterIsInstance<RoundRevealedEventMessage>()
             assertThat(revealed).isNotEmpty
             assertThat(revealed.first().nextTrack).isNull()
+        }
+
+        sessionA.disconnect()
+        sessionB.disconnect()
+    }
+
+    @Test
+    fun `정답 제출로 REVEAL에 진입해도 다음 라운드 재생 참조를 동봉한다`() {
+        // 마감 전이(`advanceDueRoom`)와 정답 전이(`submitAnswer`)는 각자 `nextTrack`을 조립하는
+        // 별개의 코드 경로다. 실제 게임에서 라운드는 타임아웃보다 정답으로 끝나는 쪽이 흔하므로,
+        // 이 경로가 빠지면 대다수 라운드에서 선버퍼링이 조용히 무효화된다.
+        val room = roomStep.save(player, dummyRoomRequest(twoLongTrackPlaylist().id))
+        val (sessionA, sessionB, events) = subscribeAndJoin(room.id)
+
+        roomStep.start(player.id, room.id)
+        val started = awaitFirstRoundStarted(events)
+
+        // 셔플되므로 어느 트랙이 1라운드인지는 이벤트의 embedId로만 알 수 있다.
+        sessionB.send("/app/rooms/chat", RoomChatRequest(content = titleOf(started.embedId)))
+
+        await().pollInterval(Duration.ofMillis(100)).atMost(Duration.ofSeconds(10)).untilAsserted {
+            val revealed = events.filterIsInstance<RoundRevealedEventMessage>()
+            assertThat(revealed).isNotEmpty
+            val event = revealed.first()
+            // 이 단언이 경로를 못박는다 — 마감 전이는 승자가 없어 `winnerId`가 null이다.
+            // 클립을 30초로 잡아 마감이 오기 전이지만, sweeper가 끼어들면 여기서 잡힌다.
+            assertThat(event.winnerId).isEqualTo(joiner.id)
+            val nextTrack = event.nextTrack
+            assertThat(nextTrack).isNotNull
+            assertThat(nextTrack!!.embedId).isNotEqualTo(started.embedId)
+            assertThat(nextTrack.embedId).isIn(FIRST_EMBED_ID, SECOND_EMBED_ID)
         }
 
         sessionA.disconnect()
@@ -162,7 +206,7 @@ class RoomRoundPrebufferIntegrationTest(
     private fun singleTrackPlaylist(): PlaylistWithTrackResponse =
         playlistStep.save(
             player,
-            dummyPlaylistCreationRequest(tracks = listOf(shortTrack(FIRST_EMBED_ID, "Prebuffer Track A", true))),
+            dummyPlaylistCreationRequest(tracks = listOf(shortTrack(FIRST_EMBED_ID, FIRST_TITLE, true))),
         )
 
     private fun twoTrackPlaylist(): PlaylistWithTrackResponse =
@@ -170,11 +214,30 @@ class RoomRoundPrebufferIntegrationTest(
             player,
             dummyPlaylistCreationRequest(
                 tracks = listOf(
-                    shortTrack(FIRST_EMBED_ID, "Prebuffer Track A", true),
-                    shortTrack(SECOND_EMBED_ID, "Prebuffer Track B", false),
+                    shortTrack(FIRST_EMBED_ID, FIRST_TITLE, true),
+                    shortTrack(SECOND_EMBED_ID, SECOND_TITLE, false),
                 ),
             ),
         )
+
+    // 정답 제출 경로 전용. 클립을 30초로 잡아 OPEN 마감(30초 + 버퍼 2초)이 테스트 대기 시간 밖에
+    // 놓이게 한다 — 그래야 sweeper가 먼저 REVEAL로 전이해 검증 대상 경로를 가로채지 못한다.
+    private fun twoLongTrackPlaylist(): PlaylistWithTrackResponse =
+        playlistStep.save(
+            player,
+            dummyPlaylistCreationRequest(
+                tracks = listOf(
+                    longTrack(FIRST_EMBED_ID, FIRST_TITLE, true),
+                    longTrack(SECOND_EMBED_ID, SECOND_TITLE, false),
+                ),
+            ),
+        )
+
+    private fun titleOf(embedId: String): String =
+        if (embedId == FIRST_EMBED_ID) FIRST_TITLE else SECOND_TITLE
+
+    private fun longTrack(embedId: String, title: String, representative: Boolean) =
+        shortTrack(embedId, title, representative).copy(endTimeSec = LONG_CLIP_SEC)
 
     // 클립을 1초로 잡아 OPEN 마감(클립 1초 + 버퍼 2초)이 테스트 대기 시간 안에 들어오게 한다.
     private fun shortTrack(embedId: String, title: String, representative: Boolean) =
