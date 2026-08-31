@@ -72,7 +72,16 @@ data class RoundSnapshot(
     val deadlineAt: Long,
     val winnerId: Long?,
     val scores: List<ScoreEntry>,
-)
+) {
+    /**
+     * 다음 라운드 트랙 식별자. 마지막 라운드에서는 null.
+     *
+     * `trackOrder`는 게임 시작 시 셔플되어 고정되므로 다음 트랙은 이미 결정돼 있다 —
+     * 추가 조회나 상태 없이 현재 인덱스의 다음 항목으로 얻는다. 클라이언트가 REVEAL 구간에
+     * 다음 곡을 미리 버퍼링할 수 있도록 전달하는 데 쓴다.
+     */
+    fun nextTrackId(): Long? = trackOrder.getOrNull(trackIndex + 1)
+}
 
 data class ScoreEntry(
     val playerId: Long,

@@ -16,6 +16,7 @@ import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
 import ilpak.nomat.room.application.dto.RoomLeftEventMessage
 import ilpak.nomat.room.application.dto.RoundRevealedEventMessage
 import ilpak.nomat.room.application.dto.RoundStartedEventMessage
+import ilpak.nomat.room.application.dto.RoundTrackRefResponse
 import ilpak.nomat.room.application.dto.ScoreEntryResponse
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
@@ -94,6 +95,7 @@ private class RoomEventListener(
             RoundStartedEventMessage(
                 roomId = event.roomId,
                 roundSeq = event.roundSeq,
+                roundNumber = event.roundNumber,
                 totalRounds = event.totalRounds,
                 deadlineAt = event.deadlineAt,
                 embedId = event.embedId,
@@ -115,6 +117,9 @@ private class RoomEventListener(
                 winnerId = event.winnerId,
                 title = event.title,
                 scores = event.scores.map { ScoreEntryResponse(it.playerId, it.score) },
+                nextTrack = event.nextTrack?.let {
+                    RoundTrackRefResponse(it.embedId, it.startTimeSec, it.endTimeSec, it.repeatCount)
+                },
             )
         )
         redisTemplate.convertAndSend(channel, message)

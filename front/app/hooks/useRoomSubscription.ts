@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import useRoomConnectionStore from "~/stores/RoomConnectionStore";
 import useMeStore from "~/stores/MeStore";
@@ -6,6 +6,8 @@ import { fetchRoomDetail } from "~/utils/api";
 import type RoomDetailResponse from "~/utils/RoomDetailResponse";
 import type { RoomMemberResponse, RoomStatus } from "~/utils/RoomDetailResponse";
 import type RoomChatMessage from "~/utils/ChatMessage";
+import type { RoundStartedEvent, RoundRevealedEvent } from "~/utils/RoundEvent";
+import { roundReducer, initialRoundState, type RoundState } from "~/hooks/roundReducer";
 import type { StompSubscription } from "@stomp/stompjs";
 
 interface RoomEventBase {
@@ -28,17 +30,27 @@ interface RoomChatEvent extends RoomEventBase {
     timestamp: string;
 }
 
-interface RoomGameEvent extends RoomEventBase {
+interface RoomGameEvent extends Omit<RoomEventBase, "playerId" | "nickname"> {
     type: "STARTED" | "ENDED";
+    // 방장 수동 종료는 행위자를 싣고, 서버 주도(자연) 종료는 null이다.
+    playerId: number | null;
+    nickname: string | null;
 }
 
-type RoomEventMessage = RoomJoinedLeftEvent | RoomSessionReplacedEvent | RoomChatEvent | RoomGameEvent;
+type RoomEventMessage =
+    | RoomJoinedLeftEvent
+    | RoomSessionReplacedEvent
+    | RoomChatEvent
+    | RoomGameEvent
+    | RoundStartedEvent
+    | RoundRevealedEvent;
 
 interface UseRoomSubscriptionResult {
     roomDetail: RoomDetailResponse | null;
     players: RoomMemberResponse[];
     messages: RoomChatMessage[];
     status: RoomStatus;
+    round: RoundState;
     isLoading: boolean;
     isDeactivated: boolean;
     sendMessage: (content: string) => void;
@@ -58,6 +70,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     const [players, setPlayers] = useState<RoomMemberResponse[]>([]);
     const [messages, setMessages] = useState<RoomChatMessage[]>([]);
     const [status, setStatus] = useState<RoomStatus>("ACTIVE");
+    const [round, dispatchRound] = useReducer(roundReducer, initialRoundState);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeactivated, setIsDeactivated] = useState(false);
 
@@ -125,16 +138,29 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
             ]);
         } else if (event.type === "STARTED") {
             setStatus("PLAYING");
-            setMessages((prev) => [
-                ...prev,
-                { type: "system", eventType: "start", targetNickname: event.nickname, timestamp: new Date().toISOString() },
-            ]);
+            dispatchRound({ type: "GAME_STARTED" });
+            const nickname = event.nickname;
+            if (nickname) {
+                setMessages((prev) => [
+                    ...prev,
+                    { type: "system", eventType: "start", targetNickname: nickname, timestamp: new Date().toISOString() },
+                ]);
+            }
         } else if (event.type === "ENDED") {
             setStatus("ACTIVE");
-            setMessages((prev) => [
-                ...prev,
-                { type: "system", eventType: "end", targetNickname: event.nickname, timestamp: new Date().toISOString() },
-            ]);
+            dispatchRound({ type: "GAME_ENDED" });
+            // 서버 주도(자연) 종료는 행위자가 없다(nickname=null) — 방장 수동 종료일 때만 시스템 메시지.
+            const nickname = event.nickname;
+            if (nickname) {
+                setMessages((prev) => [
+                    ...prev,
+                    { type: "system", eventType: "end", targetNickname: nickname, timestamp: new Date().toISOString() },
+                ]);
+            }
+        } else if (event.type === "ROUND_STARTED") {
+            dispatchRound({ type: "ROUND_STARTED", event });
+        } else if (event.type === "ROUND_REVEALED") {
+            dispatchRound({ type: "ROUND_REVEALED", event });
         }
     };
 
@@ -191,6 +217,10 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                     setRoomDetail(detail);
                     setPlayers(detail.players);
                     setStatus(detail.status);
+                    // 재접속 복원: 진행 중 라운드 스냅샷이 있으면 리듀서를 시드한다(roundSeq 단조 가드).
+                    if (detail.round) {
+                        dispatchRound({ type: "HYDRATE", snapshot: detail.round });
+                    }
                 })
                 .finally(() => setIsLoading(false));
         }
@@ -220,6 +250,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
         players,
         messages,
         status,
+        round,
         isLoading,
         isDeactivated,
         sendMessage,

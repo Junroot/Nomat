@@ -15,7 +15,6 @@ export default function AdditionalTitleEditor({maxAdditionalTitlesCount, additio
         if (!isValidAdditionalTitle()) return
 
         const trimedAdditionalTitle = additionalTitle.trim()
-        console.log(trimedAdditionalTitle)
 
         if (additionalTitles.includes(trimedAdditionalTitle)) return
 

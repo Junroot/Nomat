@@ -115,6 +115,52 @@ import RoomIcon from "~/assets/room.svg?react";
 - 비용이 큰 계산에는 `useMemo`, 콜백에는 `useCallback`을 적절히 사용한다
 - 불필요한 리렌더링을 유발하는 상태 구조를 피한다
 
+## 알려진 함정
+
+### StrictMode와 명령형 서드파티 플레이어
+
+이 앱에는 `app/entry.client.tsx`가 없어 React Router의 **기본 클라이언트 엔트리**가 사용되고, 그 파일이 앱을 `<StrictMode>`로 감싼다(`node_modules/@react-router/dev/dist/config/defaults/entry.client.tsx`). 따라서 **개발 모드에서는 모든 컴포넌트의 이펙트가 두 번 실행된다.**
+
+명령형 리소스를 생성하는 서드파티 컴포넌트(YouTube 플레이어, 지도, 캔버스 등)를 감쌀 때 이것이 눈에 보이는 오작동으로 나타날 수 있다. 실제 사례:
+
+```
+ createPlayer  ─▶ 플레이어 A ─▶ onReady ─▶ setVolume(50) / playVideo()
+                                            │              └─▶ 🔊 볼륨 100으로 재생
+                                            └─ 파괴 중이라 반영 실패
+ destroyPlayer ─▶ A 파괴(비동기)
+ createPlayer  ─▶ 플레이어 B ─▶ onReady ─▶ setVolume(50) 반영 ─▶ 🔉 50
+```
+
+라운드 오디오 플레이어에서 "재생 시작 시 볼륨이 컸다가 작아지는" 증상으로 관측됐다. 볼륨이 변한 것이 아니라 **버려질 플레이어 A가 기본 볼륨으로 잠시 울리다 파괴되고 B로 교체되는** 소리였다. react-youtube가 클래스 컴포넌트라 `componentDidMount → componentWillUnmount → componentDidMount`가 연쇄한 결과다. 위 도식의 `setVolume`/`playVideo`는 `useRoundAudioOrchestrator`(`makeOnReady`·`startActivePlayback`)에 있다 — 명령형 재생 제어는 전부 이 훅이 들고 있고, `RoundAudioPlayer`는 `ClipPlayer` 두 개를 그리기만 한다.
+
+**판별법**: 컴포넌트에 인스턴스 번호를 붙여 마운트/언마운트를 찍어본다. 같은 번호로 `MOUNT → UNMOUNT → MOUNT`가 나오면(ref가 보존된 채 이펙트만 재실행) StrictMode다. 번호가 바뀌면 진짜 리마운트이므로 원인이 다르다.
+
+**대응**: 프로덕션 빌드에서는 재현되지 않으므로 대개 수정 대상이 아니다. 확인은 `npx vite preview`로 한다 — `npm run start`는 SPA 모드(`ssr: false`)에서 빌드가 서버 번들을 삭제하기 때문에 **동작하지 않는다.**
+
+### react-youtube는 `videoId`·`opts`가 바뀌면 플레이어를 파괴하고 다시 만든다
+
+`react-youtube`(10.1.0)의 `shouldResetPlayer`는 `videoId`가 달라지거나 `opts`가 깊은 비교로 달라지면 참이 되고, `componentDidUpdate`는 `resetPlayer()` 직후 반환해 `updateVideo()`(= `loadVideoById`/`cueVideoById` 경로)에 **도달조차 하지 않는다**(`dist/YouTube.esm.js:66`, `252`).
+
+따라서 **플레이어 인스턴스를 재사용하려면 이 props를 바꾸면 안 된다.** 부모의 `key`를 걷어내는 것만으로는 부족하다 — props를 계속 갱신하면 리마운트가 그대로 일어난다. 아이프레임·플레이어 부트스트랩은 ~460ms라 이 재생성 비용이 그대로 지연이 된다.
+
+이 프로젝트가 쓰는 형태(`ClipPlayer.tsx`): `videoId`는 **빈 문자열로 고정**하고(`EMPTY_VIDEO_ID`), `opts`는 `useMemo(..., [])`로 참조를 붙들어 둔다. 곡을 아예 넣지 않고 만드는 것이 핵심이다 — 그래야 어떤 곡이 나올지 알기 전(방 대기 중)에 부트스트랩을 끝낼 수 있고, 그만큼이 첫 라운드 재생 지연에서 빠진다. 트랙 지정과 이후 교체는 전부 `useRoundAudioOrchestrator`의 명령형 호출(`loadVideoById`)이 맡는다.
+
+### `cueVideoById`는 버퍼를 채우지 않는다
+
+선(先)버퍼링 용도로 쓸 수 없다. 실측에서 `cueVideoById` 후 5초를 기다렸다가 재생해도 아무것도 안 한 기준선과 같은 지연이 나왔다(451ms vs 435ms). 실제로 버퍼를 채우려면 `mute()` → `loadVideoById()` → `PLAYING` 관측 시 `pauseVideo()`가 필요하다(같은 조건에서 113ms).
+
+**mute가 먼저여야 한다** — 이 방식은 다음 곡을 실제로 재생해 버퍼를 채우므로, 음소거하지 않으면 정답 공개 구간에 다음 곡이 들려 그 자체로 정답이 유출된다.
+
+### `vite preview`로 로컬 백엔드를 붙이려면 `.env.production.local`이 필요하다
+
+프로덕션 빌드 동작을 확인할 때(StrictMode 이중 마운트 배제, 재생 지연 측정 등) `npx vite preview`를 쓰는데, 이때 Vite는 `production` 모드의 env 파일을 읽는다. 저장소에 커밋된 `.env.development`는 적용되지 않으므로 **아무 설정도 없으면 `https://api.dev.nomat.live`를 바라본다.**
+
+로컬 백엔드로 붙이려면 `front/.env.production.local`에 `VITE_SERVER_BASE_URL=http://localhost:8080`을 둔다. 이 파일은 `.gitignore`의 `.env.*.local`에 걸려 커밋되지 않으므로 **각자 로컬에서 만들어야 한다**(없다고 해서 누가 지운 것이 아니다).
+
+### YouTube IFrame API에는 볼륨 playerVar가 없다
+
+볼륨은 `setVolume()` 메서드로만 제어할 수 있어 `onReady` 이후에만 설정 가능하다. 따라서 `autoplay` playerVar로 재생을 시작하면 볼륨 설정 전에 소리가 나간다. `onReady`에서 `setVolume()` → `playVideo()` 순으로 직접 재생을 시작해야 순서가 보장된다(IFrame API 공식 문서의 권장 패턴).
+
 ## 컨벤션
 
 - 커밋 메시지는 한국어 Conventional Commits 형식: `feat:`, `fix:` 등
