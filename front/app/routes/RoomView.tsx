@@ -184,7 +184,7 @@ export default function RoomView() {
                     )}
                     {/* PLAYING 중에도 채팅은 계속 노출된다 — 채팅 입력이 곧 정답 추측 채널. */}
                     {isPlaying && (
-                        <RoundPanel round={round} players={players} playback={playback} />
+                        <RoundPanel round={round} playback={playback} />
                     )}
                     <div
                         ref={messagesContainerRef}
@@ -263,9 +263,9 @@ export default function RoomView() {
                 onPlaybackChange={handlePlaybackChange}
             />
             {showGate && <AudioGateOverlay onArm={() => setArmed(true)} />}
-            {showReveal && <RoundRevealOverlay round={round} players={players} />}
+            {showReveal && <RoundRevealOverlay round={round} />}
             {showResult && (
-                <RoundResultOverlay round={round} players={players} onClose={() => setResultClosed(true)} />
+                <RoundResultOverlay round={round} onClose={() => setResultClosed(true)} />
             )}
             {isDeactivated && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-zinc-950/80 backdrop-blur-sm">

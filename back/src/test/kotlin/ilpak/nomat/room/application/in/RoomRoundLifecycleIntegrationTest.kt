@@ -69,7 +69,10 @@ class RoomRoundLifecycleIntegrationTest(
         assertThat(round.phase).isEqualTo(RoundPhase.OPEN)
         assertThat(round.title).isNull()
         assertThat(round.currentTrack.embedId).isEqualTo("testEmbedId")
-        assertThat(round.scores.map { it.playerId }).contains(player.id)
+        assertThat(round.scores).anySatisfy {
+            assertThat(it.playerId).isEqualTo(player.id)
+            assertThat(it.nickname).isEqualTo(player.nickname)
+        }
     }
 
     @Test
