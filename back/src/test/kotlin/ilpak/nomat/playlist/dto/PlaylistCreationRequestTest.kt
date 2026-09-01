@@ -52,7 +52,7 @@ class PlaylistCreationRequestTest {
                         startTimeSec = 0,
                         endTimeSec = 100,
                         repeatCount = 1,
-                        additionalTitles = emptySet(),
+                        additionalTitles = emptyList(),
                         isRepresentative = it == 0,
                     )
                 }
@@ -83,7 +83,7 @@ class PlaylistCreationRequestTest {
                         startTimeSec = 0,
                         endTimeSec = 100,
                         repeatCount = 1,
-                        additionalTitles = emptySet(),
+                        additionalTitles = emptyList(),
                         isRepresentative = true,
                     ),
                     PlaylistCreationRequestTrack(
@@ -92,7 +92,7 @@ class PlaylistCreationRequestTest {
                         startTimeSec = 0,
                         endTimeSec = 100,
                         repeatCount = 1,
-                        additionalTitles = emptySet(),
+                        additionalTitles = emptyList(),
                         isRepresentative = true,
                     )
                 )
@@ -112,7 +112,7 @@ class PlaylistCreationRequestTest {
                     startTimeSec = 0,
                     endTimeSec = 100,
                     repeatCount = 1,
-                    additionalTitles = emptySet(),
+                    additionalTitles = emptyList(),
                     isRepresentative = true,
                 )
             )
@@ -134,7 +134,7 @@ class PlaylistCreationRequestTest {
                     startTimeSec = 0,
                     endTimeSec = 100,
                     repeatCount = 1,
-                    additionalTitles = emptySet(),
+                    additionalTitles = emptyList(),
                     isRepresentative = true,
                 )
             )
@@ -156,7 +156,7 @@ class PlaylistCreationRequestTest {
                     startTimeSec = 0,
                     endTimeSec = 100,
                     repeatCount = repeatCount,
-                    additionalTitles = emptySet(),
+                    additionalTitles = emptyList(),
                     isRepresentative = true,
                 )
             )
@@ -178,7 +178,7 @@ class PlaylistCreationRequestTest {
                         startTimeSec = 10,
                         endTimeSec = 5,
                         repeatCount = 1,
-                        additionalTitles = emptySet(),
+                        additionalTitles = emptyList(),
                         isRepresentative = true,
                     )
                 )
@@ -197,7 +197,7 @@ class PlaylistCreationRequestTest {
                     startTimeSec = 0,
                     endTimeSec = 100,
                     repeatCount = 1,
-                    additionalTitles = List(Track.MAX_ADDITIONAL_TITLE_COUNT + 1) { "additionalTitle$it" }.toSet(),
+                    additionalTitles = List(Track.MAX_ADDITIONAL_TITLE_COUNT + 1) { "additionalTitle$it" },
                     isRepresentative = true,
                 )
             )
@@ -219,7 +219,7 @@ class PlaylistCreationRequestTest {
                         startTimeSec = 0,
                         endTimeSec = 100,
                         repeatCount = 1,
-                        additionalTitles = setOf(""),
+                        additionalTitles = listOf(""),
                         isRepresentative = true,
                     )
                 )
@@ -239,7 +239,7 @@ class PlaylistCreationRequestTest {
                     startTimeSec = 0,
                     endTimeSec = 100,
                     repeatCount = 1,
-                    additionalTitles = setOf("additionalTitle1-1", "additionalTitle1-2"),
+                    additionalTitles = listOf("additionalTitle1-1", "additionalTitle1-2"),
                     isRepresentative = true,
                 ),
                 PlaylistCreationRequestTrack(
@@ -248,7 +248,7 @@ class PlaylistCreationRequestTest {
                     startTimeSec = 0,
                     endTimeSec = 100,
                     repeatCount = 1,
-                    additionalTitles = setOf("additionalTitle2-1", "additionalTitle2-2"),
+                    additionalTitles = listOf("additionalTitle2-1", "additionalTitle2-2"),
                     isRepresentative = false,
                 )
             )

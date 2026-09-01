@@ -35,4 +35,43 @@ class AnswerMatcherTest {
     fun `matches_공백뿐인 입력은 오답이다`() {
         assertThat(AnswerMatcher.matches("   ", setOf("밤을 달리다"))).isFalse()
     }
+
+    @Test
+    fun `matches_구두점과 기호만 다른 답도 정답으로 인정된다`() {
+        assertThat(AnswerMatcher.matches("밤을달리다", setOf("밤을 달리다!"))).isTrue()
+        assertThat(AnswerMatcher.matches("夏Summer", setOf("夏〜Summer〜"))).isTrue()
+        assertThat(AnswerMatcher.matches("dont stop", setOf("Don't Stop"))).isTrue()
+    }
+
+    @Test
+    fun `matches_가나 표기만 다른 답도 정답으로 인정된다`() {
+        val answers = setOf("ファイティングマイウェイ")
+
+        assertThat(AnswerMatcher.matches("ファイティングマイウエイ", answers)).isTrue()
+        assertThat(AnswerMatcher.matches("ふぁいてぃんぐまいうぇい", answers)).isTrue()
+        assertThat(AnswerMatcher.matches("ﾌｧｲﾃｨﾝｸﾞﾏｲｳｪｲ", answers)).isTrue()
+        assertThat(AnswerMatcher.matches("ファイティング・マイ・ウェイ", answers)).isTrue()
+    }
+
+    @Test
+    fun `matches_탁점이 다른 답은 오답이다`() {
+        assertThat(AnswerMatcher.matches("ババ", setOf("ハハ"))).isFalse()
+        assertThat(AnswerMatcher.matches("がっこう", setOf("かっこう"))).isFalse()
+    }
+
+    @Test
+    fun `matches_장음 부호가 다른 답은 오답이다`() {
+        assertThat(AnswerMatcher.matches("メル", setOf("メール"))).isFalse()
+    }
+
+    @Test
+    fun `matches_괄호 꼬리표를 뺀 답은 별도 등록 없이는 오답이다`() {
+        assertThat(AnswerMatcher.matches("Monster", setOf("Monster (feat. X)"))).isFalse()
+    }
+
+    @Test
+    fun `matches_문자와 숫자가 없는 정답도 종전대로 매칭된다`() {
+        assertThat(AnswerMatcher.matches("★", setOf("★"))).isTrue()
+        assertThat(AnswerMatcher.matches("! ! !", setOf("!!!"))).isTrue()
+    }
 }

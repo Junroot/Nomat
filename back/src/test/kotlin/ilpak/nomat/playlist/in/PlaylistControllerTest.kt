@@ -22,6 +22,7 @@ import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import java.time.Duration
@@ -55,7 +56,7 @@ class PlaylistControllerTest(
                             startTimeSec = 0,
                             endTimeSec = 208,
                             repeatCount = 2,
-                            additionalTitles = setOf("Monster", "Kaibutsu"),
+                            additionalTitles = listOf("Monster", "Kaibutsu"),
                             isRepresentative = true,
                         ),
                         PlaylistCreationRequestTrack(
@@ -64,7 +65,7 @@ class PlaylistControllerTest(
                             startTimeSec = 0,
                             endTimeSec = 200,
                             repeatCount = 1,
-                            additionalTitles = setOf(),
+                            additionalTitles = listOf(),
                             isRepresentative = false,
                         )
                     )
@@ -127,7 +128,7 @@ class PlaylistControllerTest(
                         startTimeSec = 0,
                         endTimeSec = 208,
                         repeatCount = 2,
-                        additionalTitles = setOf("Monster", "Kaibutsu"),
+                        additionalTitles = listOf("Monster", "Kaibutsu"),
                         isRepresentative = true,
                     ),
                     PlaylistCreationRequestTrack(
@@ -136,7 +137,7 @@ class PlaylistControllerTest(
                         startTimeSec = 0,
                         endTimeSec = 200,
                         repeatCount = 1,
-                        additionalTitles = setOf(),
+                        additionalTitles = listOf(),
                         isRepresentative = false,
                     )
                 )
@@ -156,7 +157,7 @@ class PlaylistControllerTest(
                             startTimeSec = 0,
                             endTimeSec = 20,
                             repeatCount = 3,
-                            additionalTitles = setOf("RGB"),
+                            additionalTitles = listOf("RGB"),
                             isRepresentative = true,
                         )
                     )
@@ -242,7 +243,7 @@ class PlaylistControllerTest(
                         startTimeSec = 0,
                         endTimeSec = 208,
                         repeatCount = 2,
-                        additionalTitles = setOf("Monster", "Kaibutsu"),
+                        additionalTitles = listOf("Monster", "Kaibutsu"),
                         isRepresentative = true,
                     ),
                     PlaylistCreationRequestTrack(
@@ -251,7 +252,7 @@ class PlaylistControllerTest(
                         startTimeSec = 0,
                         endTimeSec = 200,
                         repeatCount = 1,
-                        additionalTitles = setOf(),
+                        additionalTitles = listOf(),
                         isRepresentative = false,
                     )
                 )
@@ -289,7 +290,7 @@ class PlaylistControllerTest(
                             startTimeSec = 0,
                             endTimeSec = 208,
                             repeatCount = 2,
-                            additionalTitles = setOf("Monster", "Kaibutsu"),
+                            additionalTitles = listOf("Monster", "Kaibutsu"),
                             isRepresentative = true,
                         )
                     )
@@ -472,5 +473,141 @@ class PlaylistControllerTest(
             .value {
                 assertThat(it).isEmpty()
             }
+    }
+
+    @Test
+    fun `save_탁점만 다른 추가 정답이 함께 저장된다`() {
+        val playlist = playlistStep.save(playerResponse, additionalTitlesRequest("탁점 플리", "ハハ", "ババ"))
+
+        assertStoredAdditionalTitles(playlist.id, "ハハ", "ババ")
+    }
+
+    @Test
+    fun `save_완전히 같은 추가 정답을 중복 입력해도 하나만 저장된다`() {
+        val playlist = client.post().uri("/playlists")
+            .auth(playerResponse)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(DUPLICATE_ADDITIONAL_TITLE_BODY)
+            .exchange()
+            .expectStatus().isCreated
+            .expectBody<PlaylistWithTrackResponse>()
+            .returnResult()
+            .responseBody!!
+
+        assertStoredAdditionalTitles(playlist.id, "ハハ")
+    }
+
+    @Test
+    fun `update_탁점만 다른 추가 정답이 함께 저장된다`() {
+        val playlist = playlistStep.save(playerResponse, dummyPlaylistCreationRequest())
+
+        client.put().uri("/playlists/${playlist.id}")
+            .auth(playerResponse)
+            .bodyValue(additionalTitlesRequest("탁점 플리", "ハハ", "ババ"))
+            .exchange()
+            .expectStatus().isOk
+
+        assertStoredAdditionalTitles(playlist.id, "ハハ", "ババ")
+    }
+
+    @Test
+    fun `save_가나 표기만 다른 추가 정답은 먼저 온 값만 저장된다`() {
+        val playlist = playlistStep.save(
+            playerResponse,
+            additionalTitlesRequest("가나 플리", "マイウェイ", "まいうぇい"),
+        )
+
+        assertStoredAdditionalTitles(playlist.id, "マイウェイ")
+    }
+
+    @Test
+    fun `save_구두점만 다른 추가 정답은 먼저 온 값만 저장된다`() {
+        val playlist = playlistStep.save(
+            playerResponse,
+            additionalTitlesRequest("구두점 플리", "マイ・ウェイ", "マイウェイ"),
+        )
+
+        assertStoredAdditionalTitles(playlist.id, "マイ・ウェイ")
+    }
+
+    @Test
+    fun `save_괄호 꼬리표가 다른 추가 정답은 둘 다 저장된다`() {
+        val playlist = playlistStep.save(
+            playerResponse,
+            additionalTitlesRequest("꼬리표 플리", "Monster", "Monster (feat. X)"),
+        )
+
+        assertStoredAdditionalTitles(playlist.id, "Monster", "Monster (feat. X)")
+    }
+
+    @Test
+    fun `save_추가 정답은 정규화 키가 아니라 입력 원문 그대로 저장된다`() {
+        val playlist = playlistStep.save(
+            playerResponse,
+            additionalTitlesRequest("원문 보존 플리", "まいうぇい", "밤을 달리다!"),
+        )
+
+        assertStoredAdditionalTitles(playlist.id, "まいうぇい", "밤을 달리다!")
+    }
+
+    @Test
+    fun `update_정규화 기준으로 중복인 추가 정답을 담아도 수정이 거부되지 않는다`() {
+        val playlist = playlistStep.save(playerResponse, dummyPlaylistCreationRequest())
+
+        client.put().uri("/playlists/${playlist.id}")
+            .auth(playerResponse)
+            .bodyValue(additionalTitlesRequest("레거시 중복 플리", "マイウェイ", "マイ・ウェイ"))
+            .exchange()
+            .expectStatus().isOk
+
+        assertStoredAdditionalTitles(playlist.id, "マイウェイ")
+    }
+
+    private fun additionalTitlesRequest(playlistTitle: String, vararg additionalTitles: String) =
+        dummyPlaylistCreationRequest(
+            title = playlistTitle,
+            tracks = listOf(
+                PlaylistCreationRequestTrack(
+                    embedId = "dy90tA3TT1c",
+                    title = "괴물",
+                    startTimeSec = 0,
+                    endTimeSec = 208,
+                    repeatCount = 2,
+                    // 순서가 의미를 가진다 — 정규화 키가 겹치면 먼저 온 값이 남는다.
+                    additionalTitles = listOf(*additionalTitles),
+                    isRepresentative = true,
+                )
+            )
+        )
+
+    private fun assertStoredAdditionalTitles(playlistId: Long, vararg expected: String) {
+        client.get().uri("/playlists/$playlistId?includeTracks=true")
+            .auth(playerResponse)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<PlaylistWithTrackResponse>()
+            .value {
+                assertThat(it.tracks.single().additionalTitles).containsExactlyInAnyOrder(*expected)
+            }
+    }
+
+    companion object {
+        private val DUPLICATE_ADDITIONAL_TITLE_BODY = """
+            {
+              "title": "중복 추가 정답 플리",
+              "description": "같은 문자열을 두 번 담아 보낸 요청입니다.",
+              "tracks": [
+                {
+                  "embedId": "dy90tA3TT1c",
+                  "title": "괴물",
+                  "startTimeSec": 0,
+                  "endTimeSec": 208,
+                  "repeatCount": 2,
+                  "additionalTitles": ["ハハ", "ハハ"],
+                  "isRepresentative": true
+                }
+              ]
+            }
+        """.trimIndent()
     }
 }

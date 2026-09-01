@@ -1,0 +1,26 @@
+# 검증 사실 캐시
+
+이 루프 실행 중 실제 코드를 열어 확인한 관찰 사실. 코드는 루프 중 불변이므로
+같은 루프의 후속 에이전트는 이 관찰을 직접 확인한 것과 동등하게 신뢰해도 된다.
+사실만 담는다 — 심각도·지적·권고·평가 금지.
+
+- `back/src/main/kotlin/ilpak/nomat/room/application/domain/AnswerMatcher.kt:1-18` — `object AnswerMatcher`, 패키지 `ilpak.nomat.room.application.domain`. `private fun normalize(value: String): String = value.filterNot { it.isWhitespace() }.lowercase()` (9행). `matches(input, answers)` 는 정규화 입력이 비면 false 반환(13-15행), 그 외 `answers.any { normalize(it) == normalizedInput }`. KDoc(3-6행)은 "모든 공백을 제거하고 대소문자를 무시해 비교한다" (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/room/application/RoundService.kt:66-80` — `submitAnswer` 는 Redis 스냅샷 조회 → `roomPlaylistTrackRepository.findByRoomId(roomId)` (71행) → `AnswerMatcher.matches(content, track.additionalTitles + track.title)` (73행) 순으로 채팅 1건마다 실행된다 (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/room/application/RoundService.kt` 전체 grep "AnswerMatcher" — 사용처는 73행 한 곳. 저장소 전체 grep 결과 `AnswerMatcher` 참조는 `RoundService.kt:4,73` 과 `AnswerMatcherTest.kt` 뿐 (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/playlist/application/domain/Track.kt:52-57` — `MAX_EMBED_ID_LENGTH=20`, `MAX_TITLE_LENGTH=100`, `MAX_REPEAT_COUNT=5`, `MAX_ADDITIONAL_TITLE_COUNT=10`. `additionalTitles: Set<String>` 는 `@ElementCollection(FetchType.EAGER)` + `@CollectionTable(name="track_additional_title")` (28-32행) (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/playlist/application/dto/PlaylistCreationRequest.kt:36-76` — `PlaylistCreationRequestTrack.additionalTitles: Set<String>` 에 `@field:Size(max = Track.MAX_ADDITIONAL_TITLE_COUNT)`. `init` 블록(52-62행)은 시작/종료 시각 검증과 각 추가 정답의 1자~`MAX_TITLE_LENGTH` 길이 검증만 수행하며 중복 관련 처리는 없다 (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/playlist/application/PlaylistService.kt:29,44` — `save(masterId, request: PlaylistCreationRequest)` 와 `update(playerId, playlistId, request: PlaylistCreationRequest)` 가 **같은 요청 DTO** 를 받는다. `PlaylistController.kt:33,42` 두 엔드포인트 모두 `@Valid @RequestBody PlaylistCreationRequest` (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/playlist/application/dto/` 디렉터리 전체 — DTO 는 `PlaylistCreationRequest.kt`, `PlaylistMetaDataResponse.kt`, `PlaylistResponse.kt`, `PlaylistWithTrackResponse.kt` 4개. 별도의 Update/Modify 요청 DTO 는 없다 (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/playlist/application/dto/PlaylistWithTrackResponse.kt:41-64` — `PlaylistWithTrackTrackResponse.additionalTitles: Set<String>` 를 `track.additionalTitles` 에서 변환 없이 그대로 복사한다 (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/common/` 하위 디렉터리 전수 — `exception/`(6개 예외 클래스), `lock/DistributedLockExecutor.kt`, `metadata/AuditDateMetadata.kt`·`AuditMetadata.kt`. `normalize/` 는 없다. `PlaylistCreationRequest.kt:3` 이 `ilpak.nomat.common.exception.BadRequestException` 을 import 하고 있어 도메인 모듈이 `common` 을 참조하는 선례가 있다 (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/playlist/out/document/PlaylistDocument.kt:13-20` — ES 문서 필드는 `title`, `description`, `id` 뿐. `additionalTitles` 는 색인되지 않는다 (라운드 2)
+- `back/src/main/kotlin/ilpak/nomat/room/application/RoomService.kt:95-108` — 방 생성 시 `playlist.tracks.map { RoomPlaylistTrack(..., it.additionalTitles, ...) }` 로 추가 정답을 변환 없이 스냅샷 복사한다 (라운드 2)
+- `front/app/components/ui/AdditionalTitleEditor.tsx:26` — `return additionalTitle.trim().length > 0 && additionalTitle.trim.length < 50` — 두 번째 항이 `trim()` 호출 없이 함수 객체의 `.length`(0)를 50과 비교한다. 같은 파일 11행 `const maxTitleLength = 100`, 40행 `<input maxLength={maxTitleLength}>`, 19행 중복 검사는 `additionalTitles.includes(trimedAdditionalTitle)` 문자열 완전 일치, 차단 시 피드백 없이 `return` (라운드 2)
+- `front/app/routes/PlaylistWriteView.tsx:241` — `track.additionalTitles.join(", ")` 로 추가 정답 목록을 편집 화면에 표시한다 (라운드 2)
+- `openspec/specs/` 전체 grep "공백을 제거|대소문자를 무시|정규화" — `specs/room-game-session/spec.md:116-137`(`라운드는 첫 정답 또는 클립 소진으로 종료된다` 요구사항) 외에 다른 히트 없음. `openspec/specs/` 에 `playlist-track-answer` capability 디렉터리는 아직 존재하지 않는다 (라운드 2)
+- `openspec/specs/room-game-session/spec.md:116` — 요구사항 헤딩은 `### Requirement: 라운드는 첫 정답 또는 클립 소진으로 종료된다`. 하위 시나리오는 `첫 정답자가 나오면…`, `아무도 못 맞히면…`, `공백만 다른 답도…`, `마감 시각 이후 도착한 정답은…` 4개 (라운드 2)
+- `openspec/changes/fix-additional-title-collation/specs/playlist-track-answer/spec.md` 전문 — 요구사항 `추가 정답의 유일성은 문자 단위 일치로 판정한다` 본문에 "이것은 **저장 계층의 보증**이다… 이 축들의 두 값이 최종적으로 함께 남는지는 애플리케이션의 정규화 규칙이 정하며, 이 요구사항은 그것을 약속하지 않는다" 문단이 있다. 시나리오는 탁점(`ハハ`/`ババ`) 저장·방 생성 스냅샷·완전 동일값·수정 경로 4개이며 가나 조합 시나리오는 없다 (라운드 2)
+- `openspec/changes/fix-additional-title-collation/tasks.md` 전문 — 2절 머리말에 "가나 조합으로는 저장 성공 테스트를 만들지 않는다" 주석이 있고, 2.1~2.4 는 모두 탁점 조합(`ハハ`/`ババ`)을 쓴다. 가나 조합 태스크는 없다 (라운드 2)
+- `npx openspec validate normalize-answer-matching --strict` — "Change 'normalize-answer-matching' is valid" 출력 (라운드 2)
+- JDK 17.0.19 에서 `NFKC → toLowerCase(ROOT) → U+3041‥U+3096 +0x60 → 작은가나 12자 매핑 → replaceAll("[^\\p{L}\\p{N}]","") → 빈 결과면 원문 공백제거` 파이프라인 실행 결과: `ファイティングマイウェイ`=`ファイティングマイウエイ`=`ふぁいてぃんぐまいうぇい`=`ﾌｧｲﾃｨﾝｸﾞﾏｲｳｪｲ`=`ファイティング・マイ・ウェイ`(모두 `フアイテイングマイウエイ`), `ハハ`≠`ババ`, `メール`≠`メル`, `Monster`≠`Monster (feat. X)`, `밤을 달리다!`=`밤을달리다`, `夏〜Summer〜`=`夏Summer`, `人々`≠`人人`, `!!!`=`! ! !`, `★`→`★`, `Don't Stop`=`dont stop`, `かっこう`≠`がっこう`, `一ヶ月`=`一ケ月`. Java 정규식 `\p{L}`·`\p{N}` 은 이스케이프 없이 그대로 동작 (라운드 2)
+- Node v18.17.1 에서 동일 파이프라인(`normalize("NFKC")`, `toLowerCase()`, `/[^\p{L}\p{N}]/gu`)을 실행한 결과가 위 JDK 17 결과와 12개 케이스 전부에서 일치 (라운드 2)
