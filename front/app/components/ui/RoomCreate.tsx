@@ -1,9 +1,10 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {createRoom, fetchFavoritePlaylists, fetchMyPlaylists, searchPlaylistsByTitle} from "~/utils/api";
 import { toast } from "sonner";
 import Button from "~/components/ui/Button";
 import Dropdown from "~/components/ui/Dropdown";
 import Modal, {ModalTitle} from "~/components/ui/Modal";
+import useInFlightGuard from "~/hooks/useInFlightGuard";
 
 interface PlaylistOption {
     value: number;
@@ -46,11 +47,8 @@ export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}
     const [favoriteError, setFavoriteError] = useState<string | null>(null);
     const [myError, setMyError] = useState<string | null>(null);
 
-    /**
-     * 열림/닫힘마다 증가하는 세대. 요청 시점의 세대와 어긋나면 그 사이 모달이 닫힌 것이므로
-     * 늦게 도착한 결과의 부수 효과(자동 입장)를 실행하지 않는다.
-     */
-    const openGenerationRef = useRef(0);
+    // 열림/닫힘마다 무효화한다 — 모달이 닫힌 뒤 도착한 생성 성공이 자동 입장으로 이어지지 않게.
+    const createGuard = useInFlightGuard();
 
     // 자동완성: 1글자 이상 입력 시에만 노출
     const normalizedSearch = searchTerm.trim();
@@ -58,7 +56,7 @@ export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}
     // RoomCreate는 RoomsView에 항상 마운트된 채 폼 state를 들고 있어, Modal의 children
     // 언마운트로는 리셋되지 않는다. 다시 열릴 때 직전 입력이 남지 않도록 직접 초기화한다.
     useEffect(() => {
-        openGenerationRef.current += 1;
+        createGuard.invalidate();
         if (!isOpen) return;
         setRoomName("");
         setSelectedRoomCapacity(1);
@@ -67,7 +65,7 @@ export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}
         setSelectedPlaylist(null);
         setSearchTerm("");
         setPlaylistTab('favorite');
-    }, [isOpen]);
+    }, [isOpen, createGuard]);
 
     // 탭 변경 시 lazy load
     useEffect(() => {
@@ -332,7 +330,7 @@ export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}
                             disabled={!isValidForm || isCreating}
                             onClick={async () => {
                                 if (!isValidForm || isCreating) return;
-                                const generation = openGenerationRef.current;
+                                const token = createGuard.begin();
                                 setIsCreating(true);
                                 try {
                                     const room = await createRoom({
@@ -341,7 +339,7 @@ export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}
                                         maxEntriesCount: selectedRoomCapacity,
                                         playlistId: selectedPlaylist!.value,
                                     });
-                                    if (generation !== openGenerationRef.current) {
+                                    if (!createGuard.isCurrent(token)) {
                                         // 생성이 도는 사이 모달이 닫혔다 — 사용자가 취소한 방으로
                                         // 끌고 가지 않는다. 방은 서버에 남으므로 목록만 갱신한다.
                                         onRoomListStale();

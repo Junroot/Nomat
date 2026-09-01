@@ -1,6 +1,6 @@
 import AppShell from "~/components/layout/AppShell";
 import SearchBar from "~/components/ui/SearchBar";
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import { useNavigate } from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import type RoomResponse from "~/utils/RoomResponse";
@@ -12,6 +12,7 @@ import ScrollReveal from "~/components/ui/ScrollReveal";
 import { connectToRoom } from "~/utils/stomp";
 import useRoomConnectionStore from "~/stores/RoomConnectionStore";
 import { toast } from "sonner";
+import useInFlightGuard from "~/hooks/useInFlightGuard";
 
 export default function RoomsView() {
     const navigate = useNavigate();
@@ -28,11 +29,8 @@ export default function RoomsView() {
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [passwordError, setPasswordError] = useState<string | null>(null);
 
-    /**
-     * 비밀번호 모달의 열림/닫힘마다 증가하는 세대. 요청 시점의 세대와 어긋나면
-     * 그 사이 모달이 닫힌 것이므로 늦게 도착한 연결을 반영하지 않는다.
-     */
-    const passwordGenerationRef = useRef(0);
+    // 비밀번호 모달이 닫힐 때 무효화한다 — 늦게 도착한 연결 성공을 반영하지 않게.
+    const passwordGuard = useInFlightGuard();
 
     const loadRooms = useCallback(() => {
         return fetchRooms()
@@ -88,12 +86,12 @@ export default function RoomsView() {
         const roomId = passwordModal.roomId;
         if (!roomId) return;
 
-        const generation = passwordGenerationRef.current;
+        const token = passwordGuard.begin();
         setPasswordLoading(true);
         setPasswordError(null);
         try {
             const client = await connectToRoom(roomId, password);
-            if (generation !== passwordGenerationRef.current) {
+            if (!passwordGuard.isCurrent(token)) {
                 // 연결이 도는 사이 모달이 닫혔다(플랫폼 강제 닫힘 포함) — 사용자가 빠져나온
                 // 방으로 튕겨 넣지 않고 연결만 정리한다.
                 client.deactivate();
@@ -103,7 +101,7 @@ export default function RoomsView() {
             setPasswordModal({ isOpen: false, roomId: null });
             navigate(`/rooms/${roomId}`);
         } catch (error) {
-            if (generation !== passwordGenerationRef.current) return;
+            if (!passwordGuard.isCurrent(token)) return;
             setPasswordError(String(error));
         } finally {
             setPasswordLoading(false);
@@ -111,7 +109,7 @@ export default function RoomsView() {
     }
 
     function handlePasswordClose() {
-        passwordGenerationRef.current += 1;
+        passwordGuard.invalidate();
         setPasswordModal({ isOpen: false, roomId: null });
         setPasswordError(null);
     }
