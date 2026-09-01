@@ -3,11 +3,9 @@ import useCountdown from "~/hooks/useCountdown";
 import { rankScores } from "~/utils/scoreboard";
 import type { ClipPlaybackStatus } from "~/hooks/useClipPlayback";
 import type { RoundState } from "~/hooks/roundReducer";
-import type { RoomMemberResponse } from "~/utils/RoomDetailResponse";
 
 interface RoundPanelProps {
     round: RoundState;
-    players: RoomMemberResponse[];
     // 재생 상태. 오디오 플레이어는 방 세션 자원이라 이 패널이 아니라 방 화면이 소유한다
     // (게임 시작 전에 만들어 부트스트랩을 미리 끝내야 하므로) — 여기서는 안내 UI를 위해 값만 받는다.
     playback: ClipPlaybackStatus;
@@ -27,9 +25,9 @@ function formatRemaining(ms: number): string {
  * 오디오 재생은 여기서 다루지 않는다. 플레이어는 **게임 시작 전부터** 살아 있어야 하는
  * 방 세션 자원이라(부트스트랩을 미리 끝내기 위해) 이 패널보다 수명이 길다.
  */
-export default function RoundPanel({ round, players, playback }: RoundPanelProps) {
+export default function RoundPanel({ round, playback }: RoundPanelProps) {
     const remaining = useCountdown(round.deadlineAt);
-    const rows = rankScores(round.scores, players);
+    const rows = rankScores(round.scores);
     const isOpen = round.phase === "OPEN";
 
     return (

@@ -11,9 +11,12 @@ export type RoundPhase = "OPEN" | "REVEAL" | "ENDED";
 // - `roundNumber` 사람이 읽는 라운드 번호(1-based). 화면 표기와 "라운드가 바뀌었는가" 판정은
 //                이 값으로 한다. `roundSeq`를 표기에 쓰면 `13 / 9` 같은 값이 나온다.
 
-// 점수판 항목 — id만 담겨 오므로 화면에서는 방 `players`와 조인해 닉네임으로 표기한다.
+// 점수판 항목 — 닉네임은 서버가 `player` 저장소에서 해석해 실어 보낸다.
+// 방 `players`와 조인하지 말 것: 멤버 목록은 퇴장 즉시 줄어드는 반면 점수판은 다음 공개까지
+// (종료 후에는 영구히) 유지되므로, 조인하면 이미 떠난 참가자의 이름이 사라진다(이슈 #235).
 export interface ScoreEntry {
     playerId: number;
+    nickname: string;
     score: number;
 }
 
@@ -36,6 +39,9 @@ export interface RoundSnapshotResponse {
     currentTrack: RoundTrackRef;
     title: string | null;
     winnerId: number | null;
+    // 승자 닉네임. 점수판에서 역참조하지 않고 서버가 따로 싣는다 — 가점은 아직 멤버일 때만
+    // 적용되는 반면 winnerId는 무조건 기록되므로 점수 항목이 없는 승자가 성립한다.
+    winnerNickname: string | null;
     scores: ScoreEntry[];
     // REVEAL 단계에서만 채워진다. REVEAL 중 재접속한 멤버가 ROUND_REVEALED를 놓쳐
     // 혼자만 선버퍼링을 못 하면 불균등이 그대로 재현되므로 스냅샷에도 싣는다.
@@ -64,6 +70,8 @@ export interface RoundRevealedEvent {
     roomId: number;
     roundSeq: number;
     winnerId: number | null;
+    // 승자 닉네임. 타임아웃(winnerId=null)이면 null.
+    winnerNickname: string | null;
     title: string;
     scores: ScoreEntry[];
     // 다음 라운드의 answer-stripped 재생 참조. REVEAL 구간 동안 선버퍼링해 라운드 시작 시

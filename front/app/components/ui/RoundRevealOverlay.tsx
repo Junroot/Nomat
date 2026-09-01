@@ -1,9 +1,7 @@
 import type { RoundState } from "~/hooks/roundReducer";
-import type { RoomMemberResponse } from "~/utils/RoomDetailResponse";
 
 interface RoundRevealOverlayProps {
     round: RoundState;
-    players: RoomMemberResponse[];
 }
 
 /**
@@ -21,9 +19,10 @@ interface RoundRevealOverlayProps {
  *
  * 둘 중 하나만 바꾸면 겹치거나 사이가 벌어진다. `ClipPlayer`의 `visible` 클래스와 함께 볼 것.
  */
-export default function RoundRevealOverlay({ round, players }: RoundRevealOverlayProps) {
-    const winnerNickname =
-        round.winnerId == null ? null : players.find((p) => p.id === round.winnerId)?.nickname ?? "(퇴장)";
+export default function RoundRevealOverlay({ round }: RoundRevealOverlayProps) {
+    // 승자 이름은 서버가 해석해 보낸 값을 그대로 쓴다. 방 `players`에서 되짚으면 정답자가 공개
+    // 직후 나가는 순간 이름이 사라진다(이슈 #235).
+    const winnerNickname = round.winnerNickname;
 
     return (
         <div className="fixed inset-0 z-40 flex flex-col items-center justify-start gap-4 pt-[calc(8vh_+_min(92vw,720px,80vh)_*_0.5625_+_1.5rem)] bg-zinc-950/85 backdrop-blur-sm px-6 text-center">

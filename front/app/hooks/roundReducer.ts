@@ -5,7 +5,9 @@
 // 리듀서 밖(useCountdown)이 `deadlineAt`만 읽어 계산한다.
 //
 // - `roundSeq` 단조 증가 가드로 늦게 도착한 스냅샷/재전송이 더 진행된 상태를 되돌리지 못하게 한다.
-// - `scores`는 `GAME_ENDED`에 실려오지 않으므로 마지막 `ROUND_REVEALED` 값을 sticky로 보존한다.
+// - `scores`·`winnerNickname`은 `GAME_ENDED`에 실려오지 않으므로 마지막 `ROUND_REVEALED` 값을
+//   sticky로 보존한다. 승자 닉네임을 `winnerId`와 같은 수명으로 묶어두지 않으면 같은 종류의
+//   불일치(이름만 먼저 사라지는 현상)가 다시 생긴다.
 import type { RoundPhase, RoundTrackRef, ScoreEntry, RoundSnapshotResponse, RoundStartedEvent, RoundRevealedEvent } from "~/utils/RoundEvent";
 
 // "idle" = 게임은 시작됐으나 아직 첫 ROUND_STARTED 전. 그 외는 서버 phase를 그대로 반영.
@@ -32,6 +34,8 @@ export interface RoundState {
     nextTrack: RoundTrackRef | null;
     title: string | null; // REVEAL/ENDED에서만 채워짐
     winnerId: number | null;
+    /** 서버가 해석해 보낸 승자 닉네임. 방 `players`에서 되짚지 않는다(이슈 #235). */
+    winnerNickname: string | null;
     scores: ScoreEntry[];
 }
 
@@ -45,6 +49,7 @@ export const initialRoundState: RoundState = {
     nextTrack: null,
     title: null,
     winnerId: null,
+    winnerNickname: null,
     scores: [],
 };
 
@@ -83,6 +88,7 @@ export function roundReducer(state: RoundState, action: RoundAction): RoundState
                 nextTrack: null,
                 title: null,
                 winnerId: null,
+                winnerNickname: null,
                 scores: state.scores, // 점수판은 라운드를 가로질러 유지
             };
         }
@@ -99,12 +105,13 @@ export function roundReducer(state: RoundState, action: RoundAction): RoundState
                 nextTrack: e.nextTrack,
                 title: e.title,
                 winnerId: e.winnerId,
+                winnerNickname: e.winnerNickname,
                 scores: e.scores,
             };
         }
 
         case "GAME_ENDED":
-            // ENDED에는 점수판이 없다 → 마지막 REVEAL의 scores를 sticky 보존.
+            // ENDED에는 점수판이 없다 → 마지막 REVEAL의 scores·winnerNickname을 sticky 보존.
             return { ...state, phase: "ENDED", deadlineAt: null };
 
         case "HYDRATE": {
@@ -123,6 +130,7 @@ export function roundReducer(state: RoundState, action: RoundAction): RoundState
                 nextTrack: s.nextTrack,
                 title: s.title,
                 winnerId: s.winnerId,
+                winnerNickname: s.winnerNickname,
                 scores: s.scores,
             };
         }

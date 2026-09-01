@@ -15,7 +15,6 @@ import ilpak.nomat.room.application.domain.RoundTransition
 import ilpak.nomat.room.application.domain.TransitionResult
 import ilpak.nomat.room.application.dto.RoundSnapshotResponse
 import ilpak.nomat.room.application.dto.RoundTrackRefResponse
-import ilpak.nomat.room.application.dto.ScoreEntryResponse
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -37,6 +36,7 @@ class RoundService(
     private val roomPlaylistTrackRepository: RoomPlaylistTrackRepository,
     private val eventPublisher: ApplicationEventPublisher,
     private val distributedLockExecutor: DistributedLockExecutor,
+    private val scoreboardAssembler: RoundScoreboardAssembler,
     transactionManager: PlatformTransactionManager,
 ) {
 
@@ -109,6 +109,9 @@ class RoundService(
         } else {
             null
         }
+        // 실시간 `ROUND_REVEALED`와 같은 조립기를 거친다 — 형태가 갈리면 재접속으로 복원한 화면만
+        // 이름을 잃어, 이벤트를 받은 멤버와 다르게 보인다.
+        val scoreboard = scoreboardAssembler.assemble(snapshot.scores, snapshot.winnerId)
         return RoundSnapshotResponse(
             phase = snapshot.phase,
             roundSeq = snapshot.roundSeq,
@@ -118,7 +121,8 @@ class RoundService(
             currentTrack = RoundTrackRefResponse.of(track),
             title = if (revealed) track.title else null,
             winnerId = snapshot.winnerId,
-            scores = snapshot.scores.map { ScoreEntryResponse(it.playerId, it.score) },
+            winnerNickname = scoreboard.winnerNickname,
+            scores = scoreboard.entries,
             nextTrack = nextTrack,
         )
     }

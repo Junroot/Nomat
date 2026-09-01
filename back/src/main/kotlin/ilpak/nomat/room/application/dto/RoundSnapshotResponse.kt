@@ -22,6 +22,9 @@ data class RoundSnapshotResponse(
     val currentTrack: RoundTrackRefResponse,
     val title: String?,
     val winnerId: Long?,
+    // 승자 닉네임을 점수판에서 역참조하지 않고 따로 싣는다 — 가점은 아직 멤버일 때만 적용되는 반면
+    // `winnerId`는 무조건 기록되므로 점수 항목이 없는 승자가 성립한다. 타임아웃 공개에서는 null.
+    val winnerNickname: String?,
     val scores: List<ScoreEntryResponse>,
     val nextTrack: RoundTrackRefResponse? = null,
 )
@@ -42,7 +45,12 @@ data class RoundTrackRefResponse(
     }
 }
 
+/**
+ * 점수판 항목. `nickname`은 서버가 `player` 저장소에서 해석해 실어 보내는 값이라, 클라이언트가
+ * 현재 멤버 목록과 조인할 필요가 없다 — 이미 방을 떠난 참가자도 이름이 유지된다.
+ */
 data class ScoreEntryResponse(
     val playerId: Long,
+    val nickname: String,
     val score: Int,
 )
