@@ -4,7 +4,7 @@ import SaveIcon from "~/assets/save.svg?react";
 import DeleteIcon from "~/assets/delete.svg?react";
 import StarIcon from "~/assets/star.svg?react";
 import FilledStarIcon from "~/assets/filled-star.svg?react";
-import Modal from "~/components/ui/Modal";
+import Modal, {ModalTitle} from "~/components/ui/Modal";
 import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
@@ -27,6 +27,9 @@ export default function PlaylistWriteView() {
 	const [tracks, setTracks] = useState<Track[]>([])
 	const [representativeIndex, setRepresentativeIndex] = useState<number | null>(null)
 	const descriptionRef = useRef<HTMLTextAreaElement>(null)
+	// 초기 포커스 고정 대상 — 지정하지 않으면 각각 파괴적인 '확인' 버튼과 YouTube iframe에 포커스가 간다
+	const backModalCancelRef = useRef<HTMLButtonElement>(null)
+	const trackUrlInputRef = useRef<HTMLInputElement>(null)
 	const navigate = useNavigate()
 	const maxTitleLength = 100
 	const maxDescriptionLength = 500
@@ -214,15 +217,16 @@ export default function PlaylistWriteView() {
 					</div>
 					<div className="w-full flex-1 px-4 py-2">
 						<div className="w-full h-full p-8 bg-zinc-800 text-zinc-200 rounded-2xl flex flex-col gap-2">
-							<div
-								className="px-auto py-6 border-1 text-6xl font-bold text-center hover:bg-neon-cyan/5 transition-all duration-200 rounded-lg cursor-pointer"
+							<button
+								type="button"
+								className="w-full px-auto py-6 border-1 text-6xl font-bold text-center hover:bg-neon-cyan/5 transition-all duration-200 rounded-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan"
 								onClick={() => {
 									setSelectedTrack(null)
 									setSelectedTrackIndex(null)
 									setIsOpenEditTrack(true)
 								}}
 							>+
-							</div>
+							</button>
 							{tracks.length === 0 && (
 								<p className="text-zinc-500 text-center py-8">곡을 추가해보세요</p>
 							)}
@@ -253,18 +257,25 @@ export default function PlaylistWriteView() {
 					</div>
 				</Column2>
 			</ColumnsContainer>
-			<Modal isOpen={isBackModalOpen} onClose={() => setIsBackModalOpen(false)}>
+			<Modal
+				isOpen={isBackModalOpen}
+				onClose={() => setIsBackModalOpen(false)}
+				initialFocusRef={backModalCancelRef}
+			>
 				<div className="flex flex-col w-full">
-					<h2 className="text-xl font-bold mb-4">뒤로가기</h2>
+					<ModalTitle>뒤로가기</ModalTitle>
 					<p>수정 중인 플레이리스트를 저장하지 않고 뒤로 가시겠습니까?</p>
 					<div className="flex flex-row mt-6 gap-2">
 						<Button variant="primary" fullWidth onClick={goBack}>확인</Button>
-						<Button variant="secondary" fullWidth onClick={() => setIsBackModalOpen(false)}>취소</Button>
+						<Button ref={backModalCancelRef} variant="secondary" fullWidth onClick={() => setIsBackModalOpen(false)}>취소</Button>
 					</div>
 				</div>
 			</Modal>
-			<Modal isOpen={isOpenEditTrack} onClose={() => {
-			}}>
+			<Modal
+				isOpen={isOpenEditTrack}
+				onClose={() => setIsOpenEditTrack(false)}
+				initialFocusRef={trackUrlInputRef}
+			>
 				<TrackCreateLayer
 					embedId={selectedTrack?.embedId ?? ""}
 					title={selectedTrack?.title ?? ""}
@@ -275,6 +286,7 @@ export default function PlaylistWriteView() {
 					playlist={tracks}
 					setPlaylist={setTracks}
 					selectedIndex={selectedTrackIndex}
+					urlInputRef={trackUrlInputRef}
 					onClose={() => setIsOpenEditTrack(false)}
 					representativeIndex={representativeIndex}
 					setRepresentativeIndex={setRepresentativeIndex}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import Modal from "~/components/ui/Modal";
+import { useRef, useState } from "react";
+import Modal, { ModalTitle } from "~/components/ui/Modal";
 
 interface PasswordModalProps {
     isOpen: boolean;
@@ -11,6 +11,7 @@ interface PasswordModalProps {
 
 export default function PasswordModal({ isOpen, onClose, onSubmit, isLoading, error }: PasswordModalProps) {
     const [password, setPassword] = useState("");
+    const passwordInputRef = useRef<HTMLInputElement>(null);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -19,24 +20,29 @@ export default function PasswordModal({ isOpen, onClose, onSubmit, isLoading, er
         }
     }
 
+    // 닫기 신호는 무조건 이행한다. 연결 중 닫기 억제는 Modal의 dismissible이 담당한다
+    // — 단 ESC 억제는 최선 노력이라, 플랫폼이 강제로 닫는 경로는 막을 수 없다.
     function handleClose() {
-        if (!isLoading) {
-            setPassword("");
-            onClose();
-        }
+        setPassword("");
+        onClose();
     }
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose}>
+        <Modal
+            isOpen={isOpen}
+            onClose={handleClose}
+            dismissible={!isLoading}
+            initialFocusRef={passwordInputRef}
+        >
             <form onSubmit={handleSubmit} className="w-72">
-                <h3 className="text-lg font-bold text-zinc-100 mb-4">비밀번호 입력</h3>
+                <ModalTitle>비밀번호 입력</ModalTitle>
                 <input
+                    ref={passwordInputRef}
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="비밀번호를 입력하세요"
                     className="w-full px-3 py-2 bg-zinc-800 border border-border rounded-lg text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-neon-cyan/50 mb-2"
-                    autoFocus
                     disabled={isLoading}
                 />
                 {error && (

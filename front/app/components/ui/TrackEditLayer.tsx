@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, type RefObject } from "react"
 import TimePicker from "./TimePicker"
 import AdditionalTitleEditor from "./AdditionalTitleEditor"
 import CloseIcon from "~/assets/close.svg?react"
@@ -6,6 +6,7 @@ import StarIcon from "~/assets/star.svg?react"
 import FilledStarIcon from "~/assets/filled-star.svg?react"
 import Dropdown from "./Dropdown"
 import Button from "./Button"
+import { ModalTitle } from "./Modal"
 import { getEmbedIdByUrl, getUrlByEmbedId } from "~/utils/youtube"
 import YouTube from "react-youtube"
 
@@ -30,6 +31,8 @@ interface TrackEditLayerProps {
 	representativeIndex: number|null,
 	setRepresentativeIndex: (value: number|null) => void,
     selectedIndex: number|null,
+    /** 초기 포커스를 고정하기 위해 Modal이 소유하는 ref — YouTube URL 입력에 붙인다 */
+    urlInputRef?: RefObject<HTMLInputElement | null>,
     onClose: () => void,
 }
 
@@ -150,7 +153,7 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
     return (
         <div className="flex flex-col">
 			<div className="flex flex-row">
-				<h2 className="flex-1 text-xl font-bold mb-4">{ isEditing() ? "곡 편집" : "곡 추가"}</h2>
+				<ModalTitle className="flex-1">{ isEditing() ? "곡 편집" : "곡 추가"}</ModalTitle>
 				{ isEditing()
 					&& (isRepresentative() ? <FilledStarIcon></FilledStarIcon>
 						: <StarIcon className="cursor-pointer" onClick={() => props.setRepresentativeIndex(props.selectedIndex)}></StarIcon>) }
@@ -169,6 +172,7 @@ export default function TrackCreateLayer(props: TrackEditLayerProps) {
 						<p className="text-sm font-medium text-zinc-300">YouTube URL</p>
 						<div className="flex-1 h-10 p-2 shrink bg-surface border border-border text-zinc-200 rounded-full focus-within:border-neon-cyan focus-within:shadow-glow-cyan transition-all duration-200">
 							<input
+								ref={props.urlInputRef}
 								type="text"
 								placeholder="YouTube URL"
 								value={youTubeUrl}

@@ -1,6 +1,6 @@
 import AppShell from "~/components/layout/AppShell";
 import SearchBar from "~/components/ui/SearchBar";
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { useNavigate } from "react-router";
 import ColumnsContainer from "~/components/layout/ColumnsContainer";
 import type RoomResponse from "~/utils/RoomResponse";
@@ -28,8 +28,14 @@ export default function RoomsView() {
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [passwordError, setPasswordError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchRooms()
+    /**
+     * 비밀번호 모달의 열림/닫힘마다 증가하는 세대. 요청 시점의 세대와 어긋나면
+     * 그 사이 모달이 닫힌 것이므로 늦게 도착한 연결을 반영하지 않는다.
+     */
+    const passwordGenerationRef = useRef(0);
+
+    const loadRooms = useCallback(() => {
+        return fetchRooms()
             .then((data) => {
                 setRooms(data);
                 setError(null);
@@ -41,6 +47,10 @@ export default function RoomsView() {
                 setIsLoading(false);
             });
     }, []);
+
+    useEffect(() => {
+        loadRooms();
+    }, [loadRooms]);
 
     const filteredRooms = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -75,16 +85,25 @@ export default function RoomsView() {
     }
 
     async function handlePasswordSubmit(password: string) {
-        if (!passwordModal.roomId) return;
+        const roomId = passwordModal.roomId;
+        if (!roomId) return;
 
+        const generation = passwordGenerationRef.current;
         setPasswordLoading(true);
         setPasswordError(null);
         try {
-            const client = await connectToRoom(passwordModal.roomId, password);
-            setConnection(client, passwordModal.roomId);
+            const client = await connectToRoom(roomId, password);
+            if (generation !== passwordGenerationRef.current) {
+                // 연결이 도는 사이 모달이 닫혔다(플랫폼 강제 닫힘 포함) — 사용자가 빠져나온
+                // 방으로 튕겨 넣지 않고 연결만 정리한다.
+                client.deactivate();
+                return;
+            }
+            setConnection(client, roomId);
             setPasswordModal({ isOpen: false, roomId: null });
-            navigate(`/rooms/${passwordModal.roomId}`);
+            navigate(`/rooms/${roomId}`);
         } catch (error) {
+            if (generation !== passwordGenerationRef.current) return;
             setPasswordError(String(error));
         } finally {
             setPasswordLoading(false);
@@ -92,6 +111,7 @@ export default function RoomsView() {
     }
 
     function handlePasswordClose() {
+        passwordGenerationRef.current += 1;
         setPasswordModal({ isOpen: false, roomId: null });
         setPasswordError(null);
     }
@@ -128,22 +148,25 @@ export default function RoomsView() {
                             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                 {/* 방 생성 카드 */}
                                 <ScrollReveal>
-                                    <div
-                                        className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-neon-cyan/40 hover:bg-neon-cyan/[0.03] transition-all duration-300 min-h-[160px]"
+                                    <button
+                                        type="button"
+                                        className="w-full border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-neon-cyan/40 hover:bg-neon-cyan/[0.03] transition-all duration-300 min-h-[160px] focus:outline-none focus-visible:border-neon-cyan focus-visible:ring-2 focus-visible:ring-neon-cyan"
                                         onClick={() => setShowCreate(true)}
                                     >
                                         <div className="size-10 rounded-xl bg-neon-cyan/10 flex items-center justify-center">
                                             <span className="text-xl font-bold text-neon-cyan">+</span>
                                         </div>
                                         <span className="text-sm text-zinc-400">방 만들기</span>
-                                    </div>
+                                    </button>
                                 </ScrollReveal>
                                 {/* 방 카드 목록 */}
                                 {filteredRooms.map((room, index) => (
                                     <ScrollReveal key={room.id} delay={(index + 1) * 50}>
-                                        <div
+                                        <button
+                                            type="button"
                                             onClick={() => handleRoomClick(room)}
-                                            className={`block bg-gradient-dark border border-border rounded-xl overflow-hidden transition-all duration-300 ${
+                                            disabled={connectingRoomId === room.id}
+                                            className={`block w-full text-left bg-gradient-dark border border-border rounded-xl overflow-hidden transition-all duration-300 focus:outline-none focus-visible:border-neon-cyan focus-visible:ring-2 focus-visible:ring-neon-cyan ${
                                                 connectingRoomId === room.id
                                                     ? "opacity-70 pointer-events-none"
                                                     : "cursor-pointer hover:border-neon-cyan/40 hover:shadow-glow-cyan hover:-translate-y-0.5"
@@ -185,7 +208,7 @@ export default function RoomsView() {
                                             <div className="text-sm font-semibold text-zinc-200 mb-1 truncate">{room.title}</div>
                                             <div className="text-xs text-zinc-500 truncate">{room.playlist.title} · {room.playlist.trackCount}곡</div>
                                         </div>
-                                        </div>
+                                        </button>
                                     </ScrollReveal>
                                 ))}
                             </div>
@@ -196,6 +219,7 @@ export default function RoomsView() {
             <RoomCreate
                 isOpen={showCreate}
                 onClose={() => setShowCreate(false)}
+                onRoomListStale={loadRooms}
                 onCreated={async (roomId, password) => {
                     try {
                         const client = await connectToRoom(roomId, password);

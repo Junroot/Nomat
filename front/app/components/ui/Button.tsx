@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes } from "react";
+import { type ButtonHTMLAttributes, type Ref } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "icon";
 type Size = "sm" | "md" | "lg";
@@ -8,6 +8,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     size?: Size;
     loading?: boolean;
     fullWidth?: boolean;
+    /** React 19에서는 ref도 일반 prop이므로 {...rest} 스프레드로 DOM까지 그대로 전달된다. */
+    ref?: Ref<HTMLButtonElement>;
 }
 
 const variantStyles: Record<Variant, string> = {

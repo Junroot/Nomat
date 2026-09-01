@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {createRoom, fetchFavoritePlaylists, fetchMyPlaylists, searchPlaylistsByTitle} from "~/utils/api";
 import { toast } from "sonner";
 import Button from "~/components/ui/Button";
 import Dropdown from "~/components/ui/Dropdown";
-import Modal from "~/components/ui/Modal";
+import Modal, {ModalTitle} from "~/components/ui/Modal";
 
 interface PlaylistOption {
     value: number;
@@ -14,11 +14,17 @@ interface RoomCreateProps {
     isOpen: boolean;
     onClose: () => void;
     onCreated: (roomId: number, password?: string) => void;
+    /**
+     * 모달이 닫힌 뒤 방 생성이 성공해 **자동 입장을 억제한** 경우의 신호.
+     * 방은 이미 서버에 만들어져 되돌릴 수 없으므로, 부모가 방 목록을 다시 불러와
+     * 사용자가 직접 입장할 수 있게 한다.
+     */
+    onRoomListStale: () => void;
 }
 
 const MAX_ROOM_CAPACITY = 20;
 
-export default function RoomCreate({isOpen, onClose, onCreated}: RoomCreateProps) {
+export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}: RoomCreateProps) {
     const [roomName, setRoomName] = useState("");
     const [selectedRoomCapacity, setSelectedRoomCapacity] = useState(1);
     const [usePassword, setUsePassword] = useState(false);
@@ -40,8 +46,28 @@ export default function RoomCreate({isOpen, onClose, onCreated}: RoomCreateProps
     const [favoriteError, setFavoriteError] = useState<string | null>(null);
     const [myError, setMyError] = useState<string | null>(null);
 
+    /**
+     * 열림/닫힘마다 증가하는 세대. 요청 시점의 세대와 어긋나면 그 사이 모달이 닫힌 것이므로
+     * 늦게 도착한 결과의 부수 효과(자동 입장)를 실행하지 않는다.
+     */
+    const openGenerationRef = useRef(0);
+
     // 자동완성: 1글자 이상 입력 시에만 노출
     const normalizedSearch = searchTerm.trim();
+
+    // RoomCreate는 RoomsView에 항상 마운트된 채 폼 state를 들고 있어, Modal의 children
+    // 언마운트로는 리셋되지 않는다. 다시 열릴 때 직전 입력이 남지 않도록 직접 초기화한다.
+    useEffect(() => {
+        openGenerationRef.current += 1;
+        if (!isOpen) return;
+        setRoomName("");
+        setSelectedRoomCapacity(1);
+        setUsePassword(false);
+        setPassword("");
+        setSelectedPlaylist(null);
+        setSearchTerm("");
+        setPlaylistTab('favorite');
+    }, [isOpen]);
 
     // 탭 변경 시 lazy load
     useEffect(() => {
@@ -145,9 +171,9 @@ export default function RoomCreate({isOpen, onClose, onCreated}: RoomCreateProps
     }, [usePassword]);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose}>
+        <Modal isOpen={isOpen} onClose={onClose} dismissible={!isCreating}>
             <div className="w-[28rem] max-w-full">
-                <div className="text-xl font-bold mb-6 text-center text-zinc-100">방 만들기</div>
+                <ModalTitle className="text-center">방 만들기</ModalTitle>
                 <form className="flex flex-col gap-5">
                     {/* 플레이리스트 선택 */}
                     <div>
@@ -306,6 +332,7 @@ export default function RoomCreate({isOpen, onClose, onCreated}: RoomCreateProps
                             disabled={!isValidForm || isCreating}
                             onClick={async () => {
                                 if (!isValidForm || isCreating) return;
+                                const generation = openGenerationRef.current;
                                 setIsCreating(true);
                                 try {
                                     const room = await createRoom({
@@ -314,6 +341,12 @@ export default function RoomCreate({isOpen, onClose, onCreated}: RoomCreateProps
                                         maxEntriesCount: selectedRoomCapacity,
                                         playlistId: selectedPlaylist!.value,
                                     });
+                                    if (generation !== openGenerationRef.current) {
+                                        // 생성이 도는 사이 모달이 닫혔다 — 사용자가 취소한 방으로
+                                        // 끌고 가지 않는다. 방은 서버에 남으므로 목록만 갱신한다.
+                                        onRoomListStale();
+                                        return;
+                                    }
                                     onClose();
                                     onCreated(room.id, usePassword ? password : undefined);
                                 } catch {
