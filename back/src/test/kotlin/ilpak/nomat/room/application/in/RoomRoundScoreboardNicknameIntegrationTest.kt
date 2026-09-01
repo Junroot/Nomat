@@ -193,7 +193,7 @@ class RoomRoundScoreboardNicknameIntegrationTest(
                         startTimeSec = 0,
                         endTimeSec = 1,
                         repeatCount = 1,
-                        additionalTitles = emptySet(),
+                        additionalTitles = emptyList(),
                         isRepresentative = true,
                     ),
                 ),
