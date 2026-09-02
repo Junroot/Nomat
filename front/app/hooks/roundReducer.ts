@@ -21,7 +21,7 @@ export interface RoundState {
      * 되돌리지 못하게 하는 리듀서 내부 단조 가드 전용이다.
      *
      * 표기에 쓰면 `Round 13 / 9`처럼 총 라운드 수를 넘는 값이 나온다. 실제로 두 번 났다 —
-     * `RoundPanel`과 `RoundRevealOverlay`. 라운드 번호가 필요하면 {@link RoundState.roundNumber}.
+     * 라운드 헤더와 정답 공개 표기 양쪽에서. 라운드 번호가 필요하면 {@link RoundState.roundNumber}.
      */
     roundSeq: number;
     /** 사람이 읽는 라운드 번호(1-based). 화면 표기와 라운드 경계 판정은 전부 이 값으로 한다. */

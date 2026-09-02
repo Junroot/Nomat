@@ -9,6 +9,8 @@ import type { ClipPlaybackStatus } from "~/hooks/useClipPlayback";
 interface RoundAudioPlayerProps extends RoundAudioOrchestratorParams {
     // 재생 상태를 상위로 올려 안내 UI가 읽게 한다.
     onPlaybackChange?: (status: ClipPlaybackStatus) => void;
+    // 영상 노출 억제. **표시 여부만** 바꾸며 플레이어 인스턴스·선버퍼링·재생 제어에는 영향이 없다.
+    videoSuppressed?: boolean;
 }
 
 /**
@@ -25,7 +27,7 @@ interface RoundAudioPlayerProps extends RoundAudioOrchestratorParams {
  * 플레이어가 두 번 생성되기 때문이며 프로덕션에서는 재현되지 않는다 —
  * 자세한 내용과 판별법은 `front/CLAUDE.md`의 "알려진 함정" 참조.
  */
-export default function RoundAudioPlayer({ onPlaybackChange, ...params }: RoundAudioPlayerProps) {
+export default function RoundAudioPlayer({ onPlaybackChange, videoSuppressed = false, ...params }: RoundAudioPlayerProps) {
     const { activeIndex, status, playerHandlers } = useRoundAudioOrchestrator(params);
 
     useEffect(() => {
@@ -35,7 +37,9 @@ export default function RoundAudioPlayer({ onPlaybackChange, ...params }: RoundA
     // 영상은 정답 공개 구간의 **담당 플레이어만** 드러낸다.
     // - `OPEN`에 드러내면 썸네일·제목이 곧 정답이라 게임이 성립하지 않는다
     // - 선버퍼링 중인 상대 플레이어는 다음 곡을 물고 있으므로 REVEAL에도 계속 숨긴다
-    const revealing = params.phase === "REVEAL";
+    // - 제스처 게이트가 떠 있는 동안(`videoSuppressed`)에는 아직 재생이 시작되지도 않았다.
+    //   드러내 봐야 차단 화면 뒤에 비칠 뿐이므로 게이트를 통과할 때까지 숨긴다
+    const revealing = params.phase === "REVEAL" && !videoSuppressed;
 
     return (
         <>

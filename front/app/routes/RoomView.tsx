@@ -12,10 +12,10 @@ import RoundPanel from "~/components/ui/RoundPanel";
 import RoundAudioPlayer from "~/components/ui/RoundAudioPlayer";
 import type { ClipPlaybackStatus } from "~/hooks/useClipPlayback";
 import AudioGateOverlay from "~/components/ui/AudioGateOverlay";
-import RoundRevealOverlay from "~/components/ui/RoundRevealOverlay";
 import RoundResultOverlay from "~/components/ui/RoundResultOverlay";
 import useBreakpoint from "~/hooks/useBreakpoint";
 import useRoomSubscription from "~/hooks/useRoomSubscription";
+import useStickToBottom from "~/hooks/useStickToBottom";
 import useMeStore from "~/stores/MeStore";
 import type { SystemMessage } from "~/utils/ChatMessage";
 
@@ -50,9 +50,6 @@ export default function RoomView() {
 
     const [input, setInput] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
-    const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const isNearBottomRef = useRef(true);
 
     // 오디오 arming(제스처 게이트 통과) — 방 세션 동안 유지되는 UI 상태(라운드 리듀서 밖).
     const [armed, setArmed] = useState(false);
@@ -62,12 +59,16 @@ export default function RoomView() {
     const [playback, setPlayback] = useState<ClipPlaybackStatus>("idle");
 
     const { roomDetail, players, messages, status, round, isLoading, isDeactivated, sendMessage, startGame, endGame, leaveRoom } = useRoomSubscription(Number(roomId));
+    // 새 메시지뿐 아니라 **메시지 영역이 줄어들 때도** 바닥을 유지한다 — 정답이 공개되면
+    // 라운드 정보 영역이 커져 영역이 줄어드는데, 그때 방금 도착한 메시지가 밀려나면
+    // 공개 구간에 채팅을 살린 의미가 정확히 그 순간에 사라진다.
+    const { containerRef: messagesContainerRef, endRef: messagesEndRef, onScroll: handleMessagesScroll } =
+        useStickToBottom(messages);
     const meId = useMeStore((s) => s.me?.id);
 
     const isMaster = players.some((p) => p.isMaster && p.id === meId);
     const isPlaying = status === "PLAYING";
     const showGate = isPlaying && !armed && !isDeactivated;
-    const showReveal = round.phase === "REVEAL" && !showGate;
     const showResult = round.phase === "ENDED" && !resultClosed;
 
     // 자동재생이 차단되면 arming이 소실된 것으로 보고 제스처 게이트를 다시 띄운다.
@@ -87,12 +88,6 @@ export default function RoomView() {
             ? [{ icon: <PauseCircleIcon />, label: "게임 종료", onClick: endGame }]
             : [{ icon: <PlayIcon />, label: "시작하기", onClick: startGame }]
         : [];
-
-    useEffect(() => {
-        if (isNearBottomRef.current) {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }
-    }, [messages]);
 
     useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {
@@ -182,18 +177,42 @@ export default function RoomView() {
                             </svg>
                         </button>
                     )}
-                    {/* PLAYING 중에도 채팅은 계속 노출된다 — 채팅 입력이 곧 정답 추측 채널. */}
-                    {isPlaying && (
-                        <RoundPanel round={round} playback={playback} />
-                    )}
+                    {/* PLAYING 중에도 채팅은 계속 노출된다 — 채팅 입력이 곧 정답 추측 채널.
+                        정답 공개도 화면을 덮는 오버레이가 아니라 라운드 패널 안에 인라인으로 들어간다.
+
+                        라운드 정보와 정답 영상은 **한 행을 나눠 쓴다.** 영상을 패널 아래 따로 두면
+                        폭 전체를 쓰는 띠가 하나 생기고 그 왼쪽은 빈 채로 남아, 화면을 덮지 않을 뿐
+                        채팅 영역을 그만큼 잡아먹는다.
+
+                        ⚠️ 이 행 컨테이너는 **조건 없이 렌더된다**(`isPlaying`일 때 className만 바뀐다).
+                        `ClipPlayer`의 DOM 부모가 런타임에 사라지면 브라우저가 iframe을 재로드해
+                        채워둔 버퍼와 부트스트랩 선불이 통째로 날아가기 때문이다. 같은 이유로
+                        `RoundAudioPlayer`는 `RoundPanel` **안이 아니라 형제**여야 한다 — 패널은
+                        게임이 끝나면 언마운트된다. */}
+                    <div className={isPlaying ? "mx-2 mt-2 flex flex-row items-start gap-2" : "hidden"}>
+                        {isPlaying && (
+                            <RoundPanel round={round} playback={playback} />
+                        )}
+                        {/* 오디오 플레이어는 방 세션 자원이다 — `isPlaying` 밖에 두어 **게임 시작 전에**
+                            만들고 게임이 끝나도 살려 둔다. 그래야 아이프레임·플레이어 부트스트랩(~460ms)이
+                            대기 중에 끝나 1라운드 재생 지연에서 빠진다(대기 중에는 이 컨테이너가
+                            `display:none`이지만, 그때도 iframe은 그대로 적재된다 — 지금까지도 플레이어는
+                            숨겨진 채로 부트스트랩을 마쳐 왔다).
+                            화면에는 정답 공개 구간에만, 그것도 게이트가 내려간 뒤에만 나타난다. */}
+                        <RoundAudioPlayer
+                            roundNumber={round.roundNumber}
+                            phase={round.phase}
+                            track={round.currentTrack}
+                            nextTrack={round.nextTrack}
+                            armed={armed}
+                            onPlaybackChange={handlePlaybackChange}
+                            videoSuppressed={showGate}
+                        />
+                    </div>
                     <div
                         ref={messagesContainerRef}
                         className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto"
-                        onScroll={() => {
-                            const el = messagesContainerRef.current;
-                            if (!el) return;
-                            isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
-                        }}
+                        onScroll={handleMessagesScroll}
                     >
                         {messages.map((msg, index) => {
                             if (msg.type === "system") {
@@ -251,19 +270,7 @@ export default function RoomView() {
                     </div>
                 </Column2>
             </ColumnsContainer>
-            {/* 오디오 플레이어는 방 세션 자원이다 — `isPlaying` 밖에 두어 **게임 시작 전에** 만든다.
-                그래야 아이프레임·플레이어 부트스트랩(~460ms)이 대기 중에 끝나 1라운드 재생 지연에서
-                빠진다. 화면에는 정답 공개 구간에만 나타난다. */}
-            <RoundAudioPlayer
-                roundNumber={round.roundNumber}
-                phase={round.phase}
-                track={round.currentTrack}
-                nextTrack={round.nextTrack}
-                armed={armed}
-                onPlaybackChange={handlePlaybackChange}
-            />
             {showGate && <AudioGateOverlay onArm={() => setArmed(true)} />}
-            {showReveal && <RoundRevealOverlay round={round} />}
             {showResult && (
                 <RoundResultOverlay round={round} onClose={() => setResultClosed(true)} />
             )}

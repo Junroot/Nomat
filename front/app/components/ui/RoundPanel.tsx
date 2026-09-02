@@ -19,8 +19,13 @@ function formatRemaining(ms: number): string {
 }
 
 /**
- * PLAYING 중 인-플로우 라운드 UI — 라운드 헤더, 표시용 카운트다운, 점수판, 재생 실패 안내.
- * 정답 공개(REVEAL)·최종 결과(ENDED)는 별도 오버레이가 담당한다.
+ * PLAYING 중 인-플로우 라운드 UI — 라운드 헤더, 표시용 카운트다운, **정답 공개**, 점수판,
+ * 재생 실패 안내. 최종 결과(ENDED)만 별도 오버레이가 담당한다.
+ *
+ * 정답 공개는 전체화면 오버레이가 아니라 이 패널 안에 인라인으로 들어간다. 화면을 덮으면
+ * 그 5초 동안 채팅 피드·입력창이 함께 가려지는데, 서버는 그 구간에도 채팅을 방송하므로
+ * 순전히 클라이언트가 만드는 손실이었다. 여기에 두면 "정답 → 승자 → 갱신된 점수"가
+ * 한 덩어리로 읽히기도 한다 — 점수는 `ROUND_REVEALED`에 실려 오므로 그 순간에 갱신된다.
  *
  * 오디오 재생은 여기서 다루지 않는다. 플레이어는 **게임 시작 전부터** 살아 있어야 하는
  * 방 세션 자원이라(부트스트랩을 미리 끝내기 위해) 이 패널보다 수명이 길다.
@@ -29,9 +34,17 @@ export default function RoundPanel({ round, playback }: RoundPanelProps) {
     const remaining = useCountdown(round.deadlineAt);
     const rows = rankScores(round.scores);
     const isOpen = round.phase === "OPEN";
+    const isReveal = round.phase === "REVEAL";
 
     return (
-        <div className="mx-2 mt-2 p-3 md:p-4 flex flex-col gap-3 bg-zinc-800 rounded-2xl">
+        // 오버레이의 dim이 사라진 만큼의 시각적 강조는 패널 자체가 진다 — 기존 `shadow-glow-cyan`
+        // 유틸리티(app.css)를 그대로 쓰고 새 키프레임·유틸리티를 만들지 않는다.
+        <div
+            className={
+                "flex-1 min-w-0 p-3 md:p-4 flex flex-col gap-3 bg-zinc-800 rounded-2xl transition-shadow duration-200" +
+                (isReveal ? " ring-1 ring-neon-cyan/40 shadow-glow-cyan" : "")
+            }
+        >
             <div className="flex items-center justify-between">
                 <div className="inline-flex items-center gap-2 font-bold text-lg md:text-xl">
                     <MusicIcon className="size-5 md:size-6 text-neon-cyan" />
@@ -52,6 +65,20 @@ export default function RoundPanel({ round, playback }: RoundPanelProps) {
                     </span>
                 )}
             </div>
+
+            {/* 정답 공개 — 라운드 번호는 헤더의 `roundNumber`가 이미 쓰고 있으므로 여기서는
+                정답과 승자만 보인다. 승자 이름은 서버가 해석해 보낸 값을 그대로 쓴다.
+                방 `players`에서 되짚으면 정답자가 공개 직후 나가는 순간 이름이 사라진다(이슈 #235). */}
+            {isReveal && (
+                <div className="flex flex-col items-center gap-1 text-center">
+                    {round.winnerNickname ? (
+                        <p className="text-neon-green text-sm md:text-base font-semibold">🎉 {round.winnerNickname} 정답!</p>
+                    ) : (
+                        <p className="text-neon-pink text-sm md:text-base font-semibold">⏱ 시간 초과</p>
+                    )}
+                    <p className="text-xl md:text-3xl font-bold text-zinc-100 break-words">{round.title}</p>
+                </div>
+            )}
 
             {rows.length > 0 && (
                 <div className="flex flex-col gap-1">
