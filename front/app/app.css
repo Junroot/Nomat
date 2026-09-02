@@ -92,6 +92,67 @@
   animation: slide-down 0.2s ease-out forwards;
 }
 
+/* 모달 ::backdrop — 커스텀 오버레이(bg-black/60 backdrop-blur-sm)의 시각을 이식 */
+@utility modal-backdrop {
+  &::backdrop {
+    background-color: rgb(0 0 0 / 0.6);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+}
+@utility animate-backdrop-in {
+  &::backdrop {
+    animation: fade-in 0.2s ease-out;
+  }
+}
+@utility animate-backdrop-out {
+  &::backdrop {
+    animation: fade-out 0.2s ease-out forwards;
+  }
+}
+
+/*
+ * 전역 토스트 컨테이너 — popover로 top layer에 올라가므로 popover 기본 UA 스타일
+ * (inset·margin·border·padding·overflow·배경)을 초기화해 기존 위치·크기를 유지한다.
+ * 컨테이너는 배경 조작을 막지 않도록 pointer-events: none, 개별 토스트만 auto로 되돌린다.
+ */
+@utility toast-top-layer {
+  inset: auto;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: inherit;
+  pointer-events: none;
+
+  & [data-sonner-toast] {
+    pointer-events: auto;
+  }
+}
+
+/*
+ * 동작 축소 설정에서도 애니메이션을 **끄지 않고** 지속시간만 0에 가깝게 만든다.
+ * `animation: none`을 쓰면 animationend가 발생하지 않아 모달이 언마운트되지 않는다.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-out,
+  .animate-scale-in,
+  .animate-scale-out,
+  .animate-slide-down {
+    animation-duration: 0.01ms !important;
+  }
+  .animate-backdrop-in::backdrop,
+  .animate-backdrop-out::backdrop {
+    animation-duration: 0.01ms !important;
+  }
+}
+
 @keyframes pulse-star {
   0% { transform: scale(1); }
   50% { transform: scale(1.3); }
