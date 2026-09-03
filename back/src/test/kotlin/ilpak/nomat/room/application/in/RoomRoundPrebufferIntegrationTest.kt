@@ -162,7 +162,9 @@ class RoomRoundPrebufferIntegrationTest(
         assertThat(first.totalRounds).isEqualTo(2)
 
         // 2라운드는 REVEAL을 한 번 거쳐 열리므로 roundSeq는 이미 1을 넘어섰다.
-        await().pollInterval(Duration.ofMillis(200)).atMost(Duration.ofSeconds(15)).untilAsserted {
+        // 대기 예산: OPEN(1초 클립 + 2초 버퍼) + REVEAL + sweeper 폴링 지터 2회. REVEAL 길이가
+        // 늘면 여기가 가장 먼저 조여드는 자리다 — 여유를 넉넉히 둔다.
+        await().pollInterval(Duration.ofMillis(200)).atMost(Duration.ofSeconds(20)).untilAsserted {
             val started = events.filterIsInstance<RoundStartedEventMessage>()
             assertThat(started).hasSize(2)
             val second = started[1]

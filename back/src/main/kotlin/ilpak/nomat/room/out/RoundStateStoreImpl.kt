@@ -142,7 +142,7 @@ private class RoundStateStoreImpl(
     }
 
     companion object {
-        private const val REVEAL_MILLIS = 5_000L
+        private const val REVEAL_MILLIS = 10_000L
         private const val TTL_SECONDS = 86_400L
         private const val IGNORED_CODE = "0"
         private const val NOT_DUE_CODE = "-1"

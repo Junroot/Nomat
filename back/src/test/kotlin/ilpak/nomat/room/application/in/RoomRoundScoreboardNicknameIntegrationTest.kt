@@ -120,7 +120,7 @@ class RoomRoundScoreboardNicknameIntegrationTest(
 
     @Test
     fun `재접속 스냅샷의 점수판도 닉네임을 담고 REVEAL이면 승자 닉네임도 담는다`() {
-        // 전이를 직접 구동해 REVEAL 구간(5초)을 놓칠 여지를 없앤다 — 스냅샷 형태만이 관심사다.
+        // 전이를 직접 구동해 REVEAL 구간을 놓칠 여지를 없앤다 — 스냅샷 형태만이 관심사다.
         val room = roomStep.save(player, dummyRoomRequest(longTrackPlaylist().id))
         roomStep.join(player.id, room.id, "password")
         roomStep.join(joiner.id, room.id, "password")
