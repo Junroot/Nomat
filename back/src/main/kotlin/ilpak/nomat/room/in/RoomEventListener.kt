@@ -8,6 +8,7 @@ import ilpak.nomat.room.application.domain.GameEndedEvent
 import ilpak.nomat.room.application.domain.GameStartedEvent
 import ilpak.nomat.room.application.domain.RoomJoinedEvent
 import ilpak.nomat.room.application.domain.RoomLeftEvent
+import ilpak.nomat.room.application.domain.RoundPassUpdatedEvent
 import ilpak.nomat.room.application.domain.RoundRevealedEvent
 import ilpak.nomat.room.application.domain.RoundStartedEvent
 import ilpak.nomat.room.application.dto.GameEndedEventMessage
@@ -15,6 +16,7 @@ import ilpak.nomat.room.application.dto.GameStartedEventMessage
 import ilpak.nomat.room.application.dto.RoomEventMessage
 import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
 import ilpak.nomat.room.application.dto.RoomLeftEventMessage
+import ilpak.nomat.room.application.dto.RoundPassUpdatedEventMessage
 import ilpak.nomat.room.application.dto.RoundRevealedEventMessage
 import ilpak.nomat.room.application.dto.RoundStartedEventMessage
 import ilpak.nomat.room.application.dto.RoundTrackRefResponse
@@ -103,6 +105,22 @@ private class RoomEventListener(
                 startTimeSec = event.startTimeSec,
                 endTimeSec = event.endTimeSec,
                 repeatCount = event.repeatCount,
+            )
+        )
+        redisTemplate.convertAndSend(channel, message)
+    }
+
+    // 라운드 전이는 트랜잭션 밖에서 일어나므로 `fallbackExecution`이 필요하다
+    // (`handleRoundStarted`·`handleRoundRevealed`와 같은 이유).
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    fun handleRoundPassUpdated(event: RoundPassUpdatedEvent) {
+        val channel = RoomEventMessage.channelFor(event.roomId)
+        val message = objectMapper.writeValueAsString(
+            RoundPassUpdatedEventMessage(
+                roomId = event.roomId,
+                roundSeq = event.roundSeq,
+                passedCount = event.passedCount,
+                requiredCount = event.requiredCount,
             )
         )
         redisTemplate.convertAndSend(channel, message)

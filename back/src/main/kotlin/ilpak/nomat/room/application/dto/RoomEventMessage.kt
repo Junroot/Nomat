@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = GameEndedEventMessage::class, name = "ENDED"),
     JsonSubTypes.Type(value = RoundStartedEventMessage::class, name = "ROUND_STARTED"),
     JsonSubTypes.Type(value = RoundRevealedEventMessage::class, name = "ROUND_REVEALED"),
+    JsonSubTypes.Type(value = RoundPassUpdatedEventMessage::class, name = "ROUND_PASS_UPDATED"),
 )
 interface RoomEventMessage {
     val roomId: Long
