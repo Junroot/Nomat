@@ -6,7 +6,7 @@ import { fetchRoomDetail } from "~/utils/api";
 import type RoomDetailResponse from "~/utils/RoomDetailResponse";
 import type { RoomMemberResponse, RoomStatus } from "~/utils/RoomDetailResponse";
 import type RoomChatMessage from "~/utils/ChatMessage";
-import type { RoundStartedEvent, RoundRevealedEvent } from "~/utils/RoundEvent";
+import type { RoundStartedEvent, RoundRevealedEvent, RoundPassUpdatedEvent } from "~/utils/RoundEvent";
 import { roundReducer, initialRoundState, type RoundState } from "~/hooks/roundReducer";
 import type { StompSubscription } from "@stomp/stompjs";
 
@@ -43,7 +43,8 @@ type RoomEventMessage =
     | RoomChatEvent
     | RoomGameEvent
     | RoundStartedEvent
-    | RoundRevealedEvent;
+    | RoundRevealedEvent
+    | RoundPassUpdatedEvent;
 
 interface UseRoomSubscriptionResult {
     roomDetail: RoomDetailResponse | null;
@@ -56,6 +57,8 @@ interface UseRoomSubscriptionResult {
     sendMessage: (content: string) => void;
     startGame: () => void;
     endGame: () => void;
+    /** 포기("모르겠어요") 토글. 같은 호출이 켜고 끄기를 겸한다. */
+    pass: (roundSeq: number) => void;
     leaveRoom: () => void;
 }
 
@@ -161,6 +164,8 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
             dispatchRound({ type: "ROUND_STARTED", event });
         } else if (event.type === "ROUND_REVEALED") {
             dispatchRound({ type: "ROUND_REVEALED", event });
+        } else if (event.type === "ROUND_PASS_UPDATED") {
+            dispatchRound({ type: "PASS_UPDATED", event });
         }
     };
 
@@ -174,6 +179,15 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     startGameRef.current = () => {
         if (!client?.connected) return;
         client.publish({ destination: "/app/rooms/start" });
+    };
+
+    const passRef = useRef<(roundSeq: number) => void>(() => {});
+    passRef.current = (roundSeq: number) => {
+        if (!client?.connected) return;
+        // 본인 표시는 브로드캐스트에 실리지 않으므로(누가 눌렀는지 비공개) 여기서 낙관적으로 뒤집는다.
+        // 서버가 무시한 신호는 다음 ROUND_STARTED가 초기화하고, 인원수는 서버 이벤트가 정정한다.
+        dispatchRound({ type: "PASS_TOGGLED" });
+        client.publish({ destination: "/app/rooms/pass", body: JSON.stringify({ roundSeq }) });
     };
 
     const endGameRef = useRef<() => void>(() => {});
@@ -243,6 +257,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     const sendMessage = useCallback((content: string) => sendMessageRef.current(content), []);
     const startGame = useCallback(() => startGameRef.current(), []);
     const endGame = useCallback(() => endGameRef.current(), []);
+    const pass = useCallback((roundSeq: number) => passRef.current(roundSeq), []);
     const leaveRoom = useCallback(() => leaveRoomRef.current(), []);
 
     return {
@@ -256,6 +271,7 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
         sendMessage,
         startGame,
         endGame,
+        pass,
         leaveRoom,
     };
 }

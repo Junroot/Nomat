@@ -14,6 +14,13 @@ export default function AudioGateOverlay({ onArm }: AudioGateOverlayProps) {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-zinc-950/80 backdrop-blur-sm">
             <p className="text-2xl font-bold text-zinc-100">게임이 시작됐어요</p>
             <p className="text-sm text-zinc-400">소리를 켜고 노래를 맞혀보세요.</p>
+            {/* 이 오버레이는 `PLAYING` 진입 시 전원이 반드시 통과하므로 조작 안내를 붙일 자리로 공짜다.
+                단축키는 조합키가 있는 화면 폭에서만 사실이라 반응형으로 갈라 쓴다. */}
+            <div className="flex flex-col items-center gap-1 text-xs text-zinc-500">
+                <p>정답은 채팅으로 입력하세요</p>
+                <p className="hidden md:block">모르겠는 곡은 Shift+Enter</p>
+                <p className="md:hidden">모르겠는 곡은 🤔 버튼</p>
+            </div>
             <button
                 type="button"
                 className="inline-flex items-center gap-2 px-8 py-3 rounded-2xl bg-neon-cyan/20 text-neon-cyan font-semibold text-lg hover:bg-neon-cyan/30 transition-colors cursor-pointer"
