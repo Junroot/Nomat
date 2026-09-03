@@ -64,7 +64,7 @@ class RoomService(
         val players = playerService.findByIdIn(room.playerIds + room.playlistMasterId)
         val playerIdToNicknameMap = players.associate { it.id to it.nickname }
         val trackCount = roomPlaylistTrackRepository.countByRoomId(room).toInt()
-        val round = roundService.getSnapshot(roomId)
+        val round = roundService.getSnapshot(roomId, playerId)
 
         return RoomDetailResponse.of(room, trackCount, playerIdToNicknameMap, round)
     }

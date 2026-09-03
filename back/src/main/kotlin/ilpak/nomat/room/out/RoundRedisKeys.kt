@@ -10,7 +10,11 @@ package ilpak.nomat.room.out
  *
  * - round:   `round:{shard}:<roomId>`   (Hash)  — 라운드 상태(전이 게이트의 source of truth)
  * - scores:  `scores:{shard}:<roomId>`  (ZSET)  — 점수판
+ * - passes:  `passes:{shard}:<roomId>`  (SET)   — 현재 라운드의 포기자 집합
  * - 마감 인덱스: `rounds:deadlines:{shard}` (ZSET, member=roomId, score=deadlineAt) — sweeper 조회 대상
+ *
+ * `passes`도 **같은 hash tag `{shard}`**를 쓴다. 포기 토글·퇴장 재평가는 포기 집합·점수판(분모)·라운드 Hash·
+ * 마감 인덱스를 하나의 원자 Lua로 함께 조작하므로, 다른 tag를 쓰면 클러스터에서 `CROSSSLOT`으로 거부된다.
  *
  * 이렇게 하면 한 방의 세 키가 항상 같은 slot이라 기존 원자 Lua CAS·단일 시계(`redis.call('TIME')`) 설계를
  * 그대로 유지한 채 클러스터에서도 동작한다(방은 샤드를 넘나들지 않으므로 per-shard로 단일 시계가 성립).
@@ -36,6 +40,14 @@ internal object RoundRedisKeys {
 
     /** 방 점수판 ZSET 키. */
     fun scores(roomId: Long): String = "scores:{${shardOf(roomId)}}:$roomId"
+
+    /**
+     * 현재 라운드의 포기자 집합 SET 키(방 키들과 동일 slot).
+     *
+     * 라운드 Hash의 `passSeq` 필드와 짝을 이룬다 — 이 집합은 **`passSeq == roundSeq`일 때만 유효**하고,
+     * 불일치면 이전 라운드의 잔재이므로 0명으로 취급한다(lazy reset).
+     */
+    fun passes(roomId: Long): String = "passes:{${shardOf(roomId)}}:$roomId"
 
     /** 방이 속한 마감 인덱스 샤드 ZSET 키(방 키들과 동일 slot). */
     fun deadlines(roomId: Long): String = deadlinesShard(shardOf(roomId))

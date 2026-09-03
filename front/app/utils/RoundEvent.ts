@@ -1,6 +1,7 @@
 // 서버 주도 라운드 엔진의 실시간 프로토콜 타입.
 // 백엔드 `add-game-round-engine`이 확정한 STOMP 이벤트·재접속 스냅샷 계약을 그대로 소비한다.
-// 소스 오브 트루스: back/.../room/application/dto/{RoundStartedEventMessage,RoundRevealedEventMessage,RoundSnapshotResponse}.kt
+// 소스 오브 트루스: back/.../room/application/dto/
+//   {RoundStartedEventMessage,RoundRevealedEventMessage,RoundPassUpdatedEventMessage,RoundSnapshotResponse}.kt
 
 export type RoundPhase = "OPEN" | "REVEAL" | "ENDED";
 
@@ -46,6 +47,12 @@ export interface RoundSnapshotResponse {
     // REVEAL 단계에서만 채워진다. REVEAL 중 재접속한 멤버가 ROUND_REVEALED를 놓쳐
     // 혼자만 선버퍼링을 못 하면 불균등이 그대로 재현되므로 스냅샷에도 싣는다.
     nextTrack: RoundTrackRef | null;
+    // 현재 OPEN 라운드의 포기 현황. 인원수와 **본인 여부**만 온다 — 누가 눌렀는지는 서버가
+    // 어떤 형태로도 내려주지 않는다(익명성이 첫 클릭의 심리적 비용을 낮춘다).
+    passedCount: number;
+    requiredCount: number;
+    // 새로고침·재접속으로 잃은 본인의 토글 상태를 복원하는 값.
+    passed: boolean;
 }
 
 // `ROUND_STARTED` — answer-stripped 재생 참조. 행위자가 없어 playerId/nickname은 null.
@@ -77,6 +84,19 @@ export interface RoundRevealedEvent {
     // 다음 라운드의 answer-stripped 재생 참조. REVEAL 구간 동안 선버퍼링해 라운드 시작 시
     // 로드·버퍼링 지연을 없앤다. 마지막 라운드에서는 null.
     nextTrack: RoundTrackRef | null;
+    playerId: null;
+    nickname: null;
+}
+
+// `ROUND_PASS_UPDATED` — 현재 OPEN 라운드의 포기 현황. 행위자 없음(누가 눌렀는지 비공개).
+// 임계에 도달해 라운드가 전이된 경우에는 이 이벤트 대신 `ROUND_REVEALED`만 온다.
+export interface RoundPassUpdatedEvent {
+    type: "ROUND_PASS_UPDATED";
+    roomId: number;
+    // 현재 OPEN 라운드의 seq — REVEAL과 마찬가지로 **같은 seq로 온다**.
+    roundSeq: number;
+    passedCount: number;
+    requiredCount: number;
     playerId: null;
     nickname: null;
 }
