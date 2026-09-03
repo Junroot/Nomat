@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
 interface ChatInputProps {
+    placeholder: string;
     // 전송할 내용(trim 완료·비어 있지 않음). 부모는 참조가 고정된 콜백을 넘겨야 한다 —
     // 매 렌더 새 함수를 만들면 이 컴포넌트가 부모 렌더마다 함께 렌더된다.
     onSend: (content: string) => void;
+    // `Shift+Enter`로 포기할 수 있는 라운드. 포기할 수 없는 구간(OPEN이 아님)이면 null.
+    // 콜백을 라운드마다 새로 감싸는 대신 식별자를 값으로 받아, 라운드 전이 때만 props가 바뀐다.
+    passRoundSeq: number | null;
+    onPass: (roundSeq: number) => void;
 }
 
 /**
@@ -15,8 +20,11 @@ interface ChatInputProps {
  *
  * 채팅 영역 밖에서 Enter를 누르면 입력창으로 포커스를 옮기는 전역 리스너도 여기 있다 —
  * `inputRef`에만 의존하므로 입력창을 소유하는 컴포넌트가 들고 있는 것이 맞다.
+ *
+ * `Shift+Enter`는 포기("모르겠어요") 신호다. OPEN 동안 포커스는 이미 여기에 있으므로(추측을
+ * 여기 치므로) 마우스로 손을 옮기지 않고 포기할 수 있어야 리듬이 끊기지 않는다.
  */
-export default function ChatInput({ onSend }: ChatInputProps) {
+export default function ChatInput({ placeholder, onSend, passRoundSeq, onPass }: ChatInputProps) {
     const [input, setInput] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,16 +51,21 @@ export default function ChatInput({ onSend }: ChatInputProps) {
             <input
                 ref={inputRef}
                 type="text"
-                placeholder="보낼 메시지 입력"
+                placeholder={placeholder}
                 className="flex-1 p-[2px] pl-[8px] placeholder-zinc-500 focus:outline-none"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 maxLength={200}
                 onKeyDown={(e) => {
-                    // IME(한글·일본어) 조합 중 Enter는 조합 확정이지 전송이 아니다.
+                    // `isComposing` 가드는 필수다 — 한글·일본어 IME의 조합 확정 Enter가
+                    // 전송이나 포기로 해석되면 안 된다(커밋 #237과 같은 계열의 이슈).
                     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
                         e.preventDefault();
-                        handleSend();
+                        if (e.shiftKey) {
+                            if (passRoundSeq !== null) onPass(passRoundSeq);
+                        } else {
+                            handleSend();
+                        }
                     }
                 }}
             />

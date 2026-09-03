@@ -63,6 +63,10 @@ const ChatMessageItem = memo(function ChatMessageItem({ msg }: ChatMessageItemPr
 
 interface ChatMessageListProps {
     messages: RoomChatMessage[];
+    // 피드 위에 떠 있는 컨트롤(포기 버튼)의 자리를 하단에 미리 확보할지. 호출자가 그 컨트롤을
+    // 겹쳐 놓을 때 켠다 — 최신 메시지가 가려지지 않게 하면서, 컨트롤이 나타났다 사라져도
+    // 피드 높이가 흔들리지 않도록 게임 중 내내 고정한다.
+    bottomInset?: boolean;
 }
 
 /**
@@ -79,13 +83,17 @@ interface ChatMessageListProps {
  * 라운드 정보 영역이 커져 영역이 줄어드는데, 그때 방금 도착한 메시지가 밀려나면
  * 공개 구간에 채팅을 살린 의미가 정확히 그 순간에 사라진다(훅 안의 `ResizeObserver`).
  */
-const ChatMessageList = memo(function ChatMessageList({ messages }: ChatMessageListProps) {
+const ChatMessageList = memo(function ChatMessageList({ messages, bottomInset = false }: ChatMessageListProps) {
     const { containerRef, endRef, onScroll } = useStickToBottom(messages);
 
     return (
         <div
             ref={containerRef}
-            className="px-4 pt-4 w-full h-full shrink-1 flex flex-col gap-0.5 overflow-auto"
+            className={
+                // 하단 패딩은 떠 있는 포기 컨트롤의 높이에 **딱 맞춘다**(버튼 36px + 여백 8px).
+                // 넉넉히 잡으면 왼쪽이 통째로 빈 띠가 생겨 버튼이 허공에 뜬 것처럼 보인다.
+                "px-4 pt-4 size-full flex flex-col gap-0.5 overflow-auto" + (bottomInset ? " pb-11" : "")
+            }
             onScroll={onScroll}
         >
             {messages.map((msg) => (

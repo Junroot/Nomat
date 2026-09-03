@@ -8,6 +8,7 @@ import ilpak.nomat.room.application.RoundService
 import ilpak.nomat.room.application.dto.RoomChatEventMessage
 import ilpak.nomat.room.application.dto.RoomChatRequest
 import ilpak.nomat.room.application.dto.RoomEventMessage
+import ilpak.nomat.room.application.dto.RoomPassRequest
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -43,6 +44,18 @@ private class RoomStompController(
     fun end(headerAccessor: SimpMessageHeaderAccessor) {
         val session = headerAccessor.roomSession() ?: return
         roomService.end(session.roomId, session.playerId)
+    }
+
+    /**
+     * 포기("모르겠어요") 신호. 같은 목적지가 켜고 끄기를 겸한다(토글).
+     *
+     * 남은 인원의 정해진 비율 이상이 포기하면 `RoundService`가 라운드를 승자 없이 즉시 `REVEAL`로 전이한다.
+     * 라운드 경계 경합은 페이로드의 `roundSeq` CAS가 막는다.
+     */
+    @MessageMapping("/rooms/pass")
+    fun pass(@Payload request: RoomPassRequest, headerAccessor: SimpMessageHeaderAccessor) {
+        val session = headerAccessor.roomSession() ?: return
+        roundService.pass(session.roomId, session.playerId, request.roundSeq)
     }
 
     @MessageMapping("/rooms/chat")

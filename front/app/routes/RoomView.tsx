@@ -12,6 +12,7 @@ import RoundPanel from "~/components/ui/RoundPanel";
 import RoundAudioPlayer from "~/components/ui/RoundAudioPlayer";
 import type { ClipPlaybackStatus } from "~/hooks/useClipPlayback";
 import AudioGateOverlay from "~/components/ui/AudioGateOverlay";
+import PassControl from "~/components/ui/PassControl";
 import RoundResultOverlay from "~/components/ui/RoundResultOverlay";
 import ChatMessageList from "~/components/ui/ChatMessageList";
 import ChatInput from "~/components/ui/ChatInput";
@@ -32,7 +33,7 @@ export default function RoomView() {
     // 재생 상태 — 플레이어를 방 화면이 소유하므로 이 상태도 여기서 든다(RoundPanel이 표시만 한다).
     const [playback, setPlayback] = useState<ClipPlaybackStatus>("idle");
 
-    const { roomDetail, players, messages, status, round, isLoading, isDeactivated, sendMessage, startGame, endGame, leaveRoom } = useRoomSubscription(Number(roomId));
+    const { roomDetail, players, messages, status, round, isLoading, isDeactivated, sendMessage, startGame, endGame, pass, leaveRoom } = useRoomSubscription(Number(roomId));
     const meId = useMeStore((s) => s.me?.id);
 
     const isMaster = players.some((p) => p.isMaster && p.id === meId);
@@ -161,10 +162,35 @@ export default function RoomView() {
                         />
                     </div>
                     {/* 채팅 피드와 입력창은 각자 상태를 소유한다 — 키 입력이 이 화면을 다시 렌더하지
-                        않고, 새 메시지도 피드의 새 항목 하나만 마운트한다. `sendMessage`는 참조가
-                        고정돼 있으므로 감싸지 말고 그대로 넘긴다(감싸면 `ChatInput`이 매번 렌더된다). */}
-                    <ChatMessageList messages={messages} />
-                    <ChatInput onSend={sendMessage} />
+                        않고, 새 메시지도 피드의 새 항목 하나만 마운트한다. `sendMessage`·`pass`는 참조가
+                        고정돼 있으므로 감싸지 말고 그대로 넘긴다(감싸면 `ChatInput`이 매번 렌더된다).
+
+                        포기 컨트롤은 피드 **위에 떠 있다.** 형제로 두면 `Column2`의 `gap-4`가 위아래로
+                        붙어, OPEN↔REVEAL마다 피드 높이가 70px씩 흔들려 메시지가 튄다.
+                        대신 피드에 하단 패딩(`bottomInset`)을 줘서 떠 있는 버튼이 최신 메시지를 가리지
+                        않게 한다 — 패딩은 게임 중 내내 고정이라 라운드 경계에서 레이아웃이 변하지 않는다. */}
+                    <div className="relative w-full h-full shrink-1 min-h-0">
+                        <ChatMessageList messages={messages} bottomInset={isPlaying} />
+                        {/* `OPEN`일 때만 — REVEAL/ENDED에는 포기할 라운드가 없다.
+                            인원이 0명이어도 컨트롤 자체는 남는다(발견성).
+                            오른쪽 끝은 아래 채팅 입력 pill(`m-2`)에 맞춘다. */}
+                        {round.phase === "OPEN" && (
+                            <div className="absolute bottom-1 right-2">
+                                <PassControl
+                                    passedCount={round.passedCount}
+                                    requiredCount={round.requiredCount}
+                                    passed={round.passed}
+                                    onToggle={() => pass(round.roundSeq)}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <ChatInput
+                        placeholder={isPlaying ? "정답을 입력하세요" : "보낼 메시지 입력"}
+                        onSend={sendMessage}
+                        passRoundSeq={round.phase === "OPEN" ? round.roundSeq : null}
+                        onPass={pass}
+                    />
                 </Column2>
             </ColumnsContainer>
             {showGate && <AudioGateOverlay onArm={() => setArmed(true)} />}
