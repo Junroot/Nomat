@@ -269,7 +269,7 @@ export default function useRoundAudioOrchestrator({
             return;
         }
         if (phaseRef.current === "REVEAL") {
-            // 정답 공개 구간에는 클립을 **계속 돌린다.** 한 번만 틀면 클립이 REVEAL(5초)보다 짧을 때
+            // 정답 공개 구간에는 클립을 **계속 돌린다.** 한 번만 틀면 클립이 REVEAL 구간보다 짧을 때
             // 도중에 끝나 버리고, 그러면 소리가 끊길 뿐 아니라 유튜브가 영상 한가운데에
             // 일시정지 아이콘을 띄운 채로 남긴다(iframe 내부라 CSS로 지울 수 없다).
             // 반복 카운터는 건드리지 않는다 — 라운드의 재생 횟수와는 무관한 재생이다.

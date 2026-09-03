@@ -115,8 +115,8 @@ class RoomRoundEngineIntegrationTest(
             assertThat(chats.map { it.content }).contains(TRACK_TITLE)
         }
 
-        // 단일 트랙이므로 REVEAL(5초) 후 sweeper가 ENDED로 전이하고 방 상태를 ACTIVE로 되돌린다.
-        await().pollInterval(Duration.ofMillis(200)).atMost(Duration.ofSeconds(15)).untilAsserted {
+        // 단일 트랙이므로 REVEAL 만료 후 sweeper가 ENDED로 전이하고 방 상태를 ACTIVE로 되돌린다.
+        await().pollInterval(Duration.ofMillis(200)).atMost(Duration.ofSeconds(20)).untilAsserted {
             val ended = events.filterIsInstance<GameEndedEventMessage>()
             assertThat(ended).hasSize(1)
             assertThat(ended.first().playerId).isNull()

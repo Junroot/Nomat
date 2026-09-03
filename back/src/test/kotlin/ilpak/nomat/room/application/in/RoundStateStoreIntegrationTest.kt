@@ -22,11 +22,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.redis.core.RedisCallback
 import org.springframework.data.redis.core.StringRedisTemplate
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+
+// 프로덕션 `RoundStateStoreImpl.REVEAL_MILLIS`와 같은 값이어야 한다. 그 상수는 `out`의 private class에
+// 갇혀 있어 참조할 수 없으므로 여기서 다시 적는다 — 두 값이 갈리면 아래 두 테스트가 즉시 실패한다.
+private const val REVEAL_MILLIS = 10_000L
 
 @IntegrationTest
 class RoundStateStoreIntegrationTest(
@@ -142,6 +147,47 @@ class RoundStateStoreIntegrationTest(
         assertThat(roundStateStore.snapshot(roomId)!!.phase).isEqualTo(RoundPhase.REVEAL)
     }
 
+    @Test
+    fun `tryAdvanceOnCorrect_REVEAL 마감을 REVEAL_MILLIS 뒤로 잡는다`() {
+        roundStateStore.start(roomId, futureSpecs(), setOf(player.id))
+        val before = redisNowMillis()
+
+        val transition = roundStateStore.tryAdvanceOnCorrect(roomId, 1, player.id)
+
+        val after = redisNowMillis()
+        assertThat(transition.phase).isEqualTo(RoundPhase.REVEAL)
+        assertThat(transition.deadlineAt).isBetween(before + REVEAL_MILLIS, after + REVEAL_MILLIS)
+    }
+
+    @Test
+    fun `tryAdvanceOnDeadline_타임아웃으로 연 REVEAL도 같은 마감을 갖는다`() {
+        // 마감이 이미 지난 라운드라 sweeper가 우리보다 먼저 전이할 수 있다. 그래서 우리 호출의 반환값이 아니라
+        // 스냅샷을 보고, 기준 시각을 `start` **이전에** 잡는다 — 누가 전이했든 그 시점은 before~after 사이다.
+        val before = redisNowMillis()
+        roundStateStore.start(roomId, dueSpecs(), setOf(player.id))
+        roundStateStore.tryAdvanceOnDeadline(roomId, 1)
+        val after = redisNowMillis()
+
+        val snapshot = roundStateStore.snapshot(roomId)!!
+        assertThat(snapshot.phase).isEqualTo(RoundPhase.REVEAL)
+        assertThat(snapshot.deadlineAt).isBetween(before + REVEAL_MILLIS, after + REVEAL_MILLIS)
+    }
+
+    @Test
+    fun `togglePass_포기로 연 REVEAL도 같은 마감을 갖는다`() {
+        // 3명이면 임계는 2명(`ceil(3*2/3)`)이라 두 번째 포기가 전이를 일으킨다.
+        // 클립이 60초라 sweeper가 끼어들 여지가 없어 반환값을 그대로 볼 수 있다.
+        roundStateStore.start(roomId, futureSpecs(), setOf(1L, 2L, 3L))
+        roundStateStore.togglePass(roomId, 1, 1L)
+        val before = redisNowMillis()
+
+        val outcome = roundStateStore.togglePass(roomId, 1, 2L)
+
+        val after = redisNowMillis()
+        assertThat(outcome.transition.result).isEqualTo(TransitionResult.TRANSITIONED)
+        assertThat(outcome.transition.phase).isEqualTo(RoundPhase.REVEAL)
+        assertThat(outcome.transition.deadlineAt).isBetween(before + REVEAL_MILLIS, after + REVEAL_MILLIS)
+    }
 
     @ParameterizedTest
     @CsvSource("1, 1", "2, 2", "3, 2", "4, 3", "5, 4", "8, 6", "20, 14")
@@ -351,6 +397,12 @@ class RoundStateStoreIntegrationTest(
 
     private fun dueSpecs(): List<RoundTrackSpec> =
         listOf(RoundTrackSpec(1L, 0), RoundTrackSpec(2L, 0))
+
+    /**
+     * 마감은 Lua 안에서 Redis `TIME`으로 계산된다. 테스트 JVM 시계로 재면 컨테이너와의 skew만큼
+     * 오차가 생기므로 같은 시계(Redis)로 잰다 — 그래야 허용 오차 없이 정확한 구간 단언이 가능하다.
+     */
+    private fun redisNowMillis(): Long = redisTemplate.execute(RedisCallback { it.serverCommands().time(TimeUnit.MILLISECONDS) })!!
 
     private fun runConcurrently(threads: Int, action: (Int) -> RoundTransition): List<RoundTransition> {
         val pool = Executors.newFixedThreadPool(threads)

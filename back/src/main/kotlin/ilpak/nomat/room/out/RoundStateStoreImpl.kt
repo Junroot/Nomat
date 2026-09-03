@@ -241,7 +241,7 @@ private class RoundStateStoreImpl(
         private fun requiredCount(remaining: Int): Int =
             (remaining * PASS_NUMERATOR + PASS_DENOMINATOR - 1) / PASS_DENOMINATOR
 
-        private const val REVEAL_MILLIS = 5_000L
+        private const val REVEAL_MILLIS = 10_000L
         private const val TTL_SECONDS = 86_400L
         private const val IGNORED_CODE = "0"
         private const val NOT_DUE_CODE = "-1"
