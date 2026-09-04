@@ -2,15 +2,15 @@ package ilpak.nomat.room.`in`
 
 import ilpak.nomat.infrastructure.redis.ActiveSessionManager
 import ilpak.nomat.infrastructure.web.JwtHandshakeInterceptor
-import ilpak.nomat.infrastructure.web.ReconnectGracePeriodManager
 import ilpak.nomat.infrastructure.web.RoomJoinChannelInterceptor
+import ilpak.nomat.room.application.RoomService
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.messaging.SessionDisconnectEvent
 
 @Component
 private class RoomDisconnectListener(
-    private val reconnectGracePeriodManager: ReconnectGracePeriodManager,
+    private val roomService: RoomService,
     private val activeSessionManager: ActiveSessionManager,
 ) {
 
@@ -25,6 +25,6 @@ private class RoomDisconnectListener(
             return
         }
 
-        reconnectGracePeriodManager.scheduleLeave(roomId, playerId)
+        roomService.scheduleLeave(roomId, playerId)
     }
 }

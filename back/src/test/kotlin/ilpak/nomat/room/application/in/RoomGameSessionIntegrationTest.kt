@@ -16,6 +16,7 @@ import ilpak.nomat.playlist.application.dto.PlaylistWithTrackResponse
 import ilpak.nomat.room.application.dto.GameEndedEventMessage
 import ilpak.nomat.room.application.dto.GameStartedEventMessage
 import ilpak.nomat.room.application.dto.RoomDetailResponse
+import ilpak.nomat.room.out.PendingLeaveRedisKeys
 import ilpak.nomat.room.application.dto.RoomEventMessage
 import ilpak.nomat.room.application.dto.RoomJoinedEventMessage
 import org.assertj.core.api.Assertions.assertThat
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.simp.stomp.StompFrameHandler
 import org.springframework.messaging.simp.stomp.StompHeaders
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -42,6 +44,7 @@ class RoomGameSessionIntegrationTest(
     @Autowired private val roomStep: RoomStep,
     @Autowired private val tokenService: TokenService,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val redisTemplate: StringRedisTemplate,
     @LocalServerPort private val port: Int,
 ) {
 
@@ -175,7 +178,14 @@ class RoomGameSessionIntegrationTest(
         // 입장이 거부되지 않으므로 connectStomp가 예외 없이 성공해야 한다.
         // (멤버가 아닌 플레이어는 connectStomp가 ExecutionException으로 실패 — 위 테스트 참고)
         sessionB.disconnect()
+        // 예약은 로컬 타이머가 아니라 Redis에 있다 — 다른 인스턴스가 받은 CONNECT도 같은 예약을 본다.
+        val pendingMember = PendingLeaveRedisKeys.member(room.id, joiner.id)
+        await().atMost(Duration.ofSeconds(3)).untilAsserted {
+            assertThat(redisTemplate.opsForZSet().score(PendingLeaveRedisKeys.PENDING_LEAVES, pendingMember)).isNotNull()
+        }
         val sessionB2 = connectStomp(objectMapper, tokenService, port, joiner, room.id, "password")
+        assertThat(redisTemplate.opsForZSet().score(PendingLeaveRedisKeys.PENDING_LEAVES, pendingMember))
+            .withFailMessage("재접속 CONNECT가 Redis의 유예 예약을 취소해야 한다").isNull()
 
         val detail = getRoomDetail(room.id)
         assertThat(detail?.players?.map { it.id }).contains(joiner.id)

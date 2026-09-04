@@ -1,6 +1,9 @@
 services:
   spring-app:
     image: junroot0909/nomat:${NOMAT_TAG:-latest}
+    # 앱의 graceful shutdown 페이즈 타임아웃(spring.lifecycle.timeout-per-shutdown-phase=20s)보다 길어야 한다.
+    # 종료 시 열린 WebSocket 세션을 닫고 그 끊김(퇴장 유예 예약)이 Redis에 기록될 시간을 확보한다. Swarm 기본값은 10s.
+    stop_grace_period: 30s
     deploy:
       replicas: 2
       restart_policy:

@@ -152,8 +152,8 @@ class RoomSessionReplaceIntegrationTest(
         // 교체된 세션 A를 disconnect
         sessionA.disconnect()
 
-        // 유예 시간(2초)이 지나도 퇴장 이벤트가 발생하지 않아야 함
-        Thread.sleep(3000)
+        // 유예 시간(2초) + sweeper 폴링 주기(1초) + 여유가 지나도 퇴장 이벤트가 발생하지 않아야 함
+        Thread.sleep(4000)
         val leftEvents = receivedEvents.filter { it is RoomLeftEventMessage }
         assertThat(leftEvents).isEmpty()
 
