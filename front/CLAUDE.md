@@ -51,6 +51,7 @@ Nomat은 노래 맞히기 게임 애플리케이션이다.
 ### 상태 관리
 
 - `app/stores/MeStore.ts` — 현재 사용자 정보를 담는 Zustand 스토어 (`MeResponse`)
+- `app/stores/VolumeStore.ts` — 앱 전역 볼륨(0~100, 기본 50). **앱의 모든 소리 출처는 이 스토어를 구독한다.** 새 소리 출처를 만들 때 자체 볼륨 상수를 두지 말 것. 음소거는 별도 플래그가 아니라 `volume === 0`이다(라운드 플레이어의 `mute`/`unMute`와 직교). zustand `persist`로 localStorage에 영속된다 — 이 코드베이스의 첫 localStorage 사용이며, 키는 `nomat.` 접두 네임스페이스를 따른다(`nomat.volume`)
 
 ### 타입 정의
 
@@ -124,11 +125,11 @@ import RoomIcon from "~/assets/room.svg?react";
 명령형 리소스를 생성하는 서드파티 컴포넌트(YouTube 플레이어, 지도, 캔버스 등)를 감쌀 때 이것이 눈에 보이는 오작동으로 나타날 수 있다. 실제 사례:
 
 ```
- createPlayer  ─▶ 플레이어 A ─▶ onReady ─▶ setVolume(50) / playVideo()
+ createPlayer  ─▶ 플레이어 A ─▶ onReady ─▶ setVolume(v) / playVideo()
                                             │              └─▶ 🔊 볼륨 100으로 재생
                                             └─ 파괴 중이라 반영 실패
  destroyPlayer ─▶ A 파괴(비동기)
- createPlayer  ─▶ 플레이어 B ─▶ onReady ─▶ setVolume(50) 반영 ─▶ 🔉 50
+ createPlayer  ─▶ 플레이어 B ─▶ onReady ─▶ setVolume(v) 반영 ─▶ 🔉 v
 ```
 
 라운드 오디오 플레이어에서 "재생 시작 시 볼륨이 컸다가 작아지는" 증상으로 관측됐다. 볼륨이 변한 것이 아니라 **버려질 플레이어 A가 기본 볼륨으로 잠시 울리다 파괴되고 B로 교체되는** 소리였다. react-youtube가 클래스 컴포넌트라 `componentDidMount → componentWillUnmount → componentDidMount`가 연쇄한 결과다. 위 도식의 `setVolume`/`playVideo`는 `useRoundAudioOrchestrator`(`makeOnReady`·`startActivePlayback`)에 있다 — 명령형 재생 제어는 전부 이 훅이 들고 있고, `RoundAudioPlayer`는 `ClipPlayer` 두 개를 그리기만 한다.
@@ -160,6 +161,10 @@ import RoomIcon from "~/assets/room.svg?react";
 ### YouTube IFrame API에는 볼륨 playerVar가 없다
 
 볼륨은 `setVolume()` 메서드로만 제어할 수 있어 `onReady` 이후에만 설정 가능하다. 따라서 `autoplay` playerVar로 재생을 시작하면 볼륨 설정 전에 소리가 나간다. `onReady`에서 `setVolume()` → `playVideo()` 순으로 직접 재생을 시작해야 순서가 보장된다(IFrame API 공식 문서의 권장 패턴).
+
+볼륨 값은 `VolumeStore`에서 온다. 재생 개시 지점(`onReady`·재생 시작·적재·REVEAL 재재생)은 이벤트 콜백·이펙트 안이라 클로저의 옛 값을 읽을 수 있으므로 **ref로 읽어 최신 값을 보장한다**(`useRoundAudioOrchestrator`의 `volumeRef`, `MusicPlayer`의 `volumeRef`). 재생 중 변경은 별도의 `volume` 이펙트가 플레이어에 민다 — 라운드 플레이어는 교대하므로 **두 플레이어 모두**에 민다. `setVolume`은 mute를 풀지 않으므로 선버퍼링 쪽의 음소거와 충돌하지 않는다.
+
+localStorage 키는 `nomat.` 접두 네임스페이스를 쓴다(예: `nomat.volume`). 사용자가 편집할 수 있는 저장소이므로 읽을 때 정화한다.
 
 ## 컨벤션
 

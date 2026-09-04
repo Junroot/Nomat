@@ -6,7 +6,6 @@ import NavigationBar from "~/components/layout/NavigationBar";
 import NavigationItem from "~/components/layout/NavigationItem";
 import MobileHeader from "~/components/layout/MobileHeader";
 import MobileBottomNav from "~/components/layout/MobileBottomNav";
-import Me from "~/components/ui/Me";
 import RoomIcon from "~/assets/room.svg?react";
 import PlaylistIcon from "~/assets/playlist.svg?react";
 import BackIcon from "~/assets/back.svg?react";
@@ -62,26 +61,22 @@ function MainShell({
 }: AppShellMainProps & { isMobile: boolean }) {
     return (
         <div className="flex flex-row w-full h-full">
+            {/* 하단 슬롯(볼륨·사용자 정보)은 `NavigationBar`가 직접 그린다 — 여기서는 탭만 넣는다. */}
             <NavigationBar>
-                <div className="grow shrink flex flex-col gap-4">
-                    <Link to="/" replace>
-                        <NavigationItem
-                            clicked={activeTab === "rooms"}
-                            icon={<RoomIcon />}
-                            title="플레이 룸"
-                        />
-                    </Link>
-                    <Link to="/playlists" replace>
-                        <NavigationItem
-                            clicked={activeTab === "playlists"}
-                            icon={<PlaylistIcon />}
-                            title="플레이리스트"
-                        />
-                    </Link>
-                </div>
-                <div className="grow-0 shrink-0">
-                    <Me />
-                </div>
+                <Link to="/" replace>
+                    <NavigationItem
+                        clicked={activeTab === "rooms"}
+                        icon={<RoomIcon />}
+                        title="플레이 룸"
+                    />
+                </Link>
+                <Link to="/playlists" replace>
+                    <NavigationItem
+                        clicked={activeTab === "playlists"}
+                        icon={<PlaylistIcon />}
+                        title="플레이리스트"
+                    />
+                </Link>
             </NavigationBar>
 
             {/* ⚠️ `isMobile`로 **엘리먼트 트리를 갈아끼우지 않는다.** 같은 자리에 다른 타입이 오면
@@ -110,30 +105,25 @@ function SubShell({
     return (
         <div className="flex flex-row w-full h-full">
             <NavigationBar>
-                <div className="grow shrink flex flex-col gap-4">
-                    {backTo ? (
-                        <Link to={backTo} replace>
-                            <NavigationItem icon={<BackIcon />} title="뒤로가기" />
-                        </Link>
-                    ) : onBack ? (
-                        <NavigationItem
-                            icon={<BackIcon />}
-                            title="뒤로가기"
-                            onClick={onBack}
-                        />
-                    ) : null}
-                    {actions.map((action, index) => (
-                        <NavigationItem
-                            key={index}
-                            icon={action.icon}
-                            title={action.label}
-                            onClick={action.onClick}
-                        />
-                    ))}
-                </div>
-                <div className="grow-0 shrink-0">
-                    <Me />
-                </div>
+                {backTo ? (
+                    <Link to={backTo} replace>
+                        <NavigationItem icon={<BackIcon />} title="뒤로가기" />
+                    </Link>
+                ) : onBack ? (
+                    <NavigationItem
+                        icon={<BackIcon />}
+                        title="뒤로가기"
+                        onClick={onBack}
+                    />
+                ) : null}
+                {actions.map((action, index) => (
+                    <NavigationItem
+                        key={index}
+                        icon={action.icon}
+                        title={action.label}
+                        onClick={action.onClick}
+                    />
+                ))}
             </NavigationBar>
 
             {/* 골격을 고정하는 이유는 MainShell의 주석 참조 — 방 화면의 플레이어가 여기에 달려 있다. */}
