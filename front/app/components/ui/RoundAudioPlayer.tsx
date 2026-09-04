@@ -5,8 +5,12 @@ import useRoundAudioOrchestrator, {
     type RoundAudioOrchestratorParams,
 } from "~/hooks/useRoundAudioOrchestrator";
 import type { ClipPlaybackStatus } from "~/hooks/useClipPlayback";
+import useVolumeStore from "~/stores/VolumeStore";
 
-interface RoundAudioPlayerProps extends RoundAudioOrchestratorParams {
+// `volume`은 방 화면이 아니라 이 컴포넌트가 전역 스토어에서 직접 읽는다 — 방 화면이 볼륨을
+// 알 이유가 없고, 오케스트레이터는 스토어를 몰라야 한다(그 훅의 주석 참조). 그 사이에서
+// 구독을 맡는 자리가 여기다.
+interface RoundAudioPlayerProps extends Omit<RoundAudioOrchestratorParams, "volume"> {
     // 재생 상태를 상위로 올려 안내 UI가 읽게 한다.
     onPlaybackChange?: (status: ClipPlaybackStatus) => void;
     // 영상 노출 억제. **표시 여부만** 바꾸며 플레이어 인스턴스·선버퍼링·재생 제어에는 영향이 없다.
@@ -25,10 +29,13 @@ interface RoundAudioPlayerProps extends RoundAudioOrchestratorParams {
  *
  * 개발 모드에서 재생 시작 시 볼륨이 컸다가 작아지는 것은 StrictMode 이중 마운트로
  * 플레이어가 두 번 생성되기 때문이며 프로덕션에서는 재현되지 않는다 —
- * 자세한 내용과 판별법은 `front/CLAUDE.md`의 "알려진 함정" 참조.
+ * 자세한 내용과 판별법은 `front/CLAUDE.md`의 "알려진 함정" 참조. 볼륨이 스토어에서 오게 된
+ * 뒤에도 마찬가지다: `onReady`가 스토어 값을 ref로 읽으므로 살아남는 두 번째 플레이어도
+ * 같은 값을 받는다. 잠깐 크게 울리는 것은 버려지는 첫 번째 플레이어다.
  */
 export default function RoundAudioPlayer({ onPlaybackChange, videoSuppressed = false, ...params }: RoundAudioPlayerProps) {
-    const { activeIndex, status, playerHandlers } = useRoundAudioOrchestrator(params);
+    const volume = useVolumeStore((state) => state.volume);
+    const { activeIndex, status, playerHandlers } = useRoundAudioOrchestrator({ ...params, volume });
 
     useEffect(() => {
         onPlaybackChange?.(status);

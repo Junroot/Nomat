@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import PlayIcon from "~/assets/play-circle.svg?react";
 import PauseIcon from "~/assets/pause-circle.svg?react";
 import YouTube from "react-youtube";
+import useVolumeStore from "~/stores/VolumeStore";
 
 interface MusicPlayerProps {
     embedId: string,
@@ -24,11 +25,22 @@ export default function MusicPlayer({ embedId, startTimeSec, endTimeSec, title }
     const animationFrameRef = useRef<number | null>(null);
     const totalDuration = endTimeSec - startTimeSec;
 
+    // 볼륨은 앱 전역 설정을 따른다. `onReady`는 이벤트 콜백이라 클로저의 옛 값을 읽을 수 있으므로
+    // ref로 최신 값을 보장한다(라운드 오케스트레이터와 같은 패턴).
+    const volume = useVolumeStore((state) => state.volume);
+    const volumeRef = useRef(volume);
+    volumeRef.current = volume;
+
     // 유튜브 플레이어가 로드될 때 실행
     const onReady = (event: any) => {
         playerRef.current = event.target;
-        playerRef.current.setVolume(50);
+        playerRef.current.setVolume(volumeRef.current);
     };
+
+    // 재생 중 볼륨이 바뀌면 즉시 반영한다.
+    useEffect(() => {
+        playerRef.current?.setVolume(volume);
+    }, [volume]);
 
     const youTubeOptions = {
         playerVars: {

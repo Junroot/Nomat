@@ -4,7 +4,6 @@ import type { RoundLifecycle } from "~/hooks/roundReducer";
 import type { RoundTrackRef } from "~/utils/RoundEvent";
 import type { YouTubePlayerHandle } from "~/utils/youtubePlayer";
 
-const PLAYBACK_VOLUME = 50;
 const YT_STATE_ENDED = 0;
 const YT_STATE_PLAYING = 1;
 
@@ -24,6 +23,9 @@ export interface RoundAudioOrchestratorParams {
     nextTrack: RoundTrackRef | null;
     // 제스처 게이트를 통과했는지 여부. false면 자동재생 정책에 막히므로 재생을 시도하지 않는다.
     armed: boolean;
+    // 재생 볼륨(0~100). 앱 전역 설정(`VolumeStore`)에서 오지만 이 훅은 스토어를 모른다 —
+    // 구독은 렌더링을 맡는 `RoundAudioPlayer`가 하고, 여기는 값만 받는다.
+    volume: number;
 }
 
 export interface RoundAudioOrchestrator {
@@ -62,7 +64,8 @@ export interface RoundAudioOrchestrator {
  * 카운터는 아래 교대 이펙트가, 재생 판정은 {@link useClipPlayback}이 소유한다.
  *
  * 이 훅은 **명령형 제어만** 담당하고 플레이어를 렌더링하지 않는다. 두 관심사를 갈라둔 덕에
- * 호출부(`RoundAudioPlayer`)는 `ClipPlayer` 두 개를 그리는 일만 한다.
+ * 호출부(`RoundAudioPlayer`)는 `ClipPlayer` 두 개를 그리는 일만 한다. 같은 이유로 볼륨도
+ * 스토어를 구독하지 않고 파라미터로 받는다 — 이 훅은 앱 전역 상태를 모르는 순수 제어 훅이다.
  */
 export default function useRoundAudioOrchestrator({
     roundNumber,
@@ -70,6 +73,7 @@ export default function useRoundAudioOrchestrator({
     track,
     nextTrack,
     armed,
+    volume,
 }: RoundAudioOrchestratorParams): RoundAudioOrchestrator {
     // 라운드 번호의 홀짝으로 담당을 정한다 — 1라운드는 0번, 2라운드는 1번…
     const activeIndex = Math.max(roundNumber - 1, 0) % PLAYER_COUNT;
@@ -77,6 +81,10 @@ export default function useRoundAudioOrchestrator({
     activeIndexRef.current = activeIndex;
     const phaseRef = useRef(phase);
     phaseRef.current = phase;
+    // 재생 개시 지점(onReady·재생 시작·적재·REVEAL 재재생)은 이벤트 콜백·이펙트 안이라 클로저에
+    // 갇힌 옛 값을 읽을 수 있다. ref로 읽어 그 순간의 최신 볼륨을 보장한다.
+    const volumeRef = useRef(volume);
+    volumeRef.current = volume;
 
     const playersRef = useRef<(YouTubePlayerHandle | null)[]>([null, null]);
     const playsDoneRef = useRef(0);
@@ -110,7 +118,7 @@ export default function useRoundAudioOrchestrator({
         }
         startedRef.current = true;
         player.unMute();
-        player.setVolume(PLAYBACK_VOLUME);
+        player.setVolume(volumeRef.current);
         player.playVideo();
     };
 
@@ -143,7 +151,7 @@ export default function useRoundAudioOrchestrator({
             // 적재 후 자동 재생까지 간다 — 게이트를 통과한 세션이므로 별도 playVideo가 필요 없다.
             startedRef.current = true;
             player.unMute();
-            player.setVolume(PLAYBACK_VOLUME);
+            player.setVolume(volumeRef.current);
             player.loadVideoById(clip);
         } else {
             // 게이트 미통과 — 적재만 하고 armed 이펙트가 재생을 맡는다.
@@ -183,7 +191,7 @@ export default function useRoundAudioOrchestrator({
         }
         revealReplayedRef.current = roundNumber;
         player.unMute();
-        player.setVolume(PLAYBACK_VOLUME);
+        player.setVolume(volumeRef.current);
         player.seekTo(track.startTimeSec, true);
         player.playVideo();
     }, [phase, roundNumber, track, armed, activeIndex]);
@@ -213,6 +221,14 @@ export default function useRoundAudioOrchestrator({
         playersRef.current.forEach((player) => player?.stopVideo());
     }, [phase]);
 
+    // 볼륨 변경 — **두 플레이어 모두**에 민다. 플레이어는 방 세션 동안 재사용되고 라운드마다
+    // 담당이 교대하므로 담당에만 적용하면 다음 라운드가 옛 볼륨으로 들린다.
+    // 선버퍼링 쪽은 mute 상태라 소리가 나지 않으며, `setVolume`은 mute를 풀지 않는다 —
+    // 담당이 되어 `unMute()`될 때 이미 올바른 볼륨이다.
+    useEffect(() => {
+        playersRef.current.forEach((player) => player?.setVolume(volume));
+    }, [volume]);
+
     // arming이 라운드 진행 중(플레이어가 이미 ready된 뒤)에 이뤄지면 여기서 재생을 시작한다.
     // 곡이 올라가 있지 않으면(게임 시작 전) 할 일이 없다.
     useEffect(() => {
@@ -229,7 +245,7 @@ export default function useRoundAudioOrchestrator({
     // 재생보다 먼저인 것이 보장된다. IFrame API 공식 문서의 권장 패턴이기도 하다.
     const makeOnReady = (index: number) => (player: YouTubePlayerHandle) => {
         playersRef.current[index] = player;
-        player.setVolume(PLAYBACK_VOLUME);
+        player.setVolume(volumeRef.current);
         disableCaptions(player);
         // 자동재생 차단 통지는 두 플레이어 모두에 걸어야 한다 — 담당은 라운드마다 교대하므로
         // 한쪽에만 걸면 짝수 라운드에서 차단을 놓친다.
