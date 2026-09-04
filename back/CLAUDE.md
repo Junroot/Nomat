@@ -61,7 +61,7 @@ module/
 - `security/` — OAuth2 설정, JWT 토큰 필터 (`@Profile("!test")`)
 - `web/` — CORS 설정, 전역 예외 처리, MDC 로깅 필터, WebSocket/STOMP 설정 (`/ws` 엔드포인트, `/topic` 브로커, STOMP CONNECT 시 JWT 인증 + 방 입장 인터셉터)
 - `redis/` — 분산 락 (`RedisDistributedLockExecutor`), 공용 `RedisMessageListenerContainer` 빈, pub/sub round-trip 헬스 컴포넌트 (`/health` 응답에 `components.redisPubSub`로 노출됨)
-- `events/` — Spring Modulith outbox 인프라: 미완료 publication 재시도 스케줄러(`EventPublicationRetryScheduler`)와 ShedLock Redis lock provider 구성(`ShedLockConfiguration`)
+- `events/` — Spring Modulith outbox 인프라: 미완료 publication 재시도 스케줄러(`EventPublicationRetryScheduler`)와 ShedLock Redis lock provider 구성(`ShedLockConfiguration`). `@Scheduled` 전용 스케줄러 빈(`SchedulingConfiguration`, 이름 `taskScheduler`, `spring.task.scheduling.*` 바인딩)도 여기 둔다 — `@EnableWebSocketMessageBroker`의 `messageBrokerTaskScheduler` 때문에 Boot 자동설정이 꺼져 있고, `TaskScheduler` 빈이 여럿일 때 Spring은 이름 `taskScheduler`를 잡으며 없으면 **단일 스레드로 폴백**한다. 다른 `TaskScheduler` 빈(예: WebSocket 하트비트용 `wsHeartbeatTaskScheduler`)은 이 이름을 쓰지 않는다.
 - `container/` — local/test용 Testcontainers 빈 (MySQL, ES, Redis)
 - `jpa/` — JPA auditing 설정 (`AuditorAwareImpl`이 SecurityContext에서 `createdBy` 설정)
 
@@ -76,6 +76,16 @@ module/
 - **정답 비노출** — `OPEN` 동안 정답(`title`·`additionalTitles`)은 클라이언트로 내려가지 않는다. `ROUND_STARTED`·재접속 스냅샷은 answer-stripped 재생 참조만, `ROUND_REVEALED`·`ENDED`에서만 정답을 포함한다. 채팅 정답 판정(`AnswerMatcher` → `common/normalize/TitleNormalizer`: 표기 정규화 후 비교. 전각/반각·히라가나/가타카나·큰 가나/작은 가나·대소문자·공백/구두점/기호는 접고, 탁점·장음 부호·괄호 안의 내용은 접지 않는다)은 서버 전용.
 - **이벤트** — `RoundStartedEvent`·`RoundRevealedEvent`는 `application/domain`에 두고 `@TransactionalEventListener(AFTER_COMMIT, fallbackExecution = true)`로 broadcast(트랜잭션 밖 전이라 fallback 필요). 게임 자연 종료는 기존 `GameEndedEvent`(행위자 옵셔널) 재사용. 모든 전파는 기존 `room:{id}:events` pub/sub → STOMP 경로를 그대로 쓴다.
 - 모든 전이 트리거(sweeper·첫 정답·방장 종료)는 단일 진입점 `RoundService`로 수렴한다.
+
+## 퇴장 유예 (`room` 모듈)
+
+끊김 → 유예(`app.room.reconnect-grace-period-seconds`, 기본 60초) → 퇴장 전이의 예약은 **프로세스 밖** Redis ZSET `rooms:pending-leaves`(member `roomId:playerId`, score 만료 시각, 포트 `PendingLeaveStore`/어댑터 `PendingLeaveStoreImpl`)에 둔다. 인-프로세스 타이머를 쓰면 롤링 배포·재시작에 예약이 사라져 고아 방이 남고, `replicas: 2`에서는 끊김을 처리한 인스턴스와 재접속을 받은 인스턴스가 달라 취소가 성립하지 않는다.
+
+- **claim-then-act** — 재접속(`RoomService.cancelPendingLeave`)과 sweeper(`PendingLeaveSweeper` → `RoomService.sweepDueLeaves`, `RoundDeadlineSweeper`와 같은 1초 폴링 + `@SchedulerLock(PT4S)`)가 모두 `ZREM` 반환값으로 항목 소유권을 가져간다. 세션 없는 CONNECT는 `ZREM`이 1이면 재접속(join 없음), 0이면 신규 입장(`Room.join()`)이다. sweeper는 claim 성공 시에만 `leave`를 실행하므로 접속 중인 멤버를 내보내지 않는다.
+- **완료/재시도** — `RoomService.leave`는 방 없음·멤버 아님이 조용한 no-op이라 예외 없이 반환하면 완료다. 예외면 `warn` 로그 후 `now + 5초`로 복원해 재시도하며, 상한·시간 기반 GC는 없다(조용히 버리면 고아 방이 다른 얼굴로 재현된다).
+- **시계** — 예약·만료·복원 시각은 라운드 엔진과 같이 Redis `TIME`이다.
+- **하트비트** — STOMP 하트비트 10초/10초(`WebSocketConfiguration`, 전용 `wsHeartbeatTaskScheduler`). 클라이언트 프레임이 30초 없으면 서버가 세션을 닫고 같은 끊김 경로로 합류한다.
+- **종료** — `server.shutdown: graceful` + 페이즈 타임아웃 20초, compose `stop_grace_period: 30s`. 라이프사이클 stop이 세션을 닫아 끊김이 Redis에 기록된 뒤 빈이 파괴된다. SIGKILL·Redis 소실은 여전히 막지 못한다.
 
 ## 테스트 패턴
 

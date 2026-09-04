@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component
 class RoomJoinChannelInterceptor(
     private val roomService: RoomService,
     private val playerService: PlayerService,
-    private val reconnectGracePeriodManager: ReconnectGracePeriodManager,
     private val activeSessionManager: ActiveSessionManager,
     private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper,
@@ -40,12 +39,15 @@ class RoomJoinChannelInterceptor(
             ?: throw BadRequestException("세션 정보가 없습니다.")
         val player = playerService.findById(playerId)
 
+        // 재접속 판별은 Redis의 유예 예약(ZREM 반환값)으로 한다 — 끊김을 처리한 인스턴스와 이 CONNECT를 받은
+        // 인스턴스가 달라도 같은 결과다. (a) 같은 방 세션: 멤버십이 이미 있으므로 취소 결과는 무시.
+        // (b) 다른 방 세션: 옛 방 예약 취소 → 옛 방 퇴장 → 새 방 입장. (c) 세션 없음: 예약이 있었으면 재접속, 없으면 신규 입장.
         val existingSession = activeSessionManager.getSession(playerId)
         if (existingSession != null) {
             if (existingSession.roomId == roomId) {
-                reconnectGracePeriodManager.cancelGracePeriod(roomId, playerId)
+                roomService.cancelPendingLeave(roomId, playerId)
             } else {
-                reconnectGracePeriodManager.cancelGracePeriod(existingSession.roomId, playerId)
+                roomService.cancelPendingLeave(existingSession.roomId, playerId)
                 roomService.leave(existingSession.roomId, playerId)
                 roomService.join(roomId, playerId, password)
             }
@@ -60,7 +62,7 @@ class RoomJoinChannelInterceptor(
                 redisTemplate.convertAndSend(eventChannel, objectMapper.writeValueAsString(event))
             }
         } else {
-            if (!reconnectGracePeriodManager.cancelGracePeriod(roomId, playerId)) {
+            if (!roomService.cancelPendingLeave(roomId, playerId)) {
                 roomService.join(roomId, playerId, password)
             }
         }

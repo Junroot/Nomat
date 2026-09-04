@@ -22,7 +22,13 @@ app:
     pubsub:
       timeout-ms: 2000
       channel-prefix: health:pubsub
+server:
+  # 인스턴스 종료 시 열린 WebSocket 세션을 닫고 그 끊김 이벤트(퇴장 유예 예약)가 Redis에 기록될 시간을 확보한다.
+  # 배포 설정(infra/app/compose.yml)의 stop_grace_period는 아래 페이즈 타임아웃보다 길어야 한다.
+  shutdown: graceful
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
   modulith:
     events:
       completion-mode: DELETE
@@ -36,6 +42,12 @@ spring:
         core-size: 4
         max-size: 16
         queue-capacity: 1000
+    # @Scheduled 전용 풀(SchedulingConfiguration의 taskScheduler 빈). 유예 sweeper·라운드 마감 sweeper·
+    # 이벤트 재발행 스케줄러가 각자 스레드를 갖게 해, 유예 sweep의 락 대기가 라운드 전이를 밀어내지 않게 한다.
+    scheduling:
+      pool:
+        size: 4
+      thread-name-prefix: scheduling-
 ---
 server:
   forward-headers-strategy: framework

@@ -7,6 +7,7 @@ import ilpak.nomat.common.exception.NotFoundResource
 import ilpak.nomat.common.lock.DistributedLockExecutor
 import ilpak.nomat.player.application.PlayerService
 import ilpak.nomat.playlist.application.PlaylistService
+import ilpak.nomat.room.application.domain.PendingLeaveStore
 import ilpak.nomat.room.application.domain.Room
 import ilpak.nomat.room.application.domain.RoomPlaylist
 import ilpak.nomat.room.application.domain.RoomPlaylistTrack
@@ -16,9 +17,12 @@ import ilpak.nomat.room.application.domain.RoomStatus
 import ilpak.nomat.room.application.dto.RoomDetailResponse
 import ilpak.nomat.room.application.dto.RoomRequest
 import ilpak.nomat.room.application.dto.RoomResponse
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -31,6 +35,8 @@ class RoomService(
     private val playerService: PlayerService,
     private val distributedLockExecutor: DistributedLockExecutor,
     private val roundService: RoundService,
+    private val pendingLeaveStore: PendingLeaveStore,
+    @Value("\${app.room.reconnect-grace-period-seconds:60}") private val gracePeriodSeconds: Long,
     transactionManager: PlatformTransactionManager,
 ) {
 
@@ -121,6 +127,10 @@ class RoomService(
         }
     }
 
+    /**
+     * 방 퇴장. 방이 없거나 멤버가 아니면 **조용한 no-op**이다 — 이 성질이 [sweepDueLeaves]의 "예외 없이 반환하면 완료"
+     * 판별의 근거이므로, 여기서 예외를 던지도록 바꾸면 sweeper의 완료/재시도 규칙도 함께 바꿔야 한다.
+     */
     fun leave(roomId: Long, playerId: Long) {
         var roomDeleted = false
         distributedLockExecutor.withLock("room:$roomId:lock") {
@@ -137,6 +147,54 @@ class RoomService(
         }
         if (roomDeleted) {
             roundService.teardownRound(roomId)
+        }
+    }
+
+    /**
+     * 연결이 끊긴 멤버의 퇴장을 유예 시간 뒤로 예약한다. 예약은 Redis에 두므로 이 인스턴스가 내려가도 남고,
+     * 어느 인스턴스의 재접속이든 [cancelPendingLeave]로 취소할 수 있다.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun scheduleLeave(roomId: Long, playerId: Long) {
+        pendingLeaveStore.schedule(roomId, playerId, gracePeriodSeconds)
+        log.info("퇴장 유예 예약: roomId={}, playerId={}, graceSeconds={}", roomId, playerId, gracePeriodSeconds)
+    }
+
+    /** 유예 예약 취소. 예약이 있었으면 `true` — 세션 없는 CONNECT를 재접속으로 볼지 신규 입장으로 볼지 이 값이 가른다. */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun cancelPendingLeave(roomId: Long, playerId: Long): Boolean {
+        val cancelled = pendingLeaveStore.remove(roomId, playerId)
+        if (cancelled) {
+            log.info("재접속으로 유예 취소: roomId={}, playerId={}", roomId, playerId)
+        }
+        return cancelled
+    }
+
+    /**
+     * 만료된 유예 예약 처리(sweeper 구동). 항목마다 **먼저 `remove`로 claim하고 성공한 경우에만** [leave]를 실행한다
+     * (claim-then-act) — 재접속이 먼저 취소했으면 0을 받아 건너뛰므로 접속 중인 멤버를 내보내지 않는다.
+     * [leave]가 예외 없이 반환하면 완료(방 없음·이미 퇴장 포함), 예외면 경고 로그 후 재시도 간격 뒤로 복원한다.
+     * 한 항목의 실패가 나머지 처리를 막지 않는다.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun sweepDueLeaves() {
+        for (pending in pendingLeaveStore.findDue()) {
+            if (!pendingLeaveStore.remove(pending.roomId, pending.playerId)) {
+                continue
+            }
+            @Suppress("TooGenericExceptionCaught")
+            try {
+                leave(pending.roomId, pending.playerId)
+                log.info("유예 시간 만료로 퇴장 처리: roomId={}, playerId={}", pending.roomId, pending.playerId)
+            } catch (exception: Exception) {
+                log.warn(
+                    "유예 만료 퇴장 실패, 재시도 예약: roomId={}, playerId={}",
+                    pending.roomId,
+                    pending.playerId,
+                    exception,
+                )
+                pendingLeaveStore.restore(pending.roomId, pending.playerId)
+            }
         }
     }
 
@@ -160,5 +218,9 @@ class RoomService(
             }
         }
         roundService.teardownRound(roomId)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(RoomService::class.java)
     }
 }
