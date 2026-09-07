@@ -10,6 +10,10 @@ export interface ChatMessage extends ChatMessageBase {
     senderId: number;
     senderNickname: string;
     content: string;
+    // 발신자의 닉네임 색 슬롯(0 ~ CHAT_COLOR_SLOT_COUNT-1). 발신 시점에 확정되며 이후 바뀌지
+    // 않는다 — 메시지 객체는 불변이고 `ChatMessageItem`의 memo가 그 위에 서 있다. 입퇴장으로
+    // 배정 상태가 바뀌어도 이미 피드에 있는 메시지의 색은 그대로다.
+    colorSlot: number;
 }
 
 export interface SystemMessage extends ChatMessageBase {
