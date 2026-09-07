@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import InputHistory from "~/utils/InputHistory";
 
 interface ChatInputProps {
     placeholder: string;
@@ -23,10 +24,24 @@ interface ChatInputProps {
  *
  * `Shift+Enter`는 포기("모르겠어요") 신호다. OPEN 동안 포커스는 이미 여기에 있으므로(추측을
  * 여기 치므로) 마우스로 손을 옮기지 않고 포기할 수 있어야 리듬이 끊기지 않는다.
+ *
+ * `↑`/`↓`는 셸처럼 **내가 보낸 것**을 되짚는다(`InputHistory`). 이력도 입력값과 같은 이유로
+ * 여기 산다 — 원천은 `onSend`에 넘긴 문자열이고, 서버가 에코한 `messages`에서 파생하지 않는다
+ * (남의 메시지가 섞이고, 피드 상한으로 앞이 잘리고, 왕복 뒤에야 들어오고, 무엇보다 이 컴포넌트가
+ * `messages`를 받으면 새 메시지마다 입력창이 렌더된다). 모델은 렌더를 유발하지 않으므로 `useRef`로
+ * 든다. 방향키의 기본 동작(단일 행 입력에서 캐럿을 맨 앞/뒤로)은 이력 유무와 무관하게 막는다 —
+ * 이력이 비어 `null`이 와도 캐럿이 튀지 않게. 불러온 텍스트의 캐럿은 따로 옮기지 않는다: 값이
+ * 프로그램적으로 바뀌면 캐럿이 끝으로 가는 것은 HTML 명세(`value` setter)가 보장하고, React는
+ * 값이 달라졌을 때만 `node.value`에 대입해 그 경로를 그대로 탄다. 어긋나는 브라우저가 관측되면
+ * `useLayoutEffect` + 플래그로 못 박는다(design.md Decision 5).
  */
 export default function ChatInput({ placeholder, onSend, passRoundSeq, onPass }: ChatInputProps) {
     const [input, setInput] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
+    // `useRef(new InputHistory())`는 초기값 식이 매 렌더 평가되므로 첫 렌더에만 생성한다.
+    const historyRef = useRef<InputHistory | null>(null);
+    historyRef.current ??= new InputHistory();
+    const history = historyRef.current;
 
     useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {
@@ -43,6 +58,7 @@ export default function ChatInput({ placeholder, onSend, passRoundSeq, onPass }:
         const trimmed = input.trim();
         if (!trimmed) return;
         onSend(trimmed);
+        history.push(trimmed);
         setInput("");
     }
 
@@ -54,18 +70,34 @@ export default function ChatInput({ placeholder, onSend, passRoundSeq, onPass }:
                 placeholder={placeholder}
                 className="flex-1 p-[2px] pl-[8px] placeholder-zinc-500 focus:outline-none"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                    // 타이핑은 탐색을 끝낸다(이력 항목은 불변, 편집 텍스트가 다음 draft).
+                    // `setInput`으로 갈아끼운 값은 onChange를 발화시키지 않으므로 ↑/↓ 자체가
+                    // 탐색을 끝내는 일은 없다.
+                    history.exitBrowsing();
+                    setInput(e.target.value);
+                }}
                 maxLength={200}
                 onKeyDown={(e) => {
                     // `isComposing` 가드는 필수다 — 한글·일본어 IME의 조합 확정 Enter가
                     // 전송이나 포기로 해석되면 안 된다(커밋 #237과 같은 계열의 이슈).
-                    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                    // 방향키도 같다: 조합 중에 값을 갈아끼우면 조합 중이던 글자가 깨진다.
+                    if (e.nativeEvent.isComposing) return;
+                    if (e.key === "Enter") {
                         e.preventDefault();
                         if (e.shiftKey) {
                             if (passRoundSeq !== null) onPass(passRoundSeq);
                         } else {
                             handleSend();
                         }
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const recalled = history.prev(input);
+                        if (recalled !== null) setInput(recalled);
+                    } else if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        const recalled = history.next();
+                        if (recalled !== null) setInput(recalled);
                     }
                 }}
             />
