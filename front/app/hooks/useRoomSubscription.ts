@@ -6,6 +6,7 @@ import { fetchRoomDetail } from "~/utils/api";
 import type RoomDetailResponse from "~/utils/RoomDetailResponse";
 import type { RoomMemberResponse, RoomStatus } from "~/utils/RoomDetailResponse";
 import type RoomChatMessage from "~/utils/ChatMessage";
+import ColorSlotAllocator from "~/utils/ColorSlotAllocator";
 import type { RoundStartedEvent, RoundRevealedEvent, RoundPassUpdatedEvent } from "~/utils/RoundEvent";
 import { roundReducer, initialRoundState, type RoundState } from "~/hooks/roundReducer";
 import type { StompSubscription } from "@stomp/stompjs";
@@ -99,13 +100,23 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     const isLeavingVoluntarilyRef = useRef(false);
     const isDeactivatedRef = useRef(false);
     const nextMessageIdRef = useRef(0);
+    /**
+     * 방 세션 동안의 playerId → 닉네임 색 슬롯 대응. 훅 인스턴스(= 방 세션)와 수명이 같고
+     * 언마운트되면 함께 버려진다.
+     *
+     * 상태가 아니라 ref인 이유: 대응 자체는 렌더에 쓰이지 않는다(메시지에 슬롯을 찍는 시점에만
+     * 읽음). 상태로 두면 배정할 때마다 불필요한 렌더가 나고, 이펙트 재실행(StrictMode)에도
+     * ref는 유지된다.
+     */
+    const colorSlotsRef = useRef(new ColorSlotAllocator());
 
     /**
      * 피드에 메시지를 붙이는 **유일한** 경로 — id 부여와 상한 절단을 여기서만 한다.
      *
      * 메시지 객체는 여기서 만들어진 뒤 **절대 변경하지 않는다.** 목록 항목(`ChatMessageItem`)이
      * `React.memo`로 props 동일성만 보고 렌더를 건너뛰므로, 객체를 제자리에서 고치면 화면이
-     * 갱신되지 않는다. 바꿔야 할 일이 생기면 새 객체로 교체한다.
+     * 갱신되지 않는다. 바꿔야 할 일이 생기면 새 객체로 교체한다. `colorSlot`도 그 대상이다 —
+     * 이후 배정 상태가 바뀌어도(입퇴장) 이미 피드에 있는 메시지의 슬롯은 손대지 않는다.
      *
      * 절단은 한 번에 한 항목씩 일어난다(상한 도달 후 메시지 하나마다 하나 제거). 위로 스크롤해
      * 과거를 읽는 사람의 화면은 브라우저 scroll anchoring에 맡기며, 미지원 브라우저(Safari)에서도
@@ -142,6 +153,8 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
     const handleEventRef = useRef<(event: RoomEventMessage) => void>(() => {});
     handleEventRef.current = (event: RoomEventMessage) => {
         if (event.type === "JOINED") {
+            // 중복 JOINED(이미 목록에 있음)여도 assign은 기존 슬롯을 돌려주므로 색이 유지된다.
+            colorSlotsRef.current.assign(event.playerId);
             setPlayers((prev) => {
                 if (prev.some((p) => p.id === event.playerId)) return prev;
                 return [...prev, { id: event.playerId, nickname: event.nickname, isMaster: false }];
@@ -163,10 +176,16 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                 }
                 return;
             }
+            // 떠난 사람의 슬롯은 비워 다음 입장자가 재사용한다. 남은 사람의 슬롯은 건드리지 않는다.
+            // 본인 LEFT(위에서 return)와 SESSION_REPLACED는 배정에 영향 없음.
+            colorSlotsRef.current.release(event.playerId);
             setPlayers((prev) => prev.filter((p) => p.id !== event.playerId));
             appendMessage({ type: "system", eventType: "leave", targetNickname: event.nickname, timestamp: new Date().toISOString() });
         } else if (event.type === "CHAT") {
-            appendMessage({ type: "message", senderId: event.playerId, senderNickname: event.nickname, content: event.content, timestamp: event.timestamp });
+            // STOMP 구독이 방 상세보다 먼저 열리므로 멤버 목록을 받기 전에 CHAT이 올 수 있다.
+            // 여기서도 배정해 그 발신자에게 색이 비지 않게 하고, 이후 방 상세 배정은 이 슬롯을 유지한다.
+            const colorSlot = colorSlotsRef.current.assign(event.playerId);
+            appendMessage({ type: "message", senderId: event.playerId, senderNickname: event.nickname, content: event.content, timestamp: event.timestamp, colorSlot });
         } else if (event.type === "STARTED") {
             setStatus("PLAYING");
             dispatchRound({ type: "GAME_STARTED" });
@@ -251,6 +270,9 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
             fetchRoomDetail(roomId)
                 .then((detail) => {
                     setRoomDetail(detail);
+                    // 목록 순서대로 슬롯 배정. 방 상세보다 먼저 온 CHAT으로 이미 배정된 참가자는
+                    // assign이 기존 슬롯을 돌려주므로 별도 분기가 필요 없다.
+                    detail.players.forEach((p) => colorSlotsRef.current.assign(p.id));
                     setPlayers(detail.players);
                     setStatus(detail.status);
                     // 재접속 복원: 진행 중 라운드 스냅샷이 있으면 리듀서를 시드한다(roundSeq 단조 가드).

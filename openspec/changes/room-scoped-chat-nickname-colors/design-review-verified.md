@@ -1,0 +1,37 @@
+# 검증 사실 캐시
+
+이 루프 실행 중 실제 코드를 열어 확인한 관찰 사실. 코드는 루프 중 불변이므로
+같은 루프의 후속 에이전트는 이 관찰을 직접 확인한 것과 동등하게 신뢰해도 된다.
+사실만 담는다 — 심각도·지적·권고·평가 금지.
+
+- `back/.../room/application/domain/Room.kt:145` — `const val MAX_MAX_ENTRIES_COUNT = 20` (라운드 1)
+- `back/.../room/application/domain/Room.kt:83-96` — `join(playerId)`: PLAYING 거부, 정원 초과 거부, 이미 멤버면 `ConflictException`, 아니면 entries 추가 후 `RoomJoinedEvent` 등록 (라운드 1)
+- `back/.../room/application/domain/Room.kt:133-140` — `leave(playerId)`: entries에서 제거된 경우에만 `RoomLeftEvent` 등록, 멤버가 아니면 이벤트 없이 반환 (라운드 1)
+- `back/.../room/in/RoomEventListener.kt:37-64` — `JOINED`/`LEFT` 메시지는 각각 `RoomJoinedEvent`/`RoomLeftEvent`의 AFTER_COMMIT 리스너에서만 Redis 채널로 발행 (라운드 1)
+- `back/.../infrastructure/web/RoomJoinChannelInterceptor.kt:45-63` — CONNECT 시 기존 활성 세션이 **같은 방**이면 `cancelPendingLeave`만 호출하고 `join`/`leave`를 호출하지 않으며, sessionId가 다르면 `SESSION_REPLACED`만 발행. 기존 세션이 **다른 방**이면 옛 방 `leave` → 새 방 `join` 호출(각각 LEFT/JOINED 발생). 활성 세션이 없으면 `cancelPendingLeave`가 true(유예 중 재접속)일 때 `join`을 호출하지 않고, false일 때만 `join` 호출 (라운드 1)
+- `back/.../room/application/RoomService.kt:181-200` — `sweepDueLeaves`는 만료 예약을 claim한 뒤 `leave` 호출(→ `LEFT` 발행) (라운드 1)
+- `front/app/hooks/useRoomSubscription.ts:114-120` — `appendMessage`가 id 부여·300 상한 절단을 하며 `setMessages`로 새 배열을 만든다. 파일 내 `setMessages` 호출은 이 함수뿐 (라운드 1)
+- `front/app/hooks/useRoomSubscription.ts:143-192` — 이벤트 분기: `JOINED`는 `players`에 중복 없이 추가 + system 메시지; `SESSION_REPLACED`는 본인일 때만 `deactivate()`, 타인은 아무 처리 없음; `LEFT`는 본인이면 정리/이탈, 타인이면 `players`에서 제거 + system 메시지; `CHAT`은 `senderId: event.playerId`로 `appendMessage` (라운드 1)
+- `front/app/hooks/useRoomSubscription.ts:245-262` — `subscriptionRef.current`가 없을 때만 `client.subscribe` 후 `fetchRoomDetail` 호출. 응답 시 `setPlayers(detail.players)`로 목록을 통째로 교체 (라운드 1)
+- `front/app/hooks/useRoomSubscription.ts:264-276` — 이펙트 cleanup은 100ms 지연 후 구독 해제·leave 발행; 재실행 시 `clearPendingTimeout()`(:236)으로 취소 (라운드 1)
+- `front/app/components/ui/ChatMessageList.tsx:7-23` — `NEON_COLORS` 4개 리터럴 배열, `nicknameColor(senderId) = NEON_COLORS[senderId % 4]` (라운드 1)
+- `front/app/components/ui/ChatMessageList.tsx:38,53,99-101` — `ChatMessageItem`은 `memo`, 닉네임 span에 `nicknameColor(msg.senderId)` 클래스, 목록 key는 `msg.id` (라운드 1)
+- `front/app/utils/ChatMessage.ts:8-13` — `ChatMessage`는 `id, timestamp, type:'message', senderId, senderNickname, content`. 색 관련 필드 없음 (라운드 1)
+- `front/app/utils/RoomDetailResponse.ts:3-7,19-28` — `RoomMemberResponse {id, nickname, isMaster}`, `RoomDetailResponse.players: RoomMemberResponse[]` (라운드 1)
+- `front/app/app.css:1-25` — `@import "tailwindcss"` 후 `@theme { ... }` 블록(`static` 키워드 없음). `--color-background: #0a0a0f`, `--color-neon-cyan: #22d3ee`, `--color-neon-purple: #a78bfa`, `--color-neon-pink: #f472b6`, `--color-neon-green: #34d399` (라운드 1)
+- `front/app 전체 grep "neon-"` — `ChatMessageList.tsx` 외 `.tsx` 파일에서 71줄 사용 (라운드 1)
+- `front/node_modules/tailwindcss/package.json` — 설치 버전 `4.0.9`; `dist/lib.js`에 문자열 `"static"`이 16회 등장(테마 옵션 키워드) (라운드 1)
+- `design.md:107-118 hex 표를 표준 OKLab 행렬로 변환(변환기는 #ff0000→(L 0.628, C 0.2577, H 29.23), #0000ff→(0.452, 0.3132, 264.05)로 검증)` — 슬롯별 OKLCH: 0 `#00ddd9` L0.811 H192.4 / 1 `#ff9469` L0.771 H42.3 / 2 `#9bc432` L0.764 H124.4 / 3 `#bdc1fe` L0.829 H281.4 / 4 `#eca010` L0.762 H74.3 / 5 `#32d782` L0.778 H154.9 / 6 `#59daff` L0.831 H220.2 / 7 `#e9a8ce` L0.804 H343.4 / 8 `#fe968d` L0.780 H25.6 / 9 `#f99743` L0.764 H57.8 / 10 `#d6ac00` L0.760 H91.1 / 11 `#bdb800` L0.762 H107.8 / 12 `#71cf5c` L0.771 H140.1 / 13 `#00daa7` L0.789 H168.2 / 14 `#00dcc1` L0.801 H179.6 / 15 `#00dff4` L0.826 H206.9 / 16 `#82d2ff` L0.829 H234.5 / 17 `#a0cbff` L0.830 H253.5 / 18 `#d6b4ea` L0.817 H312.8 / 19 `#f79daf` L0.791 H6.9. L 범위 0.760~0.831. `#22d3ee`(neon-cyan)의 OKLCH 색상은 211.53° (라운드 1)
+- `design.md:107-118 hex 표 색상 거리 계산` — 슬롯 0~7 중 최소 쌍 색상차 27.8°(슬롯 0–6), 슬롯 0~9 중 최소 15.5°(슬롯 1–9). 슬롯 4의 앞 슬롯 최근접 32.1°(슬롯 1), 슬롯 5는 30.5°(슬롯 2), 슬롯 6은 27.8°(슬롯 0). 슬롯 3까지 배정된 시점에 미배정 색상 중 슬롯 7(343.4°)의 최근접 배정색 거리는 58.9° (라운드 1)
+- `design.md:107-118 hex 표 WCAG 대비(배경 #0a0a0f)` — 최소 8.97:1(슬롯 9 `#f99743`), 최대 12.13:1(슬롯 6). 10:1 미만인 슬롯: 1, 2, 4, 8, 9, 10, 11, 19 (8개) (라운드 1)
+- `design.md:120-131 hex 표(라운드 2 시점 표)를 표준 OKLab 행렬로 변환(변환기는 #ff0000→(L 0.628, C 0.2577, H 29.23), #0000ff→(0.452, 0.3132, 264.05)로 검증)` — 20개 슬롯 전부 L 0.769~0.771. 실측 색상(°): 0 31.3 / 1 211.6 / 2 103.5 / 3 283.2 / 4 67.3 / 5 139.5 / 6 175.8 / 7 247.5 / 8 319.4 / 9 355.5 / 10 13.6 / 11 49.5 / 12 85.7 / 13 121.3 / 14 157.5 / 15 193.5 / 16 229.8 / 17 266.0 / 18 301.2 / 19 337.7. 표의 색상 값과 실측 차이 최대 0.48°(슬롯 17). 표의 채도·대비 열과 실측 일치(소수 둘째 자리) (라운드 2)
+- `design.md:120-131 hex 표 색상 거리 계산` — 슬롯 0~7 및 0~9의 최소 쌍 색상차 35.74°(슬롯 3–7). 전체 20개 최소 17.22°(슬롯 3–17) (라운드 2)
+- `design.md:120-131 hex 표 WCAG 대비(배경 #0a0a0f)` — 최소 8.85:1(슬롯 9 `#ff87b8`), 최대 10.17:1(슬롯 14). 20개 전부 7:1 초과 (라운드 2)
+- `design.md:112 배치 규칙 수동 재현` — 격자 211.5°+18°k의 짝수점 집합 {31.5, 67.5, 103.5, 139.5, 175.5, 211.5, 247.5, 283.5, 319.5, 355.5}에 "가장 먼 색 다음, 동률은 작은 색상" 탐욕을 적용하면 31.5→211.5→103.5→283.5→67.5→139.5→175.5→247.5→319.5→355.5. 홀수점은 전부 배정된 짝수점과 18° 거리라 동률이며 오름차순 13.5→…→337.5. 표의 슬롯 0~19 색상(°) 열과 동일 (라운드 2)
+- `front/app/utils/stomp.ts:12-19` — `new Client({ brokerURL, connectHeaders: { roomId, password? }, reconnectDelay: 0 })`. 자동 재연결 없음 (라운드 2)
+- `front/app/stores/RoomConnectionStore.ts:1-16` — zustand 스토어에 `client`, `roomId`, `setConnection`, `clear`만 있음. 재연결·재구독 로직 없음 (라운드 2)
+- `front/app/hooks/useRoomSubscription.ts:235-277` — 이펙트 본문: `clearPendingTimeout()` → `isDeactivatedRef`면 return → `!client || storeRoomId !== roomId`면 `navigate("/")` → `subscriptionRef.current` 없을 때만 구독+`fetchRoomDetail`. 파일 전체에 `onConnect`/재구독 처리 없음. `handleEventRef.current`는 매 렌더 재대입되는 ref 콜백 (라운드 2)
+- `back/.../room/in/RoomStompController.kt:61-77` — `/rooms/chat`는 세션 속성(playerId, roomId, nickname)만으로 `RoomChatEventMessage`를 만들어 `redisTemplate.convertAndSend`로 즉시 발행한 뒤 `roundService.submitAnswer` 호출. 방 멤버십 조회 없음. 트랜잭션 어노테이션 없음 (라운드 2)
+- `design.md:107-118 hex 표(라운드 3 시점)` — 슬롯 0~19 hex 값 20개가 라운드 2 시점 표(`design-review-decisions.md` 재생성 표)와 전부 동일. 라운드 2 실측 항목(색상·거리·대비)이 그대로 적용됨 (라운드 3)
+- `front/app/utils/ChatMessage.ts:1-22` — `ChatMessage`(type 'message')와 `SystemMessage`(type 'system', eventType 'join'|'leave'|'start'|'end')의 유니온 `RoomChatMessage`를 default export. `ChatMessageList.tsx:4,31,65`·`useRoomSubscription.ts:8,64,69,91,115`가 이 타입을 사용 (라운드 3)
+- `front/node_modules/tailwindcss/dist/lib.js` — `markUsedVariable` 3회 등장. 스캔된 후보 문자열이 `--`로 시작하면 `theme.markUsedVariable(x)`를 호출하고, 해당 변수의 options에 비트 16을 세움. `var(...)` 참조 해석 시 options&2 인 경우 폴백 값을 함께 출력 (라운드 3)

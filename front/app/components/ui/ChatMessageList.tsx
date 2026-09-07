@@ -3,13 +3,39 @@ import UsersIcon from "~/assets/users.svg?react";
 import useStickToBottom from "~/hooks/useStickToBottom";
 import type RoomChatMessage from "~/utils/ChatMessage";
 import type { SystemMessage } from "~/utils/ChatMessage";
+import { CHAT_COLOR_SLOT_COUNT } from "~/utils/ColorSlotAllocator";
 
-const NEON_COLORS = [
-    "text-neon-cyan",
-    "text-neon-purple",
-    "text-neon-pink",
-    "text-neon-green",
-] as const;
+/**
+ * 닉네임 색 슬롯 → Tailwind 클래스. `useRoomSubscription`이 메시지에 찍은 `colorSlot`으로
+ * 인덱싱한다.
+ *
+ * 반드시 **리터럴 배열**이어야 한다. Tailwind v4는 소스를 스캔해 문자 그대로 등장한 클래스만
+ * 생성하고, 기본 `@theme`는 사용된 변수만 CSS로 내보낸다. 템플릿 문자열로 `text-chat-` + slot을
+ * 조립하거나 `style`에 `var(--color-chat-N)`을 조립해 넣으면 스캔에 걸리지 않아 클래스도
+ * 변수도 만들어지지 않는다. 슬롯 수를 바꾸면 `app.css`의 `--color-chat-*`와 함께 늘린다.
+ */
+const CHAT_COLORS = [
+    "text-chat-0",
+    "text-chat-1",
+    "text-chat-2",
+    "text-chat-3",
+    "text-chat-4",
+    "text-chat-5",
+    "text-chat-6",
+    "text-chat-7",
+    "text-chat-8",
+    "text-chat-9",
+    "text-chat-10",
+    "text-chat-11",
+    "text-chat-12",
+    "text-chat-13",
+    "text-chat-14",
+    "text-chat-15",
+    "text-chat-16",
+    "text-chat-17",
+    "text-chat-18",
+    "text-chat-19",
+] as const satisfies readonly string[] & { length: typeof CHAT_COLOR_SLOT_COUNT };
 
 const SYSTEM_MESSAGE_TEXT: Record<SystemMessage["eventType"], string> = {
     join: "입장했습니다",
@@ -18,8 +44,8 @@ const SYSTEM_MESSAGE_TEXT: Record<SystemMessage["eventType"], string> = {
     end: "게임을 종료했습니다",
 };
 
-function nicknameColor(senderId: number): string {
-    return NEON_COLORS[senderId % NEON_COLORS.length];
+function nicknameColor(colorSlot: number): string {
+    return CHAT_COLORS[colorSlot];
 }
 
 function formatTime(timestamp: string): string {
@@ -50,7 +76,7 @@ const ChatMessageItem = memo(function ChatMessageItem({ msg }: ChatMessageItemPr
             <UsersIcon className="size-8 rounded-full border border-zinc-600 shrink-0 mt-0.5" />
             <div className="flex flex-col min-w-0">
                 <div className="flex items-baseline gap-2">
-                    <span className={`font-semibold text-sm ${nicknameColor(msg.senderId)}`}>
+                    <span className={`font-semibold text-sm ${nicknameColor(msg.colorSlot)}`}>
                         {msg.senderNickname}
                     </span>
                     <span className="text-zinc-600 text-xs">{formatTime(msg.timestamp)}</span>
