@@ -6,6 +6,8 @@ export default function LoginView() {
     const redirectUrlString = searchParams.get("redirectUrl")
     const redirectUrl = redirectUrlString ? new URL(redirectUrlString) : null
 
+    // 외부 origin 차단이 기본값 대체보다 먼저다. 잘못된 링크를 조용히 "/"로 흘려보내면
+    // 사용자가 진입 경로가 틀렸다는 사실을 알 길이 없다.
     if (redirectUrl && redirectUrl.origin !== window.location.origin) {
         return (
             <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-background">
@@ -37,7 +39,7 @@ export default function LoginView() {
                     style={{ boxShadow: "0 0 20px rgba(88, 101, 242, 0.3)" }}
                     onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 35px rgba(88, 101, 242, 0.5)" }}
                     onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 20px rgba(88, 101, 242, 0.3)" }}
-                    onClick={() => goToDiscordLogin(redirectUrl)}
+                    onClick={() => goToDiscordLogin(redirectUrl?.href ?? "/")}
                 >
                     <DiscordIcon className="size-6" />
                     Discord로 시작하기
@@ -68,15 +70,17 @@ function NeonBackground() {
     )
 }
 
-function goToDiscordLogin(redirectUrl: URL | null) {
+function goToDiscordLogin(target: string) {
     const loginPage = window.open(`${import.meta.env.VITE_SERVER_BASE_URL}/oauth2/authorization/discord`)
 
-    if (redirectUrl) {
-        const checkLoginPageClosed = setInterval(() => {
-            if (!loginPage || loginPage.closed) {
-              clearInterval(checkLoginPageClosed);
-              window.location.href = redirectUrl.href
-            }
-          }, 500);
-    }
+    // 감시는 복귀 주소 유무와 무관하게 항상 돈다. 예전처럼 `if (redirectUrl)` 안에 두면
+    // 복귀 주소 없이 도착한 사용자는 로그인에 성공해도 화면이 그대로 멈춘다.
+    // loginPage가 null(팝업 차단)이면 첫 틱에 닫힘으로 판정해 로그인 없이 이동하는데,
+    // 이 동작은 이번 범위 밖이며 후속 change(같은 탭 리다이렉트 전환)에서 사라진다.
+    const checkLoginPageClosed = setInterval(() => {
+        if (!loginPage || loginPage.closed) {
+          clearInterval(checkLoginPageClosed);
+          window.location.href = target
+        }
+      }, 500);
 }

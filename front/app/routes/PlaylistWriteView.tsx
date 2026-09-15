@@ -62,6 +62,11 @@ export default function PlaylistWriteView() {
 			} else {
 				setRepresentativeIndex(null)
 			}
+		}).catch(error => {
+			// 남의 플레이리스트 수정 URL로 직접 들어오면 403이다. 빈 편집 화면에 남겨두지 않는다.
+			const axiosError = error as AxiosError<{message: string}>;
+			toast.error(axiosError.response?.data?.message ?? "플레이리스트를 불러오지 못했습니다.");
+			navigate("/playlists");
 		})
 
 	}, [playlistId]);

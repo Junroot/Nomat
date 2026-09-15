@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import useRoomConnectionStore from "~/stores/RoomConnectionStore";
 import useMeStore from "~/stores/MeStore";
 import { fetchRoomDetail } from "~/utils/api";
@@ -279,6 +281,12 @@ export default function useRoomSubscription(roomId: number): UseRoomSubscription
                     if (detail.round) {
                         dispatchRound({ type: "HYDRATE", snapshot: detail.round });
                     }
+                })
+                .catch((error) => {
+                    // 방 멤버가 아닌 상태의 방 조회는 403이다. 미처리 rejection을 남기지 않는다.
+                    const axiosError = error as AxiosError<{ message: string }>;
+                    toast.error(axiosError.response?.data?.message ?? "방 정보를 불러오지 못했습니다.");
+                    navigate("/");
                 })
                 .finally(() => setIsLoading(false));
         }
