@@ -49,15 +49,6 @@ interface RoundStateStore {
     fun onPlayerLeft(roomId: Long, playerId: Long): PassOutcome
 
     /**
-     * 지금 이 참가자가 현재 라운드의 포기 상태인지 — 정답 판정 게이트가 쓰는 읽기 경로.
-     *
-     * 포기 집합은 **`passSeq == roundSeq`일 때만 유효하다**(lazy reset 계약). 불일치면 이전 라운드의
-     * 잔재이므로 포기 상태가 아닌 것으로 본다. 유효성 판정과 멤버십 조회는 **하나의 원자 연산**이어야
-     * 한다 — 별도 왕복으로 나누면 그 사이에 라운드가 전이돼 판정이 뒤집힐 수 있다.
-     */
-    fun isPassing(roomId: Long, playerId: Long): Boolean
-
-    /**
      * 재접속 복원·sweeper 판단용 현재 라운드 스냅샷. 라운드 상태가 없으면 null.
      *
      * [viewerId]를 주면 그 참가자 기준으로 [RoundSnapshot.passing]을 채운다. 누가 포기했는지는

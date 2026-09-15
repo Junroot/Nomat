@@ -25,7 +25,7 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Duration
 
 /**
- * 포기 신호가 `RoundService`를 통과할 때의 계약 — 정답 판정 제외, 라운드/게임 경계의 잔재 폐기,
+ * 포기 신호가 `RoundService`를 통과할 때의 계약 — 정답 판정과의 직교성, 라운드/게임 경계의 잔재 폐기,
  * 스냅샷 복원, 포기로 끝난 라운드의 이후 진행.
  */
 @IntegrationTest
@@ -50,7 +50,7 @@ class RoomRoundPassIntegrationTest(
     }
 
     @Test
-    fun `포기 중인 참가자의 정답은 승자로 기록되지 않는다`() {
+    fun `포기 중인 참가자의 정답도 승자로 기록된다`() {
         val roomId = startedRoom(members = listOf(player, joiner))
         // 2명이라 임계는 2 — 한 명의 포기로는 라운드가 전이되지 않아 정답 판정만 따로 볼 수 있다.
         roundService.pass(roomId, joiner.id, currentRoundSeq(roomId))
@@ -58,24 +58,25 @@ class RoomRoundPassIntegrationTest(
         roundService.submitAnswer(roomId, joiner.id, currentTitle(roomId))
 
         val snapshot = roundStateStore.snapshot(roomId)!!
-        assertThat(snapshot.phase).isEqualTo(RoundPhase.OPEN)
-        assertThat(snapshot.winnerId).isNull()
-        assertThat(snapshot.scores.first { it.playerId == joiner.id }.score).isEqualTo(0)
-    }
-
-    @Test
-    fun `포기를 취소하면 정답 판정이 즉시 복원된다`() {
-        val roomId = startedRoom(members = listOf(player, joiner))
-        val roundSeq = currentRoundSeq(roomId)
-        roundService.pass(roomId, joiner.id, roundSeq)
-
-        roundService.pass(roomId, joiner.id, roundSeq)
-        roundService.submitAnswer(roomId, joiner.id, currentTitle(roomId))
-
-        val snapshot = roundStateStore.snapshot(roomId)!!
         assertThat(snapshot.phase).isEqualTo(RoundPhase.REVEAL)
         assertThat(snapshot.winnerId).isEqualTo(joiner.id)
         assertThat(snapshot.scores.first { it.playerId == joiner.id }.score).isEqualTo(1)
+    }
+
+    @Test
+    fun `승자는 포기 여부가 아니라 도착 순서로 갈린다`() {
+        // 포기한 쪽이 먼저 쳐도 그가 이긴다 — 포기는 임계 판정에만 쓰이고 채점 자격과 직교한다.
+        val roomId = startedRoom(members = listOf(player, joiner))
+        roundService.pass(roomId, joiner.id, currentRoundSeq(roomId))
+        val title = currentTitle(roomId)
+
+        roundService.submitAnswer(roomId, joiner.id, title)
+        roundService.submitAnswer(roomId, player.id, title)
+
+        val snapshot = roundStateStore.snapshot(roomId)!!
+        assertThat(snapshot.winnerId).isEqualTo(joiner.id)
+        assertThat(snapshot.scores.first { it.playerId == joiner.id }.score).isEqualTo(1)
+        assertThat(snapshot.scores.first { it.playerId == player.id }.score).isEqualTo(0)
     }
 
     @Test

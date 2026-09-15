@@ -65,20 +65,14 @@ class RoundService(
      * 채팅을 정답으로 판정해 정답이면 `OPEN→REVEAL` CAS를 시도하고, 성공 시에만 `ROUND_REVEALED`를 발행한다.
      * 채팅 원문 방송은 호출자(`RoomStompController`)가 정답 여부와 무관하게 항상 수행하므로 여기서는 전이만 담당한다.
      *
-     * **포기 중인 참가자는 그 라운드의 정답 판정에서 제외된다.** 대가가 없으면 "일단 누르고 계속 추측"이
-     * 손해 없는 지배 전략이 되어 매 라운드가 조기 종료되고, 임계가 의미를 잃는다. 취소하면 즉시 복원된다.
-     * 이 게이트는 채팅 원문 방송에 영향을 주지 않는다 — 방송은 호출자가 이미 수행했고, 포기한 사람의
-     * 잡담·반응은 그대로 살아 있어야 한다(빠지는 것은 게임이 아니라 그 라운드의 채점이다).
+     * **포기 여부는 여기서 보지 않는다.** 포기는 "이 라운드를 넘기자"는 투표이며 채점 자격과 직교한다 —
+     * 포기 상태는 오직 임계 판정(남은 인원의 2/3)에만 쓰인다. 한때 포기자를 판정에서 제외했으나
+     * 뒤집었다: 무시된 정답은 아무 피드백 없이 버려지고(침묵 실패), 그 원문은 이미 방송된 뒤라
+     * 다른 참가자가 그대로 따라 쳐 가로챘다(정답 유출). 여기에 포기 게이트를 되살리지 말 것.
      */
     fun submitAnswer(roomId: Long, playerId: Long, content: String) {
         val snapshot = roundStateStore.snapshot(roomId) ?: return
         if (snapshot.phase != RoundPhase.OPEN) {
-            return
-        }
-        // 정답 비교보다 앞에 둔다 — 포기자의 입력은 애초에 정답 후보가 아니다. 포기 여부 판정은
-        // `SISMEMBER` 단독이 아니라 `passSeq == roundSeq` 유효성과 함께 하나의 원자 연산으로 읽는다
-        // (불일치면 이전 라운드의 잔재이므로 포기 상태가 아니다).
-        if (roundStateStore.isPassing(roomId, playerId)) {
             return
         }
         val tracks = roomPlaylistTrackRepository.findByRoomId(roomId)

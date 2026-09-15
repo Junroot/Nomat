@@ -112,15 +112,6 @@ private class RoundStateStoreImpl(
         return parsePass(raw)
     }
 
-    override fun isPassing(roomId: Long, playerId: Long): Boolean {
-        val raw = redisTemplate.execute(
-            IS_PASSING_SCRIPT,
-            listOf(RoundRedisKeys.round(roomId), RoundRedisKeys.passes(roomId)),
-            playerId.toString(),
-        )
-        return raw == 1L
-    }
-
     override fun snapshot(roomId: Long, viewerId: Long?): RoundSnapshot? {
         val hash = redisTemplate.opsForHash<String, String>().entries(RoundRedisKeys.round(roomId))
         if (hash.isEmpty()) {
@@ -448,18 +439,6 @@ private class RoundStateStoreImpl(
             return '2|' .. passed .. '|' .. required .. '|0|' .. seq
             """.trimIndent(),
             String::class.java,
-        )
-
-        // 정답 판정 게이트가 쓰는 읽기 경로 — `passSeq == roundSeq` 유효성과 SISMEMBER를 한 번의 원자 실행으로 본다.
-        // 별도 왕복으로 나누면 그 사이에 라운드가 전이돼 판정이 뒤집힐 수 있다.
-        private val IS_PASSING_SCRIPT = DefaultRedisScript(
-            """
-            if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
-            local passSeq = redis.call('HGET', KEYS[1], 'passSeq')
-            if not passSeq or passSeq ~= redis.call('HGET', KEYS[1], 'roundSeq') then return 0 end
-            return redis.call('SISMEMBER', KEYS[2], ARGV[1])
-            """.trimIndent(),
-            Long::class.javaObjectType,
         )
 
         @Suppress("UNCHECKED_CAST")
