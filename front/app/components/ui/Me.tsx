@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import UserIcon from "~/assets/user.svg?react";
 import "./Me.css"
 import MeStore from "~/stores/MeStore";
-import { fetchMe } from "~/utils/api";
 import { getRegistrationCode } from "~/utils/registrationCode";
 
 interface MeProperties {
@@ -10,15 +9,13 @@ interface MeProperties {
 }
 
 export default function Me({ compact = false }: MeProperties) {
-    const meStore = MeStore()
-    if (!meStore.me) {
-        fetchMe()
-            .then(me => meStore.setMe(me))
-            .catch(() => {
-                window.location.href = `${window.location.origin}/login?redirectUrl=${window.location.href}`
-            })
-    }
-    const me = meStore.me
+    const me = MeStore((state) => state.me)
+    const ensureMe = MeStore((state) => state.ensureMe)
+
+    // compact 조기 반환보다 앞서야 훅 순서가 흔들리지 않는다.
+    useEffect(() => {
+        ensureMe()
+    }, [ensureMe])
 
     const nicknameRef = useRef<HTMLDivElement>(null);
     const defaultWidth = 56;

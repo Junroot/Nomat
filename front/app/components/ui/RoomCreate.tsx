@@ -82,6 +82,13 @@ export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}
                     );
                     setFavoriteLoaded(true);
                     setFavoriteLoading(false);
+                }).catch(() => {
+                    // 실패해도 loaded를 세운다 — loading만 내리면 이 이펙트가 다시 발화해
+                    // 같은 요청을 무한히 재시도한다. 비워 두면 스피너가 영구히 도는 대신,
+                    // 'all' 탭과 같은 모양으로 오류 문구를 띄운다.
+                    setFavoriteError("즐겨찾기 플레이리스트를 불러오지 못했습니다.");
+                    setFavoriteLoaded(true);
+                    setFavoriteLoading(false);
                 });
             }, 500);
         }
@@ -96,6 +103,10 @@ export default function RoomCreate({isOpen, onClose, onCreated, onRoomListStale}
                             title: p.title,
                         }))
                     );
+                    setMyLoaded(true);
+                    setMyLoading(false);
+                }).catch(() => {
+                    setMyError("내 플레이리스트를 불러오지 못했습니다.");
                     setMyLoaded(true);
                     setMyLoading(false);
                 });

@@ -18,11 +18,26 @@ const client = axios.create({
     withCredentials: true,
   });
 
+// 로그인 화면으로 보내는 유일한 주체. 다른 곳에서 /login으로 이동시키지 않는다 —
+// 주체가 둘이면 어느 응답이 마지막에 도착하느냐가 최종 주소를 결정해 복귀가 간헐적으로 깨진다.
+// 401(미인증)만 처리한다. 403(권한 없음)은 로그인해도 해결되지 않으므로 호출부가 처리한다.
+// 첫 호출만 이동시키고 나머지는 무시해, 동시에 401이 여러 건 와도 이동이 정확히 한 번 일어난다.
+// (전체 페이지 네비게이션이라 문서와 함께 플래그도 사라지므로 되돌리지 않는다.)
+let redirectingToLogin = false
+
+function redirectToLogin() {
+    if (redirectingToLogin) {
+        return
+    }
+    redirectingToLogin = true
+    window.location.href = `${window.location.origin}/login?redirectUrl=${encodeURIComponent(window.location.href)}`
+}
+
 client.interceptors.response.use(
     (response: AxiosResponse) => response,
     (error: AxiosError) => {
-        if (error.response?.status === 403) {
-            window.location.href = window.origin + "/login"
+        if (error.response?.status === 401) {
+            redirectToLogin()
         }
         return Promise.reject(error)
     }
