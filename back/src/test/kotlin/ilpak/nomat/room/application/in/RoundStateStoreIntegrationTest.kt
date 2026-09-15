@@ -347,16 +347,16 @@ class RoundStateStoreIntegrationTest(
     }
 
     @Test
-    fun `isPassing_라운드가 바뀌면 이전 라운드의 포기는 유효하지 않다`() {
+    fun `snapshot_라운드가 바뀌면 이전 라운드의 포기는 유효하지 않다`() {
         roundStateStore.start(roomId, futureSpecs(), setOf(1L, 2L, 3L))
         roundStateStore.togglePass(roomId, 1, 1L)
-        assertThat(roundStateStore.isPassing(roomId, 1L)).isTrue()
+        assertThat(roundStateStore.snapshot(roomId, 1L)!!.passing).isTrue()
 
         roundStateStore.tryAdvanceOnCorrect(roomId, 1, 2L)
 
         // `passes`에 1L이 남아 있어도 `passSeq != roundSeq`라 잔재로 취급해야 한다.
         assertThat(redisTemplate.opsForSet().members(RoundRedisKeys.passes(roomId))).containsExactly("1")
-        assertThat(roundStateStore.isPassing(roomId, 1L)).isFalse()
+        assertThat(roundStateStore.snapshot(roomId, 1L)!!.passing).isFalse()
     }
 
     @Test
@@ -372,7 +372,6 @@ class RoundStateStoreIntegrationTest(
         assertThat(snapshot.roundSeq).isEqualTo(1)
         assertThat(snapshot.passedCount).isEqualTo(0)
         assertThat(snapshot.passing).isFalse()
-        assertThat(roundStateStore.isPassing(roomId, 1L)).isFalse()
     }
 
     @Test

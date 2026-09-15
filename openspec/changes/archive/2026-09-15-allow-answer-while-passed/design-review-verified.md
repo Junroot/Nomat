@@ -1,0 +1,36 @@
+# 검증 사실 캐시
+
+이 루프 실행 중 실제 코드를 열어 확인한 관찰 사실. 코드는 루프 중 불변이므로
+같은 루프의 후속 에이전트는 이 관찰을 직접 확인한 것과 동등하게 신뢰해도 된다.
+사실만 담는다 — 심각도·지적·권고·평가 금지.
+
+- `back/src 및 front/app 전체 grep "isPassing"` — 참조는 7곳. `RoundService.kt:81`(호출), `RoundStateStore.kt:58`(포트 선언), `RoundStateStoreImpl.kt:115`(구현), `RoundStateStoreIntegrationTest.kt:353,359,375`(테스트). 프론트 0건 (라운드 1)
+- `RoundService.kt:73-93` — `submitAnswer`는 `snapshot(roomId)` → `phase != OPEN` return → `isPassing` return → `findByRoomId` → `AnswerMatcher.matches` → `tryAdvanceOnCorrect` 순. `isPassing` 블록은 78-83행(주석 3줄 + if 3줄) (라운드 1)
+- `RoundService.kt:64-72` — `submitAnswer` KDoc에 "**포기 중인 참가자는 그 라운드의 정답 판정에서 제외된다.**" 문단이 있고, 채팅 원문 방송은 호출자가 수행한다고 서술 (라운드 1)
+- `RoundService.kt` 전체 — `Logger`/`log` 선언 없음. 메트릭 계측 코드 없음 (라운드 1)
+- `RoundStateStore.kt:51-58` — `isPassing` KDoc은 "정답 판정 게이트가 쓰는 읽기 경로"로 서술하고 `passSeq == roundSeq` 원자 판정을 요구한다고 명시 (라운드 1)
+- `RoundStateStoreImpl.kt:115-122` — `isPassing`은 `IS_PASSING_SCRIPT`에 `KEYS=[round, passes]`, `ARGV=[playerId]`를 넘기고 `raw == 1L` 비교 (라운드 1)
+- `RoundStateStoreImpl.kt:453-463` — `IS_PASSING_SCRIPT`는 `EXISTS round` → `HGET passSeq` → `passSeq == HGET roundSeq` → `SISMEMBER passes playerId`를 단일 Lua로 수행 (라운드 1)
+- `RoundStateStoreImpl.kt:124-156` — `snapshot(roomId, viewerId)`는 `HGETALL round` 1회 뒤 `passesValid = hash["passSeq"] != null && hash["passSeq"] == hash["roundSeq"]`를 계산하고, `passedCount`는 `SCARD`, `passing`은 `SISMEMBER`를 **각각 별도 왕복**으로 읽는다. 판별식 자체는 `IS_PASSING_SCRIPT`와 동일 (라운드 1)
+- `RoundStateStoreImpl.kt:263-271` — `RESET_STALE_PASSES` 조각은 `passSeq ~= tostring(seq)`면 `DEL passes` + `HSET passSeq seq`. `TOGGLE_PASS_SCRIPT`(404행)와 `ON_PLAYER_LEFT_SCRIPT`(441행)에서만 쓰인다 (라운드 1)
+- `RoundStateStoreImpl.kt:291-316` — `START_SCRIPT`는 `HDEL passSeq` + `DEL passes`를 라운드 Hash 초기화와 같은 실행 단위에서 수행 (라운드 1)
+- `RoundStateStoreImpl.kt:286-290` — `START_SCRIPT` 위 주석에 "그 참가자는 새 곡을 듣기도 전에 정답 판정에서 제외되고 임계가 0이 아닌 값에서 시작한다" 문장이 있음 (라운드 1)
+- `RoundStateStoreImpl.kt:361-385` — `ADVANCE_ON_CORRECT_SCRIPT`는 `passes`·`passSeq`를 읽거나 쓰지 않는다. `roundSeq`를 `seq+1`로 올리고 `phase=REVEAL`, `winnerId=ARGV[3]` 설정, 점수판에 있으면 `ZINCRBY 1` (라운드 1)
+- `RoundStateStoreImpl.kt:416` — 임계 판정식은 `passed * denominator >= remaining * numerator`이고 `PASS_NUMERATOR=2`, `PASS_DENOMINATOR=3` (256-257행) (라운드 1)
+- `RoundStateStoreImpl.kt:194-199` — `RoundRedisKeys.passes(roomId)`는 `start`(50행)·`passKeys`(198행, togglePass/onPlayerLeft 공용)·`snapshot`(134행)·`teardown`(186행)에서 사용 (라운드 1)
+- `RoomStompController.kt:62-77` — `chat()`은 `redisTemplate.convertAndSend(channel, ...)`로 원문을 먼저 publish한 뒤 `roundService.submitAnswer(...)`를 호출한다. 정답 여부로 방송을 분기하지 않음 (라운드 1)
+- `front/app/components/ui/ChatInput.tsx` 전체 — props는 `placeholder`·`onSend`·`passRoundSeq`·`onPass`뿐. `passed` 상태를 받지 않으며 입력 비활성화·안내 문구 분기가 없다 (라운드 1)
+- `front/app/components/ui/PassControl.tsx` 전체 — `passedCount`·`requiredCount`·`passed`·`onToggle`만 받아 토글 버튼을 그린다. 채점 관련 문구 없음 (라운드 1)
+- `front/app/routes/RoomView.tsx:176-190` — `PassControl`은 `round.phase === "OPEN"`일 때만 렌더되고, `ChatInput`의 `passRoundSeq`도 `OPEN`이 아니면 null. 입력창은 포기 여부와 무관 (라운드 1)
+- `front/app/hooks/roundReducer.ts:104-107` — `ROUND_STARTED` 처리에서 `passedCount: 0`, `requiredCount: 0`, `passed: false`로 초기화. `ROUND_REVEALED` 분기(110-124행)는 포기 필드를 건드리지 않음 (라운드 1)
+- `openspec/specs/room-game-session/spec.md:276` — `### Requirement: 포기 중인 참가자는 그 라운드의 정답 판정에서 제외된다` 존재. 시나리오 3개(승자 미기록/채팅 방송 유지/취소 시 복원) 보유 (라운드 1)
+- `openspec/specs/room-game-session/spec.md:131-195`와 change 델타의 `MODIFIED` 블록 diff — 차이는 첫 시나리오의 마지막 `AND` 한 줄뿐(`정답 채팅 원문은 일반 채팅으로 방송되지 않아야 한다` → `정답 채팅 원문도 다른 채팅과 동일하게 방송되어야 한다 — …`). 나머지 본문·표·시나리오는 바이트 동일 (라운드 1)
+- `openspec/specs/room-game-session/spec.md:242-275`(포기는 토글이며 라운드 경계에서 자동 해제된다) — `게임이 끝나고 다시 시작하면…` 시나리오의 THEN에 `그 참가자의 정답이 정상적으로 판정되어야 한다` 문구 포함. 이 change의 델타는 이 요구사항을 수정하지 않음 (라운드 1)
+- `openspec/specs/room-round-ui/spec.md` 전체 grep "정답 판정|포기" — 포기 게이트(채점 제외)를 규정하는 문장 없음. 25·29행은 "정답 판정은 서버가 수행", "서버는 라운드 단계와 무관하게 채팅을 방송하고 정답 판정만 OPEN에서 수행"만 서술 (라운드 1)
+- `npx openspec validate allow-answer-while-passed --strict` — `Change 'allow-answer-while-passed' is valid` (라운드 1)
+- `RoomRoundPassIntegrationTest.kt` 메서드 목록 — 53행 `포기 중인 참가자의 정답은 승자로 기록되지 않는다`, 67행 `포기를 취소하면 정답 판정이 즉시 복원된다`, 82행 `이전 라운드에서 포기했던 참가자도 다음 라운드에서는 정답이 인정된다`, 100행 `게임이 자연 종료된 뒤 다시 시작하면 포기 상태가 남아 있지 않다`, 120행 `OPEN 중 재접속 스냅샷은…`, 138행 `포기로 끝난 라운드도 다음 라운드로…` (라운드 1)
+- `RoomRoundPassIntegrationTest.kt:52-64` — 2인 방에서 joiner가 포기 후 정답 제출, `phase == OPEN`·`winnerId == null`·점수 0을 단언 (라운드 1)
+- `RoomRoundPassIntegrationTest.kt:82-97, 99-117` — 두 테스트 모두 포기 잔재 상태에서 `submitAnswer`가 **인정되는 것**(REVEAL 전이·winnerId·점수 1)을 단언한다 (라운드 1)
+- `RoundStateStoreIntegrationTest.kt:349-361` — `isPassing_라운드가 바뀌면 이전 라운드의 포기는 유효하지 않다`는 `togglePass` → `isPassing true` → `tryAdvanceOnCorrect` → `passes members containsExactly("1")` + `isPassing false` 순. 동시성 없이 순차 실행 (라운드 1)
+- `RoundStateStoreIntegrationTest.kt:362-376` — `start_이전 게임의 포기 상태는 새 게임으로 이월되지 않는다`의 단언은 `snapshot.roundSeq == 1`, `snapshot.passedCount == 0`, `snapshot.passing == false`, 그리고 **마지막 줄** `isPassing(roomId, 1L) == false` (라운드 1)
+- `RoomRoundPassStompIntegrationTest.kt:110-128` — `포기한 참가자의 채팅도 그대로 방송된다`가 보내는 채팅 내용은 `"이건 모르겠다"`(트랙 제목이 아님). 방송 수신만 단언하고 라운드 phase는 단언하지 않는다 (라운드 1)
